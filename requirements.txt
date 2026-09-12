@@ -1,0 +1,12 @@
+pandas
+geopandas
+numpy
+shapely
+pyarrow
+openpyxl
+matplotlib
+Pillow
+python-docx
+pyogrio
+fiona
+rtree

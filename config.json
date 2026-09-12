@@ -1,0 +1,33 @@
+{
+  "paths": {
+    "code": "code",
+    "doc": "doc",
+    "qa": "qa",
+    "data": "data",
+    "raw": "data/raw",
+    "pre": "data/pre",
+    "proc": "data/proc",
+    "out": "out",
+    "table": "out/table",
+    "fig": "out/fig",
+    "report": "out/report",
+    "qgis": "out/qgis"
+  },
+  "inputs": {
+    "gta_csv": "data/raw/gta/erich_car_gta.csv",
+    "municipalities": "data/raw/reference_maps/lml_municipio_a.parquet",
+    "states": "data/raw/reference_maps/lml_unidade_federacao_a.parquet",
+    "car_validated": "data/raw/simcar_validado/CAR_ATP.parquet",
+    "car_digital_master": "data/proc/simcar_digital/simcar_digital_march2026_geo_master.parquet",
+    "car_proxy_master": "data/proc/simcar_proxy/simcar_p_march2026_geo_master.parquet"
+  },
+  "car_pre": {
+    "simcar_validado": "car_validated",
+    "simcar_digital": "car_digital",
+    "simcar_proxy": "car_proxy"
+  },
+  "run": {
+    "cpu_fraction": 0.8,
+    "date": "20260818"
+  }
+}

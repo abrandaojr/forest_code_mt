@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Local environments
+.venv/
+venv/
+env/
+*.env
+.env
+
+# Temporary outputs
+out/_tmp*/
+out/*.aux
+out/*.log
+out/*.out
+out/*.toc
+
+# Browser automation scratch (SIMCAR PDF downloader)
+**/.edge_profile/
+.codex_tmp/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+desktop.ini
+~$*
+
