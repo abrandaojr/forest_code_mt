@@ -2,6 +2,8 @@
 
 Portable workflow for property-level Forest Code compliance in Mato Grosso.
 
+The property-level Excel model with raw source columns and live compliance formulas is documented in [code/excel_property_level](code/excel_property_level/README.md). The final workbooks are stored on [Google Drive](https://drive.google.com/drive/folders/1X8M8F8rexyvhcHty5VaR9f_bFl0fu8Ax).
+
 ## Method
 
 Input priority:
