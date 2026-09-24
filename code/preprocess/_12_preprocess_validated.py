@@ -182,10 +182,11 @@ def read_layers(layers_meta: pd.DataFrame) -> tuple[dict[str, pd.DataFrame], pd.
         print(f"  [{idx + 1}/{len(layers_meta)}] {row['label']} -> {row['short']}")
         try:
             if row["is_radam"]:
-                data = read_fito(row["path"], prefix="radam")
-                if data is not None:
-                    layer_list["radam"] = data
-                read_log.append({"label": row["label"], "status": "OK", "key": "radam", "rows": 0 if data is None else len(data)})
+                # Do not use the legacy CAR-clipped product here: it contains
+                # only the subset intersected in the old validated universe.
+                # The authoritative statewide RADAM is consumed through the
+                # independently rebuilt full-coverage product below.
+                read_log.append({"label": row["label"], "status": "REJECTED_PARTIAL", "key": "radam", "rows": 0})
             else:
                 data = read_sum(row["path"], out_col=row["short"])
                 layer_list[row["short"]] = data
@@ -198,16 +199,18 @@ def read_layers(layers_meta: pd.DataFrame) -> tuple[dict[str, pd.DataFrame], pd.
     # 41,696), so radam_total_ha collapses to 0 - and therefore BOTH the RL
     # requirement and the RL existing-vegetation allocation - for the other
     # 70%. This overrides it with an independently computed, full-coverage
-    # RADAM x property intersection (see G:\simcar_archive\claude_project_audit
+    # RADAM x property intersection (see the project audit trail
     # AUD-013 for the raster-based methodology and validation against 12 real
     # SIMCAR control CARs). Left in data/proc/, not data/raw/: it is a derived
     # product, not a declared/raw CAR input.
-    if FULL_COVERAGE_RADAM.exists():
-        data = read_fito(FULL_COVERAGE_RADAM, prefix="radam")
-        if data is not None:
-            layer_list["radam"] = data
-            read_log.append({"label": "radam_full_coverage_independent", "status": "OK", "key": "radam", "rows": len(data)})
-            print(f"  [override] full-coverage RADAM intersection applied ({len(data)} properties)")
+    if not FULL_COVERAGE_RADAM.exists():
+        raise FileNotFoundError(f"Required full-coverage RADAM intersection not found: {FULL_COVERAGE_RADAM}")
+    data = read_fito(FULL_COVERAGE_RADAM, prefix="radam")
+    if data is None:
+        raise RuntimeError(f"Invalid full-coverage RADAM intersection: {FULL_COVERAGE_RADAM}")
+    layer_list["radam"] = data
+    read_log.append({"label": "radam_full_coverage_independent", "status": "OK", "key": "radam", "rows": len(data)})
+    print(f"  [authoritative] full-coverage RADAM intersection applied ({len(data)} properties)")
 
     read_log_df = pd.DataFrame(read_log)
     base.save_json(read_log_df, "read_log.json")
@@ -222,7 +225,7 @@ def join_layers(car: pd.DataFrame, layer_list: dict[str, pd.DataFrame]) -> tuple
     # proportionally by RADAM forest:cerrado ratio - which (a) is derived from a
     # self-reported CAR figure rather than an independent measurement, and (b)
     # collapsed to 0 whenever radam_total_ha was 0 (see the old logic this
-    # replaced, preserved in git history / G:\simcar_archive\claude_project_audit
+    # replaced and preserved in the project audit trail
     # AUD-013). It is now taken directly from an independently computed
     # RADAM x PRODES-2024-native-vegetation intersection (same methodology the
     # proxy source already used via SIMCAR_P_..._nveg24.parquet - see
@@ -284,4 +287,3 @@ def run_fc_summary_mt_validado() -> dict[str, Any]:
 
 if __name__ == "__main__":
     run_fc_summary_mt_validado()
-

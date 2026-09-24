@@ -214,8 +214,8 @@ def preflight(pool: pt.ProxyPool, timeout: int) -> tuple[bool, str]:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Archive all public validated SIMCAR PDFs via a rotating Brazilian-ISP proxy pool.")
     parser.add_argument("--input", type=Path, default=Path("data/pre/car_proxy/car_atp_joined_20260818.csv"))
-    parser.add_argument("--output", type=Path, default=Path("G:/simcar_archive/validated_car_pdfs"))
-    parser.add_argument("--proxy-pool", type=Path, default=Path("G:/simcar_archive/working_proxies.json"))
+    parser.add_argument("--output", type=Path, default=Path("data/raw/simcar_documents/validated_car_pdfs"))
+    parser.add_argument("--proxy-pool", type=Path, default=Path("data/raw/simcar_documents/working_proxies.json"))
     parser.add_argument("--limit", type=int, default=0, help="0 means all eligible records")
     parser.add_argument("--timeout", type=int, default=30)
     parser.add_argument("--workers", type=int, default=6)

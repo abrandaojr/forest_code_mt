@@ -52,10 +52,7 @@ def run_core_pipeline() -> None:
 def run_reports() -> None:
     print("\n=== Raw-data provenance ===")
     load_module("_70_write_provenance", FINAL_CODE / "_70_write_provenance.py").main()
-    print("\n=== Final report and one-pagers ===")
-    load_module("_80_write_one_pager", FINAL_CODE / "_80_write_one_pager.py").build_png()
-    load_module("_80_write_one_pager_pt", FINAL_CODE / "_80_write_one_pager.py").build_png("pt")
-    load_module("_85_write_interactive_one_pager", FINAL_CODE / "_85_write_interactive_one_pager.py").main()
+    print("\n=== Final English-language report ===")
     load_module("_90_write_report", FINAL_CODE / "_90_write_report.py").main()
 
 

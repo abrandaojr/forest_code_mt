@@ -10,15 +10,20 @@ import shutil
 from pathlib import Path
 
 import pandas as pd
+from openpyxl import load_workbook
+from openpyxl.drawing.image import Image as XLImage
+from PIL import Image as PILImage
 
 import _00_paths as paths
 import _10_kernel as kernel
 import _40_build_maps as maps
 import _50_build_publication_tables as publication
+import _56_build_flow_figures as flow_figures
 import _80_write_one_pager as one_pager
+import _16_audit_spatial_inputs as input_audit
 
 
-DELIVERY_FIGURES = paths.ROOT / "delivery_2026-09-03" / "04_figures"
+DELIVERY_FIGURES = paths.FIGURES
 
 
 def regenerate() -> list[Path]:
@@ -98,9 +103,9 @@ def regenerate() -> list[Path]:
         paths.FIGURES / "Figure_08_mean_deficit_size.png",
     )
 
-    generated["fig09_municipal.png"] = one_pager.build_paper_map_panel(
-        one_pager.build_municipal_maps()
-    )
+    municipal_panels = one_pager.build_paper_map_panel(one_pager.build_municipal_maps())
+    generated["fig09a_municipal_outcomes_panel_1_of_2.png"] = municipal_panels[0]
+    generated["fig09b_municipal_outcomes_panel_2_of_2.png"] = municipal_panels[1]
     generated["fig10_vegetation.png"] = publication.save_vegetation_cover_figure(active)
     generated["fig11_secondary.png"] = publication.save_secondary_impact_figure(active)
     generated["fig12_rule2000.png"] = publication.save_cons2000_overall_figure(active)
@@ -119,7 +124,20 @@ def regenerate() -> list[Path]:
     for source in map_paths:
         generated[map_names[source.name]] = source
 
+    input_panels = input_audit.write_outputs(input_audit.load_inventory())
+    for panel_number, source in enumerate(input_panels, start=1):
+        generated[f"fig16_spatial_inputs_panel_{panel_number:02d}_of_{len(input_panels):02d}.png"] = source
+
     DELIVERY_FIGURES.mkdir(parents=True, exist_ok=True)
+    for obsolete in DELIVERY_FIGURES.glob("fig16*_spatial_inputs_panel_*.png"):
+        obsolete.unlink()
+    for obsolete_name in (
+        "board01_overview.png", "board02_app_rl.png", "board03_regularization.png",
+        "fig09_municipal.png",
+    ):
+        obsolete = DELIVERY_FIGURES / obsolete_name
+        if obsolete.exists():
+            obsolete.unlink()
     copied = []
     for final_name, source in generated.items():
         if source is None:
@@ -127,6 +145,34 @@ def regenerate() -> list[Path]:
         destination = DELIVERY_FIGURES / final_name
         shutil.copy2(source, destination)
         copied.append(destination)
+
+    flow_figures.style()
+    flow_data = flow_figures.load_data()
+    copied.extend([
+        flow_figures.waterfall(flow_data),
+        flow_figures.sankey(flow_data),
+        flow_figures.methodology(),
+    ])
+
+    workbook = publication.OUT_DIR / f"masson_style_final_tables_figures_{kernel.DATE}.xlsx"
+    if workbook.exists():
+        wb = load_workbook(workbook)
+        if "Figures_Index" in wb.sheetnames:
+            del wb["Figures_Index"]
+        ws = wb.create_sheet("Figures_Index")
+        ws.append(["figure", "path"])
+        row = 2
+        for figure in copied:
+            ws.append([figure.name, str(figure)])
+            with PILImage.open(figure) as source_image:
+                aspect = source_image.height / source_image.width
+            image = XLImage(str(figure))
+            image.width = 720
+            image.height = int(720 * aspect)
+            ws.add_image(image, f"D{row}")
+            row += max(24, int(image.height / 20) + 2)
+        publication.format_workbook_tables(wb)
+        wb.save(workbook)
     return copied
 
 

@@ -12,10 +12,10 @@ param(
 # runner_stalled_20260904_0623.log.bak in the output directory).
 $ErrorActionPreference = 'Continue'
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
-$Python = 'C:\Users\Amintas\anaconda3\python.exe'
+$Python = 'python'
 $Downloader = Join-Path $PSScriptRoot 'download_simcar_documents.py'
 $InputCsv = Join-Path $ProjectRoot 'data\pre\car_proxy\car_atp_joined_20260818.csv'
-$OutputDir = 'G:\simcar_archive\validated_car_pdfs'
+$OutputDir = 'data\raw\simcar_documents\validated_car_pdfs'
 $LogFile = Join-Path $OutputDir 'runner.log'
 
 New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null

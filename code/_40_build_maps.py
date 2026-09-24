@@ -22,9 +22,10 @@ ROOT = paths.ROOT
 OUT_DIR = paths.TABLES
 FIG_DIR = paths.FIGURES
 FIG_DIR.mkdir(parents=True, exist_ok=True)
-CHART_SIZE_IN = (7.5, 7.5)
-MAP_SIZE_IN = (7.5, 7.5)
-FIG_FONT_SIZE = 10
+CHART_SIZE_IN = (10.0, 5.4)
+MAP_SIZE_IN = (9.0, 6.2)
+FIG_FONT_SIZE = 12
+TITLE_FONT_SIZE = 18
 INPUT_ORDER = kernel.SOURCE_ORDER
 INPUT_LABELS = kernel.SOURCE_LABELS
 
@@ -93,12 +94,15 @@ def mun_code(df: pd.DataFrame) -> pd.Series:
 def save_bar(df: pd.DataFrame, x: str, y: str, title: str, path: Path, hue: str | None = None) -> Path:
     df = df.copy()
     plt.rcParams.update({
+        "font.family": "Arial",
         "font.size": FIG_FONT_SIZE,
         "axes.labelsize": FIG_FONT_SIZE,
         "xtick.labelsize": FIG_FONT_SIZE,
         "ytick.labelsize": FIG_FONT_SIZE,
         "legend.fontsize": FIG_FONT_SIZE,
         "legend.title_fontsize": FIG_FONT_SIZE,
+        "savefig.bbox": "tight",
+        "savefig.pad_inches": 0.08,
     })
     if x == "input_file_type" and x in df.columns:
         df[x] = pd.Categorical(df[x].astype(str), INPUT_ORDER, ordered=True)
@@ -115,7 +119,7 @@ def save_bar(df: pd.DataFrame, x: str, y: str, title: str, path: Path, hue: str 
             piv = piv.reindex(columns=INPUT_ORDER)
             piv.columns = [INPUT_LABELS.get(str(c), str(c)) for c in piv.columns]
         ax = piv.plot(kind="bar", stacked=False, ax=plt.gca(), width=0.8)
-        ax.set_xticklabels(wrapped_labels(piv.index.astype(str), width=14), rotation=25, ha="right", fontsize=9)
+        ax.set_xticklabels(wrapped_labels(piv.index.astype(str), width=14), rotation=0, ha="center", fontsize=FIG_FONT_SIZE)
         plt.legend(
             title="Input source" if hue == "input_file_type" else hue,
             loc="center left",
@@ -127,13 +131,14 @@ def save_bar(df: pd.DataFrame, x: str, y: str, title: str, path: Path, hue: str 
     else:
         plt.bar(labels, df[y], color="#2F6F4E")
         plt.gca().set_xticks(np.arange(len(labels)))
-        plt.gca().set_xticklabels(wrapped_labels(labels, width=14), rotation=25, ha="right", fontsize=9)
+        plt.gca().set_xticklabels(wrapped_labels(labels, width=14), rotation=0, ha="center", fontsize=FIG_FONT_SIZE)
     plt.ylabel(Y_LABELS.get(y, y.replace("_", " ")))
     plt.xlabel("")
     plt.gca().yaxis.set_major_formatter(FuncFormatter(comma_number))
     plt.gca().tick_params(axis="both", labelsize=FIG_FONT_SIZE)
-    plt.grid(False)
-    plt.tight_layout(rect=(0.0, 0.0, 0.74, 1.0) if hue and hue in df.columns else None)
+    plt.grid(axis="y", color="#DCE4E8", linewidth=.7)
+    plt.gca().set_axisbelow(True)
+    plt.tight_layout(rect=(0.02, 0.02, 0.80, 0.99) if hue and hue in df.columns else (0.02, 0.02, .99, .99))
     plt.savefig(path, dpi=300)
     plt.close()
     return path
@@ -215,11 +220,16 @@ def make_maps(mun_tbl: pd.DataFrame) -> list[Path]:
     gdf = mun.merge(mun_tbl, left_on="geocodigo", right_on="mun_geocodigo_norm", how="left")
 
     for col, title, cmap in [
-        ("total_deficit_ha", "Total Forest Code deficit by municipality", "YlOrRd"),
-        ("rl_adjusted_deficit_ha", "Adjusted Legal Reserve deficit by municipality", "YlGn"),
-        ("app_gross_deficit_ha", "APP gross deficit by municipality", "Blues"),
+        ("total_deficit_ha", "Total Forest Code deficit by municipality", "Oranges"),
+        ("rl_adjusted_deficit_ha", "Adjusted Legal Reserve deficit by municipality", "Oranges"),
+        ("app_gross_deficit_ha", "APP gross deficit by municipality", "Oranges"),
     ]:
-        gdf[col] = pd.to_numeric(gdf[col], errors="coerce").fillna(0)
+        scale_labels = {
+            "total_deficit_ha": "Total Forest Code deficit (hectares)",
+            "rl_adjusted_deficit_ha": "Adjusted Legal Reserve deficit (hectares)",
+            "app_gross_deficit_ha": "Gross APP deficit (hectares)",
+        }
+        gdf[col] = pd.to_numeric(gdf[col], errors="coerce")
         fig, ax = plt.subplots(figsize=MAP_SIZE_IN)
         gdf.plot(
             column=col,
@@ -228,7 +238,8 @@ def make_maps(mun_tbl: pd.DataFrame) -> list[Path]:
             linewidth=0.15,
             edgecolor="white",
             legend=True,
-            legend_kwds={"label": title + " (hectares)", "format": FuncFormatter(comma_number)},
+            legend_kwds={"label": scale_labels[col], "format": FuncFormatter(comma_number)},
+            missing_kwds={"color": "#D9D9D9", "edgecolor": "white", "label": "No matched properties"},
         )
         if not mt.empty:
             mt.boundary.plot(ax=ax, color="#333333", linewidth=0.8)

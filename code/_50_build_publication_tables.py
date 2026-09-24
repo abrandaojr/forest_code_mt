@@ -18,6 +18,7 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 from openpyxl.drawing.image import Image as XLImage
+from PIL import Image as PILImage
 
 import _00_paths as paths
 import _10_kernel as kernel
@@ -44,11 +45,12 @@ def first_existing(candidates: list[Path]) -> Path:
 
 MUN_GEOM = paths.MUNICIPALITIES
 UF_GEOM = paths.STATES
-FIG_SIZE_IN = (7.5, 7.5)
-CHART_SIZE_IN = (7.5, 7.5)
-MAP_SIZE_IN = (7.5, 7.5)
+FIG_SIZE_IN = (10.0, 5.4)
+CHART_SIZE_IN = (10.0, 5.4)
+MAP_SIZE_IN = (9.0, 6.2)
 FIG_DPI = 300
-FIG_FONT_SIZE = 10
+FIG_FONT_SIZE = 12
+TITLE_FONT_SIZE = 18
 TABLE_BODY_FONT_SIZE = 12
 TABLE_HEADER_FONT_SIZE = 14
 DISPLAY_CRS = "ESRI:102033"
@@ -87,6 +89,7 @@ def load_module(name: str, filename: str):
 
 
 fcm_gta = load_module("fcm_gta", "_30_build_gta.py")
+input_audit = load_module("input_audit", "_16_audit_spatial_inputs.py")
 
 
 SIZE_ORDER = [
@@ -148,18 +151,20 @@ def map_theme():
 
 def apply_map_style() -> None:
     theme = map_theme()
-    family = theme.typography.family if theme is not None else ("DejaVu Sans",)
     mpl.rcParams.update({
-        "font.family": family,
+        "font.family": "Arial",
         "font.size": FIG_FONT_SIZE,
         "axes.labelsize": FIG_FONT_SIZE,
         "xtick.labelsize": FIG_FONT_SIZE,
         "ytick.labelsize": FIG_FONT_SIZE,
         "legend.fontsize": FIG_FONT_SIZE,
         "legend.title_fontsize": FIG_FONT_SIZE,
+        "axes.titlesize": TITLE_FONT_SIZE,
         "axes.unicode_minus": False,
         "savefig.dpi": FIG_DPI,
         "savefig.facecolor": "white",
+        "savefig.bbox": "tight",
+        "savefig.pad_inches": 0.08,
         "figure.facecolor": "white",
         "axes.facecolor": "white",
     })
@@ -238,6 +243,15 @@ def compact_percent(value: float, _pos=None) -> str:
     if pd.isna(value):
         return ""
     return f"{float(value):,.0f}%"
+
+
+def abbreviated_number(value: float, _pos=None) -> str:
+    value = float(value)
+    if abs(value) >= 1_000_000:
+        return f"{value / 1_000_000:.0f}M"
+    if abs(value) >= 1_000:
+        return f"{value / 1_000:.0f}K"
+    return f"{value:.0f}"
 
 
 def axis_label(text: str) -> str:
@@ -343,10 +357,15 @@ def horizontal_xticks(ax: plt.Axes, labels: list[object] | pd.Series | None = No
     if labels is not None:
         wrapped = wrap_axis_labels(labels, width=width)
         ax.set_xticks(np.arange(len(wrapped)))
-        ax.set_xticklabels(wrapped, rotation=25, ha="right", fontsize=9)
+        ax.set_xticklabels(wrapped, rotation=0, ha="center", fontsize=FIG_FONT_SIZE)
     else:
         current = [tick.get_text() for tick in ax.get_xticklabels()]
-        ax.set_xticklabels(wrap_axis_labels(current, width=width), rotation=25, ha="right", fontsize=9)
+        ax.set_xticklabels(wrap_axis_labels(current, width=width), rotation=0, ha="center", fontsize=FIG_FONT_SIZE)
+
+
+def add_chart_title(ax: plt.Axes, title: str) -> None:
+    """Titles belong in captions and filenames, never inside final figures."""
+    return None
 
 
 def polish_chart(fig: plt.Figure, ax: plt.Axes, ylabel: str | None = None, percent: bool = False) -> None:
@@ -356,7 +375,8 @@ def polish_chart(fig: plt.Figure, ax: plt.Axes, ylabel: str | None = None, perce
     if ylabel:
         ax.set_ylabel(axis_label(ylabel), fontsize=FIG_FONT_SIZE, color="#333333")
     ax.tick_params(axis="both", labelsize=FIG_FONT_SIZE, colors="#333333")
-    ax.grid(False)
+    ax.grid(axis="y", color="#DCE4E8", linewidth=0.7)
+    ax.set_axisbelow(True)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
     ax.spines["left"].set_color("#777777")
@@ -368,24 +388,34 @@ def add_bar_labels(ax: plt.Axes, stacked_totals: np.ndarray | None = None) -> No
         threshold = max(stacked_totals, default=0) * 0.03
         for idx, total in enumerate(stacked_totals):
             if total >= threshold and total > 0:
-                ax.text(idx, total, compact_number(total), ha="center", va="bottom", fontsize=8, color="#333333")
+                ax.text(idx, total, compact_number(total), ha="center", va="bottom", fontsize=FIG_FONT_SIZE, color="#333333")
         return
     heights = [bar.get_height() for container in ax.containers for bar in container]
     threshold = max(heights, default=0) * 0.03
     for container in ax.containers:
         labels = [compact_number(bar.get_height()) if bar.get_height() >= threshold and bar.get_height() > 0 else "" for bar in container]
-        ax.bar_label(container, labels=labels, padding=2, fontsize=8, color="#333333")
+        ax.bar_label(container, labels=labels, padding=2, fontsize=FIG_FONT_SIZE, color="#333333")
 
 
 def place_legend_right(ax: plt.Axes, *args, **kwargs) -> None:
-    """Place a chart legend in the reserved right-hand rail."""
-    kwargs.update({"loc": "center left", "bbox_to_anchor": (1.02, 0.5), "frameon": False, "fontsize": FIG_FONT_SIZE})
+    """Place a compact legend above the plotting field to maximize data area."""
+    handles, _ = ax.get_legend_handles_labels()
+    kwargs.update({
+        "loc": "lower left",
+        "bbox_to_anchor": (0.0, 1.01),
+        "frameon": False,
+        "fontsize": FIG_FONT_SIZE,
+        "ncol": max(1, min(3, len(handles))),
+        "borderaxespad": 0.0,
+        "handlelength": 1.4,
+        "columnspacing": 1.2,
+    })
     ax.legend(*args, **kwargs)
 
 
 def square_chart_layout(fig: plt.Figure) -> None:
-    """Reserve the right quarter of the 7.5-inch square for legends."""
-    fig.subplots_adjust(left=0.16, right=0.70, bottom=0.24, top=0.94)
+    """Apply a consistent landscape editorial layout."""
+    fig.subplots_adjust(left=0.11, right=0.98, bottom=0.17, top=0.84)
 
 
 def mun_code(df: pd.DataFrame) -> pd.Series:
@@ -1126,15 +1156,17 @@ def table_cattle_metric(joined: pd.DataFrame, fn) -> pd.DataFrame:
 
 
 def save_stacked_bar(data: pd.DataFrame, x: str, cols: list[str], title: str, path: Path) -> Path:
+    data = data.loc[data[cols].fillna(0).sum(axis=1).gt(0)].copy()
     fig, ax = plt.subplots(figsize=CHART_SIZE_IN)
     fig.patch.set_facecolor("white")
     bottom = np.zeros(len(data))
-    colors = ["#2F6F4E", "#D08C2E", "#8C3B3B", "#3A6EA5"]
+    colors = ["#D8743C", "#6B7378", "#AEB5B9", "#D8DCDE"]
     labels = data[x].astype("object").where(pd.notna(data[x]), "Not Classified").astype(str).tolist()
     for col, color in zip(cols, colors):
         ax.bar(labels, data[col], bottom=bottom, label=col, color=color)
         bottom += data[col].to_numpy()
     polish_chart(fig, ax, "Area (ha)")
+    add_chart_title(ax, title)
     add_bar_labels(ax, stacked_totals=bottom)
     place_legend_right(ax)
     horizontal_xticks(ax, labels, width=14)
@@ -1149,9 +1181,11 @@ def save_grouped_bar(data: pd.DataFrame, x: str, y: str, hue: str, title: str, p
     data[x] = data[x].astype("object").where(pd.notna(data[x]), "Not Classified").astype(str)
     data[hue] = data[hue].astype("object").where(pd.notna(data[hue]), "Other").astype(str)
     piv = data.pivot_table(index=x, columns=hue, values=y, aggfunc="sum", fill_value=0)
-    ax = piv.plot(kind="bar", figsize=CHART_SIZE_IN, color=["#2F6F4E", "#3A6EA5", "#D08C2E", "#8C3B3B"])
+    piv = piv.loc[piv.sum(axis=1).gt(0), piv.sum(axis=0).gt(0)]
+    ax = piv.plot(kind="bar", figsize=CHART_SIZE_IN, color=["#D8743C", "#59666D", "#AEB5B9", "#D8DCDE"])
     ax.figure.patch.set_facecolor("white")
     polish_chart(ax.figure, ax, y)
+    add_chart_title(ax, title)
     add_bar_labels(ax)
     place_legend_right(ax)
     horizontal_xticks(ax, piv.index.astype(str), width=14)
@@ -1162,12 +1196,23 @@ def save_grouped_bar(data: pd.DataFrame, x: str, y: str, hue: str, title: str, p
 
 
 def save_pie_counts(data: pd.DataFrame, labels: pd.Series, title: str, path: Path) -> Path:
-    fig, ax = plt.subplots(figsize=CHART_SIZE_IN)
+    fig, ax = plt.subplots(figsize=(10.0, 2.2))
     fig.patch.set_facecolor("white")
     label_text = [f"{label} — {compact_number(value)}" for label, value in zip(labels, data)]
-    wedges, _, _ = ax.pie(data, labels=None, autopct="%1.1f%%", startangle=90, colors=["#2F6F4E", "#D08C2E", "#3A6EA5", "#8C3B3B"], textprops={"fontsize": FIG_FONT_SIZE, "color": "#222222"})
-    place_legend_right(ax, wedges, label_text)
-    square_chart_layout(fig)
+    values = np.asarray(data, dtype=float)
+    total = values.sum()
+    left = 0.0
+    for value, label, color in zip(values, labels, ["#7A858B", "#D8743C", "#AEB5B9", "#D8DCDE"]):
+        share = value / total * 100 if total else 0
+        ax.barh([0], [share], left=left, color=color, height=0.42)
+        ax.text(left + share / 2, 0, f"{label}\n{value:,.0f} ({share:.1f}%)",
+                ha="center", va="center", fontsize=FIG_FONT_SIZE, color="white", fontweight="bold")
+        left += share
+    ax.set_xlim(0, 100)
+    ax.set_ylim(-0.23, 0.23)
+    ax.set_axis_off()
+    add_chart_title(ax, title)
+    fig.subplots_adjust(left=.06, right=.98, bottom=.12, top=.96)
     fig.savefig(path, dpi=FIG_DPI, facecolor="white")
     plt.close(fig)
     return path
@@ -1218,6 +1263,7 @@ def make_pdf_style_maps(df: pd.DataFrame) -> list[Path]:
     for idx, ((col, title, cmap, unit), pos) in enumerate(zip(maps, positions)):
         ax = fig.add_axes(pos)
         ax.set_facecolor("white")
+        ax.set_title(title, loc="left", fontsize=FIG_FONT_SIZE, fontweight="bold", color=colors["ink"], pad=5)
         gdf[col] = pd.to_numeric(gdf[col], errors="coerce").fillna(0)
         plot = gdf.plot(
             column=col,
@@ -1270,7 +1316,7 @@ def save_study_area_map() -> Path | None:
         mt = mt.to_crs(DISPLAY_CRS)
     slots = map_layout("map-plus-metric")
     fig = plt.figure(figsize=MAP_SIZE_IN, facecolor=colors["paper"])
-    ax = fig.add_axes((slots.map_body.left, slots.map_body.bottom, slots.map_body.width, slots.map_body.height))
+    ax = fig.add_axes((0.05, 0.08, 0.90, 0.88))
     ax.set_facecolor("white")
     mun.plot(ax=ax, color=colors["context_fill"], edgecolor=colors["boundary_light"], linewidth=0.18)
     if not mt.empty:
@@ -1279,7 +1325,7 @@ def save_study_area_map() -> Path | None:
     if draw_scale_bar is not None and theme is not None:
         draw_scale_bar(ax, DISPLAY_CRS, "300 km", theme, length_m=300_000)
     area_mha = float(mt.geometry.area.sum() / 10_000 / 1_000_000) if not mt.empty else float(mun.geometry.area.sum() / 10_000 / 1_000_000)
-    if draw_legend is not None and LegendItem is not None and theme is not None:
+    if False and draw_legend is not None and LegendItem is not None and theme is not None:
         draw_legend(
             fig,
             (
@@ -1302,11 +1348,12 @@ def save_vegetation_cover_figure(df: pd.DataFrame) -> Path:
     data = pd.DataFrame({"Vegetation class": ["Forest", "Cerrado"], "Area (Mha)": [forest / 1e6, cerrado / 1e6]})
     fig, ax = plt.subplots(figsize=CHART_SIZE_IN)
     fig.patch.set_facecolor("white")
-    ax.bar(data["Vegetation class"], data["Area (Mha)"], color=["#1A6B35", "#D08C2E"])
+    ax.bar(data["Vegetation class"], data["Area (Mha)"], color=["#356B58", "#D39A3A"])
     polish_chart(fig, ax, "Area (million ha)")
+    add_chart_title(ax, "Figure 10: Native vegetation basis\nForest and Cerrado area intersecting active properties")
     for container in ax.containers:
         ax.bar_label(container, labels=[f"{bar.get_height():,.1f} million hectares" for bar in container], padding=2, fontsize=FIG_FONT_SIZE, color="#333333")
-    plt.tight_layout()
+    fig.subplots_adjust(left=.11, right=.98, bottom=.14, top=.96)
     path = FIG_DIR / "Figure_10_vegetation_cover.png"
     fig.savefig(path, dpi=FIG_DPI, facecolor="white")
     plt.close(fig)
@@ -1326,11 +1373,12 @@ def save_secondary_impact_figure(df: pd.DataFrame) -> Path:
     width = 0.36
     baseline = data["Baseline total liab. (ha)"].to_numpy()
     with_sec = data["With secondary total liab. (ha)"].to_numpy()
-    ax.bar(x - width / 2, baseline, width, label="Baseline", color="#3A6EA5")
-    ax.bar(x + width / 2, with_sec, width, label="Including secondary vegetation", color="#2F6F4E")
+    ax.bar(x - width / 2, baseline, width, label="Baseline", color="#AEB5B9")
+    ax.bar(x + width / 2, with_sec, width, label="Including secondary vegetation", color="#D8743C")
     ax.set_xticks(x)
-    ax.set_xticklabels(wrap_axis_labels(data["Input"], width=14), rotation=25, ha="right", fontsize=9)
+    ax.set_xticklabels(wrap_axis_labels(data["Input"], width=14), rotation=0, ha="center", fontsize=FIG_FONT_SIZE)
     polish_chart(fig, ax, "Total liability (ha)")
+    add_chart_title(ax, "Figure 11: Secondary vegetation sensitivity\nEstimated liability with and without secondary vegetation")
     add_bar_labels(ax)
     place_legend_right(ax)
     square_chart_layout(fig)
@@ -1351,12 +1399,13 @@ def save_cons2000_overall_figure(df: pd.DataFrame) -> Path:
     fig, ax = plt.subplots(figsize=CHART_SIZE_IN)
     fig.patch.set_facecolor("white")
     bottom = np.zeros(len(plot))
-    colors = ["#3A6EA5", "#D08C2E"]
+    colors = ["#59666D", "#D8743C"]
     for idx, col in enumerate(["Legal Reserve (ha)", "APP (ha)"]):
         vals = plot[col].to_numpy(dtype=float)
         ax.bar(plot["Scenario"], vals, bottom=bottom, label=col.replace(" (ha)", ""), color=colors[idx])
         bottom += vals
     polish_chart(fig, ax, "Total liability (ha)")
+    add_chart_title(ax, "Figure 12: Effect of the 2000 rule\nTotal liability under the two scenarios")
     for i, total in enumerate(bottom):
         ax.text(i, total, compact_number(total), ha="center", va="bottom", fontsize=FIG_FONT_SIZE, color="#333333")
     place_legend_right(ax)
@@ -1377,11 +1426,12 @@ def save_cons2000_size_figure(df: pd.DataFrame) -> Path:
     without = data["Without 2000 total liability (ha)"].to_numpy(dtype=float)
     fig, ax = plt.subplots(figsize=CHART_SIZE_IN)
     fig.patch.set_facecolor("white")
-    ax.bar(x - width / 2, baseline, width, label="With 2000 rule", color="#3A6EA5")
-    ax.bar(x + width / 2, without, width, label="Without 2000 rule", color="#8C3B3B")
+    ax.bar(x - width / 2, baseline, width, label="With 2000 rule", color="#AEB5B9")
+    ax.bar(x + width / 2, without, width, label="Without 2000 rule", color="#D8743C")
     ax.set_xticks(x)
-    ax.set_xticklabels(wrap_axis_labels(labels, width=14), rotation=25, ha="right", fontsize=9)
+    ax.set_xticklabels(wrap_axis_labels(labels, width=14), rotation=0, ha="center", fontsize=FIG_FONT_SIZE)
     polish_chart(fig, ax, "Total liability (ha)")
+    add_chart_title(ax, "Figure 13: Effect of the 2000 rule by property size\nTotal liability under the two scenarios")
     add_bar_labels(ax)
     place_legend_right(ax)
     square_chart_layout(fig)
@@ -1394,25 +1444,24 @@ def save_cons2000_size_figure(df: pd.DataFrame) -> Path:
 def save_supplier_subgroups_figure(joined: pd.DataFrame) -> Path:
     data = table_cattle_supplier_subgroups(joined)
     data = data[data["Macro Class"].astype(str).ne("Total")].copy()
-    data["Label"] = data["Macro Class"].astype(str) + "\n" + data["Subgroup"].astype(str)
+    data["Label"] = data["Subgroup"].astype(str)
     x = np.arange(len(data))
     width = 0.38
-    fig, ax1 = plt.subplots(figsize=CHART_SIZE_IN)
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=CHART_SIZE_IN, sharey=True)
     fig.patch.set_facecolor("white")
-    ax2 = ax1.twinx()
-    bars1 = ax1.bar(x - width / 2, data["Properties"].to_numpy(dtype=float), width, label="Properties", color="#3A6EA5")
-    bars2 = ax2.bar(x + width / 2, data["Cattle Head"].to_numpy(dtype=float), width, label="Cattle head", color="#D08C2E")
-    ax1.set_xticks(x)
-    ax1.set_xticklabels(wrap_axis_labels(data["Label"], width=16), rotation=25, ha="right", fontsize=8)
-    polish_chart(fig, ax1, "Properties")
-    ax2.set_ylabel("Cattle head", fontsize=FIG_FONT_SIZE, color="#222222")
-    ax2.yaxis.set_major_formatter(FuncFormatter(lambda v, pos: compact_number(v)))
-    ax2.tick_params(axis="y", labelsize=FIG_FONT_SIZE, colors="#222222")
-    handles = [bars1, bars2]
-    labels = [h.get_label() for h in handles]
-    square_chart_layout(fig)
-    fig.subplots_adjust(right=0.60)
-    fig.legend(handles, labels, loc="center left", bbox_to_anchor=(0.72, 0.5), frameon=False, fontsize=FIG_FONT_SIZE)
+    y = np.arange(len(data))
+    ax1.barh(y, data["Properties"].to_numpy(dtype=float), color="#59666D")
+    ax2.barh(y, data["Cattle Head"].to_numpy(dtype=float), color="#D8743C")
+    ax1.set_yticks(y, wrap_axis_labels(data["Label"], width=22), fontsize=FIG_FONT_SIZE)
+    ax1.invert_yaxis()
+    for ax, label in [(ax1, "Properties"), (ax2, "Cattle head")]:
+        ax.xaxis.set_major_formatter(FuncFormatter(abbreviated_number))
+        ax.set_xlabel(label, fontsize=FIG_FONT_SIZE)
+        ax.tick_params(labelsize=FIG_FONT_SIZE)
+        ax.grid(axis="x", color="#DCE4E8", linewidth=.7)
+        ax.spines[["top", "right", "left"]].set_visible(False)
+    ax2.tick_params(axis="y", left=False, labelleft=False)
+    fig.subplots_adjust(left=.22, right=.98, bottom=.14, top=.96, wspace=.12)
     path = FIG_DIR / "Figure_14_supplier_groups_subgroups.png"
     fig.savefig(path, dpi=FIG_DPI, facecolor="white")
     plt.close(fig)
@@ -1427,11 +1476,12 @@ def save_supplier_cons2000_figure(joined: pd.DataFrame) -> Path:
     width = 0.36
     fig, ax = plt.subplots(figsize=CHART_SIZE_IN)
     fig.patch.set_facecolor("white")
-    ax.bar(x - width / 2, data["Baseline total liability (ha)"].to_numpy(dtype=float), width, label="With 2000 rule", color="#3A6EA5")
-    ax.bar(x + width / 2, data["Without 2000 total liability (ha)"].to_numpy(dtype=float), width, label="Without 2000 rule", color="#8C3B3B")
+    ax.bar(x - width / 2, data["Baseline total liability (ha)"].to_numpy(dtype=float), width, label="With 2000 rule", color="#AEB5B9")
+    ax.bar(x + width / 2, data["Without 2000 total liability (ha)"].to_numpy(dtype=float), width, label="Without 2000 rule", color="#D8743C")
     ax.set_xticks(x)
-    ax.set_xticklabels(wrap_axis_labels(data["Supplier"].astype(str), width=14), rotation=25, ha="right", fontsize=9)
+    ax.set_xticklabels(wrap_axis_labels(data["Supplier"].astype(str), width=14), rotation=0, ha="center", fontsize=FIG_FONT_SIZE)
     polish_chart(fig, ax, "Total liability (ha)")
+    add_chart_title(ax, "Figure 15: 2000-rule effect by supplier tier\nTotal liability under the two scenarios")
     add_bar_labels(ax)
     place_legend_right(ax)
     square_chart_layout(fig)
@@ -1550,6 +1600,7 @@ def build_tables_and_figures() -> tuple[dict[str, pd.DataFrame], list[Path], Pat
     figure_paths.append(save_cons2000_size_figure(active))
     figure_paths.append(save_supplier_subgroups_figure(joined))
     figure_paths.append(save_supplier_cons2000_figure(joined))
+    figure_paths.extend(input_audit.write_outputs(input_audit.load_inventory()))
 
     workbook = OUT_DIR / f"masson_style_final_tables_figures_{kernel.DATE}.xlsx"
     return tables, figure_paths, workbook
@@ -1575,10 +1626,12 @@ def write_workbook(tables: dict[str, pd.DataFrame], figures: list[Path], workboo
     row = 2
     for fig in figures:
         img = XLImage(str(fig))
-        img.width = 540
-        img.height = 540
+        with PILImage.open(fig) as source_image:
+            aspect = source_image.height / source_image.width
+        img.width = 720
+        img.height = int(720 * aspect)
         ws.add_image(img, f"D{row}")
-        row += 30
+        row += max(24, int(img.height / 20) + 2)
     wb.save(workbook)
     return workbook
 
@@ -1612,10 +1665,10 @@ def format_workbook_tables(wb: Workbook) -> None:
             for cell in row:
                 cell.border = body_border
                 cell.alignment = Alignment(vertical="center", wrap_text=True)
-                cell.font = Font(name="Times New Roman", size=TABLE_BODY_FONT_SIZE)
+                cell.font = Font(name="Arial", size=TABLE_BODY_FONT_SIZE)
         for cell in ws[1]:
             cell.fill = header_fill
-            cell.font = Font(name="Times New Roman", size=TABLE_HEADER_FONT_SIZE, bold=True)
+            cell.font = Font(name="Arial", size=TABLE_HEADER_FONT_SIZE, bold=True)
             cell.border = header_border
             cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
         for row_idx in range(2, ws.max_row + 1):
@@ -1627,7 +1680,7 @@ def format_workbook_tables(wb: Workbook) -> None:
                 if fill:
                     cell.fill = fill
                 if is_total:
-                    cell.font = Font(name="Times New Roman", size=TABLE_BODY_FONT_SIZE, bold=True)
+                    cell.font = Font(name="Arial", size=TABLE_BODY_FONT_SIZE, bold=True)
                     cell.border = total_border
                 if isinstance(cell.value, (int, float)):
                     header = str(ws.cell(1, col_idx).value or "")

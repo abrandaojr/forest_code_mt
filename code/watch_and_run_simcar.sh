@@ -4,10 +4,10 @@
 # full run. Bounded to MAX_ATTEMPTS cycles so it does not spin forever.
 set -uo pipefail
 
-PYTHON="/c/Users/Amintas/anaconda3/python.exe"
+PYTHON="python"
 SCRIPT="code/download_simcar_documents.py"
 INPUT="data/pre/car_proxy/car_atp_joined_20260818.csv"
-OUTPUT="G:/simcar_archive/validated_car_pdfs"
+OUTPUT="data/raw/simcar_documents/validated_car_pdfs"
 LOG="$OUTPUT/watcher.log"
 INTERVAL_SECONDS=300
 MAX_ATTEMPTS=30   # 30 * 5min = 2.5h ceiling before giving up and reporting

@@ -242,6 +242,8 @@ def table_caption(sheet: str) -> str:
 
 def figure_caption(path: Path) -> str:
     stem = path.stem
+    if stem.startswith("Figure_16") and stem.endswith("_inputs"):
+        return "Spatial inputs used by the analysis; equivalent technical variants are consolidated."
     labels = {
         "chart_deficit_by_input": "Total deficit by input source; values are hectares.",
         "chart_deficit_by_size": "Total deficit by property-size class; values are hectares.",
@@ -311,6 +313,7 @@ def iter_result_figures() -> list[Path]:
         "Figure_13_cons2000_size_scenario.png",
         "Figure_14_supplier_groups_subgroups.png",
         "Figure_15_supplier_cons2000_scenario.png",
+        *[p.name for p in sorted(fig_dir.glob("Figure_16?_*.png"))],
         "chart_properties_by_input.png",
         "chart_deficit_by_input.png",
         "chart_supplier_by_input.png",

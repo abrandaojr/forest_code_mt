@@ -398,11 +398,35 @@ def build_match_table(layer_list: dict[str, pd.DataFrame], car: pd.DataFrame) ->
             "n_unique": len(keys),
             "matched": matched,
             "unmatched": len(car_keys) - matched,
+            "foreign_keys": len(keys - car_keys),
             "pct_match": round(matched / max(len(car_keys), 1) * 100, 1),
         })
     match_tbl = pd.DataFrame(rows)
     save_json(match_tbl, "match_table.json")
     return match_tbl
+
+
+def validate_exhaustive_intersections(match_tbl: pd.DataFrame) -> None:
+    """Fail closed for layers whose spatial domain must cover every CAR.
+
+    Sparse thematic layers (APP, rivers, settlements, declared areas, etc.) are
+    expected to have unmatched properties: absence is a legitimate zero. RADAM
+    is different because it partitions the full state into Forest/Cerrado and
+    therefore must match essentially the entire CAR universe.
+    """
+    exhaustive = {"radam": 99.9}
+    failures: list[str] = []
+    for layer, minimum in exhaustive.items():
+        row = match_tbl.loc[match_tbl["layer"].eq(layer)]
+        if row.empty:
+            failures.append(f"{layer}: missing intersection")
+            continue
+        coverage = float(row.iloc[0]["pct_match"])
+        foreign = int(row.iloc[0].get("foreign_keys", 0))
+        if coverage < minimum or foreign:
+            failures.append(f"{layer}: coverage={coverage:.1f}% foreign_keys={foreign}")
+    if failures:
+        raise RuntimeError("Exhaustive spatial-intersection audit failed: " + "; ".join(failures))
 
 
 def join_layers(car: pd.DataFrame, layer_list: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -653,6 +677,7 @@ def run_fc_summary_mt() -> dict[str, Any]:
     layer_list, read_log = read_layers(layers_meta)
     layer_list, dissolve_check = dissolve_layers(layer_list, car)
     match_tbl = build_match_table(layer_list, car)
+    validate_exhaustive_intersections(match_tbl)
     df, catalogue = join_layers(car, layer_list)
     overflows = diagnostics(df)
     df = compute_forest_code_metrics(df)
@@ -676,4 +701,3 @@ def run_fc_summary_mt() -> dict[str, Any]:
 
 if __name__ == "__main__":
     run_fc_summary_mt()
-

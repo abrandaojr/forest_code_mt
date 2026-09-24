@@ -39,7 +39,8 @@ MAP_RL_WITHOUT_2000_PATH = MAP_WORK_DIR / f"one_pager_map_legal_reserve_without_
 MAP_RL_WITHOUT_2000_HECTARES_PATH = (
     MAP_WORK_DIR / f"one_pager_map_legal_reserve_without_2000_rule_hectares_per_property_{TODAY}.png"
 )
-PAPER_MAP_PANEL_PATH = PAPER_FIG_DIR / "Figure_09_municipal_noncompliance_panel.png"
+PAPER_MAP_PANEL_PATH = PAPER_FIG_DIR / "Figure_09A_municipal_noncompliance_panel_1_of_2.png"
+PAPER_MAP_PANEL_2_PATH = PAPER_FIG_DIR / "Figure_09B_municipal_noncompliance_panel_2_of_2.png"
 
 
 def font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
@@ -69,8 +70,8 @@ COLORS = {
     "ink": "#1f2933",
     "muted": "#52616b",
     "line": "#c8d3dc",
-    "blue": "#174ea6",
-    "blue_light": "#e8f1ff",
+    "blue": "#30383d",
+    "blue_light": "#eff1f2",
     "green": "#197b55",
     "green_light": "#e9f7ef",
     "amber": "#9a5b00",
@@ -78,13 +79,15 @@ COLORS = {
     "red": "#a33131",
     "red_light": "#fdeaea",
     "gray_light": "#f5f7fa",
-    "direct_light": "#fff1f2",
-    "direct_mixed_light": "#fff7ed",
-    "gt50_light": "#fef3c7",
-    "tier1_light": "#eef2ff",
-    "tier2_light": "#ecfeff",
+    "direct_light": "#f3f4f4",
+    "direct_mixed_light": "#eeeeee",
+    "gt50_light": "#f5eee8",
+    "tier1_light": "#e9ecee",
+    "tier2_light": "#f6f6f6",
     "white": "#ffffff",
 }
+GRAY_SCALE = ["#F7F7F7", "#D9D9D9", "#BDBDBD", "#969696", "#636363", "#252525"]
+ORANGE_SCALE = ["#F7F7F7", "#FEE6CE", "#FDAE6B", "#F16913", "#A63603", "#5A1F00"]
 
 
 def fmt_num(value: float, digits: int = 0) -> str:
@@ -512,9 +515,11 @@ def build_municipal_maps() -> tuple[Path, Path, Path, Path, Path, Path, Path, Pa
         colors: list[str],
         path: Path,
         stats_text: str,
+        legend_title: str,
     ) -> None:
-        fig, ax = plt.subplots(figsize=(7.5, 7.5), dpi=170)
-        ax.set_position([0.03, 0.08, 0.65, 0.88])
+        plt.rcParams.update({"font.family": "Arial", "font.size": 12})
+        fig, ax = plt.subplots(figsize=(10, 7), dpi=170)
+        ax.set_position([0.03, 0.08, 0.58, 0.84])
         cmap = ListedColormap(colors)
         norm = BoundaryNorm(bins, cmap.N)
         mt.plot(
@@ -530,18 +535,19 @@ def build_municipal_maps() -> tuple[Path, Path, Path, Path, Path, Path, Path, Pa
         fig.legend(
             handles=handles,
             loc="lower left",
-            bbox_to_anchor=(0.70, 0.08),
+            bbox_to_anchor=(0.64, 0.08),
             ncol=1,
             frameon=True,
             fontsize=14,
             title_fontsize=14,
+            title=legend_title,
             borderpad=0.6,
             columnspacing=1.1,
             labelspacing=0.3,
             handlelength=1.2,
         )
         ax.text(
-            1.08,
+            1.10,
             0.97,
             stats_text,
             transform=ax.transAxes,
@@ -563,47 +569,52 @@ def build_municipal_maps() -> tuple[Path, Path, Path, Path, Path, Path, Path, Pa
         "noncompliant_properties",
         [-0.1, 0, 50, 250, 1_000, 2_000, float("inf")],
         ["0", "1-50", "51-250", "251-1,000", "1,001-2,000", ">2,000"],
-        ["#f8fafc", "#dbeafe", "#93c5fd", "#3b82f6", "#1d4ed8", "#172554"],
+        GRAY_SCALE,
         MAP_COUNT_PATH,
         stat_box("noncompliant_properties", "count", "noncompliant_properties", "total_deficit_hectares"),
+        "Affected properties (count)",
     )
     plot_classed_map(
         "deficit_per_noncompliant_property",
         [-0.1, 0, 10, 50, 100, 250, float("inf")],
         ["No non-compliant", "0.1-10", "10.1-50", "50.1-100", "100.1-250", ">250"],
-        ["#fffaf0", "#ffedd5", "#fdba74", "#fb923c", "#ea580c", "#7f1d1d"],
+        ORANGE_SCALE,
         MAP_HECTARES_PATH,
         stat_box("deficit_per_noncompliant_property", "intensity", "noncompliant_properties", "total_deficit_hectares"),
+        "Total Forest Code deficit\n(hectares per affected property)",
     )
     plot_classed_map(
         "app_noncompliant_properties",
         [-0.1, 0, 50, 250, 1_000, 2_000, float("inf")],
         ["0", "1-50", "51-250", "251-1,000", "1,001-2,000", ">2,000"],
-        ["#f8fafc", "#ecfdf5", "#a7f3d0", "#34d399", "#059669", "#064e3b"],
+        GRAY_SCALE,
         MAP_APP_PATH,
         stat_box("app_noncompliant_properties", "count", "app_noncompliant_properties", "app_deficit_hectares"),
+        "APP-affected properties (count)",
     )
     plot_classed_map(
         "app_deficit_per_noncompliant_property",
         [-0.1, 0, 10, 50, 100, 250, float("inf")],
         ["No APP non-compliant", "0.1-10", "10.1-50", "50.1-100", "100.1-250", ">250"],
-        ["#fffaf0", "#ecfdf5", "#a7f3d0", "#34d399", "#059669", "#064e3b"],
+        ORANGE_SCALE,
         MAP_APP_HECTARES_PATH,
         stat_box("app_deficit_per_noncompliant_property", "intensity", "app_noncompliant_properties", "app_deficit_hectares"),
+        "APP restoration deficit\n(hectares per APP-affected property)",
     )
     plot_classed_map(
         "rl_noncompliant_properties",
         [-0.1, 0, 10, 50, 100, 250, float("inf")],
         ["0", "1-10", "11-50", "51-100", "101-250", ">250"],
-        ["#f8fafc", "#fee2e2", "#fca5a5", "#ef4444", "#b91c1c", "#7f1d1d"],
+        GRAY_SCALE,
         MAP_RL_PATH,
         stat_box("rl_noncompliant_properties", "count", "rl_noncompliant_properties", "rl_deficit_hectares"),
+        "LR-affected properties (count)",
     )
     plot_classed_map(
         "rl_without_2000_noncompliant_properties",
         [-0.1, 0, 10, 50, 100, 250, float("inf")],
         ["0", "1-10", "11-50", "51-100", "101-250", ">250"],
-        ["#f8fafc", "#fee2e2", "#fca5a5", "#ef4444", "#b91c1c", "#7f1d1d"],
+        GRAY_SCALE,
         MAP_RL_WITHOUT_2000_PATH,
         stat_box(
             "rl_without_2000_noncompliant_properties",
@@ -611,20 +622,22 @@ def build_municipal_maps() -> tuple[Path, Path, Path, Path, Path, Path, Path, Pa
             "rl_without_2000_noncompliant_properties",
             "rl_without_2000_deficit_hectares",
         ),
+        "LR-affected properties without 2000 rule (count)",
     )
     plot_classed_map(
         "rl_deficit_per_noncompliant_property",
         [-0.1, 0, 10, 50, 100, 250, float("inf")],
         ["No LR non-compliant", "0.1-10", "10.1-50", "50.1-100", "100.1-250", ">250"],
-        ["#fffaf0", "#fee2e2", "#fca5a5", "#ef4444", "#b91c1c", "#7f1d1d"],
+        ORANGE_SCALE,
         MAP_RL_HECTARES_PATH,
         stat_box("rl_deficit_per_noncompliant_property", "intensity", "rl_noncompliant_properties", "rl_deficit_hectares"),
+        "Adjusted LR deficit\n(hectares per LR-affected property)",
     )
     plot_classed_map(
         "rl_without_2000_deficit_per_noncompliant_property",
         [-0.1, 0, 10, 50, 100, 250, float("inf")],
         ["No LR non-compliant", "0.1-10", "10.1-50", "50.1-100", "100.1-250", ">250"],
-        ["#fffaf0", "#fee2e2", "#fca5a5", "#ef4444", "#b91c1c", "#7f1d1d"],
+        ORANGE_SCALE,
         MAP_RL_WITHOUT_2000_HECTARES_PATH,
         stat_box(
             "rl_without_2000_deficit_per_noncompliant_property",
@@ -632,6 +645,7 @@ def build_municipal_maps() -> tuple[Path, Path, Path, Path, Path, Path, Path, Pa
             "rl_without_2000_noncompliant_properties",
             "rl_without_2000_deficit_hectares",
         ),
+        "LR deficit without 2000 rule\n(hectares per LR-affected property)",
     )
     return (
         MAP_COUNT_PATH,
@@ -645,27 +659,27 @@ def build_municipal_maps() -> tuple[Path, Path, Path, Path, Path, Path, Path, Pa
     )
 
 
-def build_paper_map_panel(map_paths: tuple[Path, Path, Path, Path, Path, Path, Path, Path]) -> Path:
-    W, H = 2250, 2250
-    panel = Image.new("RGB", (W, H), COLORS["white"])
-    draw = ImageDraw.Draw(panel)
-    specs = [
-        (map_paths[0], 40, 75, "A. All non-compliance: properties"),
-        (map_paths[1], 1140, 75, "B. All: hectares/affected property"),
-        (map_paths[2], 40, 615, "C. APP non-compliance: properties"),
-        (map_paths[3], 1140, 615, "D. APP: hectares/APP-affected property"),
-        (map_paths[4], 40, 1155, "E. LR with 2000 rule: properties"),
-        (map_paths[5], 1140, 1155, "F. LR with 2000 rule: hectares/property"),
-        (map_paths[6], 40, 1695, "G. LR without 2000 rule: properties"),
-        (map_paths[7], 1140, 1695, "H. LR without 2000 rule: hectares/property"),
+def build_paper_map_panel(map_paths: tuple[Path, Path, Path, Path, Path, Path, Path, Path]) -> tuple[Path, Path]:
+    """Render two readable 2 x 2 panels instead of one illegible eight-map sheet."""
+    labels = [
+        "All non-compliance — properties", "All — hectares per affected property",
+        "APP non-compliance — properties", "APP — hectares per affected property",
+        "LR with 2000 rule — properties", "LR with 2000 rule — hectares per affected property",
+        "LR without 2000 rule — properties", "LR without 2000 rule — hectares per affected property",
     ]
-    for path, x, y, label in specs:
-        draw_text(draw, (x, y - 58), label, F["tiny"], fill=COLORS["ink"], max_width=730, line_gap=1)
-        with Image.open(path) as src:
-            tile = src.convert("RGB").resize((500, 500), Image.Resampling.LANCZOS)
-        panel.paste(tile, (x, y))
-    panel.save(PAPER_MAP_PANEL_PATH, quality=95)
-    return PAPER_MAP_PANEL_PATH
+    outputs = []
+    for page, destination in enumerate((PAPER_MAP_PANEL_PATH, PAPER_MAP_PANEL_2_PATH)):
+        panel = Image.new("RGB", (3000, 1700), COLORS["white"])
+        draw = ImageDraw.Draw(panel)
+        for local_idx, (x, y) in enumerate(((90, 100), (1530, 100), (90, 900), (1530, 900))):
+            idx = page * 4 + local_idx
+            draw.text((x, y - 60), labels[idx], font=font(50, True), fill=COLORS["ink"])
+            with Image.open(map_paths[idx]) as src:
+                tile = src.convert("RGB").resize((1360, 760), Image.Resampling.LANCZOS)
+            panel.paste(tile, (x, y))
+        panel.save(destination, quality=95)
+        outputs.append(destination)
+    return tuple(outputs)
 
 
 PT = {
