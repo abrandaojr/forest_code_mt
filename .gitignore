@@ -13,12 +13,12 @@ env/
 *.env
 .env
 
-# Temporary outputs
-out/_tmp*/
-out/*.aux
-out/*.log
-out/*.out
-out/*.toc
+# Local data, generated outputs, and delivery artifacts
+data/
+out/
+qa/
+deliverables/
+archive/
 
 # Browser automation scratch (SIMCAR PDF downloader)
 **/.edge_profile/
@@ -29,15 +29,5 @@ out/*.toc
 Thumbs.db
 desktop.ini
 ~$*
-# Manuscripts are maintained locally and must not be published to GitHub.
 *.docx
-deliverables/02_paper/
-archive/
-deliverables/03_presentation/*.pptx
-deliverables/01_excel/*.xlsx
 scientific_presentation/node_modules/
-qa/paper_revision/
-tools/paper/
-deliverables/02_paper/
-deliverables/04_csv/
-deliverables/*.zip

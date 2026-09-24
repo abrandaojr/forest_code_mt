@@ -2,7 +2,7 @@
 
 Portable workflow for property-level Forest Code compliance in Mato Grosso.
 
-The property-level Excel model with raw source columns and live compliance formulas is documented in [code/excel_property_level](code/excel_property_level/README.md). The final workbooks are stored on [Google Drive](https://drive.google.com/drive/folders/1X8M8F8rexyvhcHty5VaR9f_bFl0fu8Ax).
+The property-level Excel model with raw source columns and live compliance formulas is documented in [code/excel_property_level](code/excel_property_level/README.md). The final package is stored in [FOREST_CODE_MT_FINAL](https://drive.google.com/drive/folders/161HTtqc8nUkVA_R44kMz7GJ_Fglqsq4e).
 
 ## Method
 
@@ -14,16 +14,14 @@ Input priority:
 
 All non-property spatial layers should be tiled at 25 x 25 km before spatial joins.
 
-## Structure
+## Repository structure
 
-- `code`: workflow, tests, helpers
-- `data`: raw, preprocessed, processed data
-- `doc`: method reference
-- `out/table`: data products
-- `out/fig`: figures
-- `out/report`: manuscript and one-pagers
-- `out/qgis`: QGIS project
-- `qa`: audit files
+- `code`: processing workflow, tests, audits, mapping, reporting, and Excel export
+- `scientific_presentation`: source used to build the Forest Code presentation
+- `doc`: Forest Code method reference
+- `config.json`: project paths and runtime configuration
+
+Raw data, generated outputs, QA renders, and final delivery files are kept outside GitHub.
 
 ## Run
 
