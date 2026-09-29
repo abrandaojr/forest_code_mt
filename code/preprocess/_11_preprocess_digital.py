@@ -227,6 +227,10 @@ def compute_forest_code_metrics(df: pd.DataFrame) -> pd.DataFrame:
     # longer overridden from arl_declared_ha; _base_compute_forest_code_metrics()
     # already derives them correctly from radam_forest_nveg24_ha /
     # radam_cerrado_nveg24_ha, now populated independently in join_layers().
+    # AREA_CONSOLIDADA is the official 2008 consolidated-area layer. Keep the
+    # legacy cons_area_2000 alias for backward-compatible scenario formulas,
+    # but also expose the semantically correct field in every downstream file.
+    df["cons_area_2008"] = base.col_or_zero(df, "cons_area_2000")
     df = _base_compute_forest_code_metrics(df)
 
     df["app_preserved_ha"] = np.minimum(base.col_or_zero(df, "avn_declared_ha"), df["app_req_ha"])
@@ -256,4 +260,3 @@ def run_fc_summary_mt_digital() -> dict[str, Any]:
 
 if __name__ == "__main__":
     run_fc_summary_mt_digital()
-

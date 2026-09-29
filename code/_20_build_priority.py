@@ -45,6 +45,7 @@ ID_COLS = [
 METRIC_COLS = [
     "radam_forest_ha", "radam_cerrado_ha", "radam_total_ha",
     "radam_FLORESTA_ha", "radam_CERRADO_ha",
+    "radam_forest_nveg24_ha", "radam_cerrado_nveg24_ha",
     "rl_req_forest_ha", "rl_req_cerrado_ha", "rl_req_total_ha",
     "rl_exist_forest_ha", "rl_exist_cerrado_ha", "rl_exist_total_ha",
     "rl_gross_deficit_forest_ha", "rl_gross_deficit_cerrado_ha",
@@ -55,7 +56,10 @@ METRIC_COLS = [
     "app", "app_req_ha", "app_preserved_ha", "app_gross_deficit_ha",
     "app_restore_ha", "app_replant_raw_ha", "app_consolidated_ha",
     "app_consol_restore_ha", "app_restore_auas_ha", "cons_area_2000",
-    "app_fnl_cs08", "app_fnl_auas", "auas_post2008", "app_cap_ha",
+    "cons_area_2008",
+    "app_fnl_cs08", "app_fnl_auas", "app_fnl_avn24", "auas_post2008", "app_cap_ha",
+    "appd_lte1mf_cs08", "appd_1a2mf_cs08", "appd_2a4mf_cs08",
+    "appd_4a10mf_cs08", "appd_gt10mf_cs08",
     "rl_req_uncapped_forest_ha", "rl_req_uncapped_cerrado_ha",
     "rl_req_uncapped_total_ha", "rl_req_pre2000_forest_ha",
     "rl_req_pre2000_cerrado_ha", "rl_req_mt_forest_ha",
@@ -80,7 +84,7 @@ CANONICAL_NUMERIC = [
     "rl_gross_deficit_ha", "rl_surplus_total_ha", "rl_adj_deficit_ha",
     "rl_post2008_ha", "rl_restore_ha", "rl_compensate_ha", "app_req_ha",
     "app_preserved_ha", "app_gross_deficit_ha", "app_restore_ha",
-    "cons_area_2000", "app_consolidated_ha", "app_consol_restore_ha",
+    "cons_area_2000", "cons_area_2008", "app_consolidated_ha", "app_consol_restore_ha",
     "app_restore_auas_ha", "app_cap_ha",
     "calc_gross_deficit_total_ha",
     "calc_deficit_total_ha",
@@ -205,6 +209,12 @@ def load_all_sources() -> tuple[pd.DataFrame, pd.DataFrame]:
         if not path.exists():
             raise FileNotFoundError(f"Missing input for {source}: {path}")
         df = normalize_source(read_existing_columns(path, wanted), source, path)
+        # Validated and digital SIMCAR expose the official AREA_CONSOLIDADA
+        # layer, historically retained here under the legacy name
+        # cons_area_2000. Export it explicitly as the semantically correct
+        # 2008 field as well, without changing the legacy 2000-rule scenario.
+        if source in {"simcar_validado", "simcar_digital"} and "cons_area_2008" not in df.columns:
+            df["cons_area_2008"] = num(df, "cons_area_2000")
         if source == "simcar_digital":
             digital_cols = [
                 "app", "app_fnl_auas", "cons_area_2000", "arl_declared_ha",

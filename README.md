@@ -2,7 +2,7 @@
 
 Portable workflow for property-level Forest Code compliance in Mato Grosso.
 
-The property-level Excel model with raw source columns and live compliance formulas is documented in [code/excel_property_level](code/excel_property_level/README.md). The final package is stored in [FOREST_CODE_MT_FINAL](https://drive.google.com/drive/folders/161HTtqc8nUkVA_R44kMz7GJ_Fglqsq4e).
+The Excel model with raw input columns and live compliance formulas is documented in `code/excel_property_level/`. Final deliverables are stored in [FOREST_CODE_MT_FINAL](https://drive.google.com/drive/folders/161HTtqc8nUkVA_R44kMz7GJ_Fglqsq4e).
 
 ## Method
 
@@ -14,14 +14,34 @@ Input priority:
 
 All non-property spatial layers should be tiled at 25 x 25 km before spatial joins.
 
-## Repository structure
+## Final compliance fields
 
-- `code`: processing workflow, tests, audits, mapping, reporting, and Excel export
-- `scientific_presentation`: source used to build the Forest Code presentation
-- `doc`: Forest Code method reference
-- `config.json`: project paths and runtime configuration
+- `rl_restore_ha`: final baseline Legal Reserve (RL) liability to be restored in situ (ha).
+- `rl_compensate_ha`: final baseline RL liability eligible for off-property compensation (ha).
+- `app_restore_ha`: final baseline Permanent Preservation Area (APP) restoration liability (ha).
+- `calc_deficit_total_ha`: final baseline total liability, equal to `rl_adj_deficit_ha + app_restore_ha`.
 
-Raw data, generated outputs, QA renders, and final delivery files are kept outside GitHub.
+Secondary vegetation is reported as a separate sensitivity scenario, not as part of the baseline fields above. `secondary_vegetation_ha` is added only to existing forest RL, producing the `*_with_secondary_ha` fields. It can reduce RL restoration or compensation and increase RL surplus. It does not increase existing APP and does not change `app_restore_ha`. For properties without mapped secondary vegetation, the secondary-vegetation scenario equals the baseline.
+
+## Structure
+
+- `deliverables/01_excel`: final property-level Excel workbooks
+- `deliverables/02_csv`: complete property-level CSV results
+- `deliverables/03_figures`: final figures and maps
+- `deliverables/04_presentation`: final scientific dashboard presentation
+- `deliverables/05_code`: reproducible code package
+- `code`: workflow, tests, helpers
+- `data`: raw, preprocessed, processed data
+- `doc`: method references
+- `out/table`: data products
+- `out/fig`: figures
+- `out/report`: generated technical reports and one-pagers
+- `out/qgis`: QGIS project
+- `qa/presentation`: presentation previews and visual QA
+- `qa`: data and model audit files
+- `scientific_presentation`: presentation build source
+- `tools`: audit, Excel, and project utilities
+- `archive`: superseded delivery packages and temporary legacy files
 
 ## Run
 
