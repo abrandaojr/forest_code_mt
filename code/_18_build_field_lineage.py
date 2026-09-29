@@ -203,8 +203,8 @@ def build_lineage() -> dict[str, object]:
 def html_document(data: dict[str, object]) -> str:
     payload = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
     return f'''<!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Forest Code — linhagem completa dos campos</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Forest Code — complete field lineage</title>
 <style>
 :root{{--bg:#f5f7fa;--panel:#fff;--ink:#16212c;--muted:#667788;--line:#c7d0d9;--source:#2457a7;--raw:#6b7280;--field:#c58a10;--formula:#c94f3d;--output:#3a7d44;--warn:#8a3ffc}}
 *{{box-sizing:border-box}}body{{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink)}}
@@ -216,14 +216,14 @@ input,select{{width:100%;padding:9px 10px;margin:5px 0 10px;border:1px solid #c8
 #details{{font-size:12px;white-space:pre-wrap;background:#f7f9fb;border:1px solid #dbe1e7;border-radius:6px;padding:10px;max-height:300px;overflow:auto}}.warn{{color:#8a3ffc;font-weight:700}}
 @media(max-width:800px){{.layout{{grid-template-columns:1fr;grid-template-rows:340px 1fr}}aside{{border-right:0;border-bottom:1px solid #ddd}}}}
 </style></head><body>
-<header><div><h1>Mapa completo de uso dos campos — Mato Grosso Forest Code</h1><p>Fontes → campos → fórmulas → arquivos finais. Clique em um nó para ver fórmula, origem e destinos.</p></div></header>
+<header><div><h1>Complete field-use map — Mato Grosso Forest Code</h1><p>Sources → fields → formulas → final files. Select a node to inspect its formula, origin, and destinations.</p></div></header>
 <div class="layout"><aside>
-<label>Buscar campo</label><input id="search" placeholder="ex.: cons_area_2008 ou rl_restore_ha">
-<label>Exibir</label><select id="filter"><option value="all">Todos os nós</option><option value="used">Usados em fórmulas</option><option value="final">Presentes nos arquivos finais</option><option value="omitted">Campos de fonte não exportados</option></select>
-<div><button id="reset">Reiniciar</button><button id="fit">Centralizar</button></div>
-<div class="stats"><div class="stat"><b id="nNodes"></b>nós</div><div class="stat"><b id="nEdges"></b>ligações</div><div class="stat"><b id="nFormula"></b>fórmulas</div><div class="stat"><b id="nOmitted"></b>não exportados</div></div>
-<div class="legend"><div><span class="dot" style="background:var(--source)"></span>Fonte</div><div><span class="dot" style="background:var(--raw)"></span>Camada/campo bruto</div><div><span class="dot" style="background:var(--field)"></span>Campo</div><div><span class="dot" style="background:var(--formula)"></span>Campo calculado</div><div><span class="dot" style="background:var(--output)"></span>Arquivo final</div><div><span class="dot" style="background:var(--warn)"></span>Disponível na fonte, não exportado</div></div>
-<h3>Detalhes</h3><div id="details">Selecione um nó.</div>
+<label>Search fields</label><input id="search" placeholder="e.g., cons_area_2008 or rl_restore_ha">
+<label>Display</label><select id="filter"><option value="all">All nodes</option><option value="used">Used in formulas</option><option value="final">Present in final files</option><option value="omitted">Source fields not exported</option></select>
+<div><button id="reset">Reset</button><button id="fit">Center network</button></div>
+<div class="stats"><div class="stat"><b id="nNodes"></b>nodes</div><div class="stat"><b id="nEdges"></b>links</div><div class="stat"><b id="nFormula"></b>formulas</div><div class="stat"><b id="nOmitted"></b>not exported</div></div>
+<div class="legend"><div><span class="dot" style="background:var(--source)"></span>Source</div><div><span class="dot" style="background:var(--raw)"></span>Raw layer/field</div><div><span class="dot" style="background:var(--field)"></span>Field</div><div><span class="dot" style="background:var(--formula)"></span>Calculated field</div><div><span class="dot" style="background:var(--output)"></span>Final file</div><div><span class="dot" style="background:var(--warn)"></span>Available at source, not exported</div></div>
+<h3>Details</h3><div id="details">Select a node.</div>
 </aside><main><canvas id="canvas"></canvas><div id="tip"></div></main></div>
 <script id="lineage-data" type="application/json">{payload}</script>
 <script>
@@ -239,7 +239,7 @@ function simulate(){{for(let k=0;k<2;k++){{for(const e of visibleEdges){{const a
 function draw(){{simulate();ctx.clearRect(0,0,canvas.width,canvas.height);ctx.save();for(const e of visibleEdges){{const a=byId.get(e.from),b=byId.get(e.to);if(!a?.show||!b?.show)continue;const A=screen(a),B=screen(b);ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(B.x,B.y);ctx.strokeStyle=e.type==='used_by'?'rgba(201,79,61,.22)':'rgba(90,110,125,.12)';ctx.lineWidth=e.type==='used_by'?1.3:.7;ctx.stroke()}}for(const n of visibleNodes){{if(!n.show)continue;const p=screen(n),r=radius(n)*(selected===n?1.65:1);ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.fillStyle=color(n);ctx.fill();if(selected===n||zoom>1.15){{ctx.fillStyle='#17212b';ctx.font='11px Segoe UI';ctx.fillText(n.label,p.x+r+3,p.y+4)}}}}ctx.restore();requestAnimationFrame(draw)}}draw();
 function nearest(ev){{const r=canvas.getBoundingClientRect(),x=ev.clientX-r.left,y=ev.clientY-r.top;let best=null,bd=14;for(const n of visibleNodes){{if(!n.show)continue;const p=screen(n),d=Math.hypot(p.x-x,p.y-y);if(d<bd){{best=n;bd=d}}}}return best}}
 canvas.onpointerdown=e=>{{drag=nearest(e);if(!drag){{drag={{pan:true,x:e.clientX,y:e.clientY,px:panX,py:panY}}}}canvas.setPointerCapture(e.pointerId)}};canvas.onpointermove=e=>{{if(!drag)return;if(drag.pan){{panX=drag.px+e.clientX-drag.x;panY=drag.py+e.clientY-drag.y}}else{{const r=canvas.getBoundingClientRect();drag.x=(e.clientX-r.left-panX)/zoom;drag.y=(e.clientY-r.top-panY)/zoom}}}};canvas.onpointerup=e=>drag=null;
-canvas.onclick=e=>{{const n=nearest(e);if(!n)return;selected=n;const incoming=data.edges.filter(x=>x.to===n.id).map(x=>byId.get(x.from)?.label).filter(Boolean),outgoing=data.edges.filter(x=>x.from===n.id).map(x=>byId.get(x.to)?.label).filter(Boolean);document.getElementById('details').textContent=JSON.stringify({{campo:n.label,tipo:n.type,presente_nos_finais:n.in_final,selecionado_para_exportacao:n.selected_metric,formula:n.formula,entradas:incoming,saidas:outgoing,caminho:n.path}},null,2)}};
+canvas.onclick=e=>{{const n=nearest(e);if(!n)return;selected=n;const incoming=data.edges.filter(x=>x.to===n.id).map(x=>byId.get(x.from)?.label).filter(Boolean),outgoing=data.edges.filter(x=>x.from===n.id).map(x=>byId.get(x.to)?.label).filter(Boolean);document.getElementById('details').textContent=JSON.stringify({{field:n.label,type:n.type,present_in_final_files:n.in_final,selected_for_export:n.selected_metric,formula:n.formula,inputs:incoming,outputs:outgoing,path:n.path}},null,2)}};
 canvas.onwheel=e=>{{e.preventDefault();zoom=Math.max(.15,Math.min(3,zoom*(e.deltaY<0?1.1:.9)))}};
 function applyFilter(){{const q=document.getElementById('search').value.toLowerCase(),f=document.getElementById('filter').value;for(const n of nodes){{const match=!q||n.label.toLowerCase().includes(q);const kind=f==='all'||f==='used'&&(n.calculated||data.edges.some(e=>e.from===n.id&&e.type==='used_by'))||f==='final'&&n.in_final||f==='omitted'&&omitted.has(n.label);n.show=match&&kind}}}}
 document.getElementById('search').oninput=applyFilter;document.getElementById('filter').onchange=applyFilter;document.getElementById('reset').onclick=()=>{{document.getElementById('search').value='';document.getElementById('filter').value='all';applyFilter()}};document.getElementById('fit').onclick=()=>{{zoom=.72;panX=canvas.clientWidth/2;panY=canvas.clientHeight/2}};
