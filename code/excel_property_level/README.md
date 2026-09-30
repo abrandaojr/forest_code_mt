@@ -4,10 +4,10 @@ The [final Excel files are on Google Drive](https://drive.google.com/drive/folde
 
 ## Contents
 
-- 168,676 distinct properties, split across 11 workbooks because the Drive upload connector limits individual files to 100 MB.
+- 169,533 distinct properties, split across 11 workbooks because the Drive upload connector limits individual files to 100 MB.
 - One property per row, keyed by `priority_key`.
-- 571 columns: 123 consolidated property fields plus every column in the three property-level joined inputs (113 validated, 134 digital, 201 proxy). Input columns have source prefixes.
-- 67 formula columns per property. The formulas select the validated, digital, or proxy input according to `input_file_type` and calculate RL, APP, total deficit, and the secondary-vegetation scenario in Excel.
+- 638 columns containing the consolidated property fields plus every column in the three property-level joined inputs. Input columns have source prefixes.
+- 77 formula columns per property. The formulas select the validated, digital, or proxy input according to `input_file_type` and calculate RL, APP, total deficit, and the secondary-vegetation scenario in Excel.
 - A `LEIA_ME` tab in each workbook explains the source order and the representation of Python infinity as `1E+99` for the APP cap.
 
 ## Rebuild
@@ -27,6 +27,6 @@ The build writes its intermediate CSV and SQLite index and the 11 final workbook
 
 ## Verification
 
-`verify_excels.py` checks workbook integrity, 168,676 rows, 571 columns, 67 formulas per property, and the upload size limit. `compare_python.py` calls the canonical functions in `code/` and compares core RL/APP outputs for all properties. Excel recalculation was also checked on 400 rows across all three sources: 26,800 calculated cells matched the Python results. A manual edit to a raw APP input changed `app_req_ha` and `app_gross_deficit_ha` in Excel as expected.
+`verify_excels.py` checks workbook integrity, 169,533 rows, 638 columns, 77 formulas per property, and the upload size limit. `compare_python.py` calls the canonical functions in `code/` and compares core RL/APP outputs for all properties. A manual edit to a raw APP input changes the linked compliance fields as expected.
 
 The `.xlsx` outputs reflect the `code/` tree in this repository. The separate historical `delivery_2026-09-03/07_code/` snapshot is not the calculation reference for these workbooks.

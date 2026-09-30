@@ -11,7 +11,7 @@ for i,path in enumerate(paths,1):
         with z.open('xl/worksheets/sheet1.xml') as f:
             head = f.read(100000)
             assert b'</row>' in head
-            assert head.split(b'</row>', 1)[0].count(b'<c ') == 571
+            assert head.split(b'</row>', 1)[0].count(b'<c ') == 638
             carry = b''
             rows = formulas = 0
             f.seek(0)
@@ -21,12 +21,12 @@ for i,path in enumerate(paths,1):
                 formulas += block.count(b'<f>') - carry.count(b'<f>')
                 carry = block[-16:]
             assert carry.endswith(b'</worksheet>')
-        expect = 16000 if i < 11 else 8676
+        expect = 16000 if i < 11 else 9533
         assert rows == expect + 1, (path, rows, expect)
-        assert formulas == expect * 67, (path, formulas, expect*67)
+        assert formulas == expect * 77, (path, formulas, expect*77)
         assert os.path.getsize(path) < 104857600
         print(i, 'rows', rows-1, 'formulas', formulas, 'bytes', os.path.getsize(path), flush=True)
         total_rows += rows-1
         total_formulas += formulas
 print('total_rows',total_rows,'total_formulas',total_formulas)
-assert total_rows == 168676
+assert total_rows == 169533

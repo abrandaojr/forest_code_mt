@@ -85,5 +85,5 @@ with open(BASE, encoding='utf-8-sig', newline='') as src, open(DEST, 'w', encodi
             print('joined', n, flush=True)
 con.close()
 print('rows', n, 'unique', len(unique), 'columns', len(all_headers), 'coverage', dict(coverage), 'bytes', os.path.getsize(DEST), flush=True)
-if n != 168676 or len(unique) != n:
+if n != 169533 or len(unique) != n:
     raise ValueError('row count or uniqueness mismatch')

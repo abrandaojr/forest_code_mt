@@ -9,7 +9,7 @@ SOURCE = r'outputs\codigo_florestal_mt_inputs_completos.csv'
 PART = int(os.environ.get('FC_PART', '1'))
 PART_SIZE = int(os.environ.get('FC_PART_SIZE', '16000'))
 START = (PART - 1) * PART_SIZE
-END = min(PART * PART_SIZE, 168676)
+END = min(PART * PART_SIZE, 169533)
 DEST = rf'outputs\codigo_florestal_mt_completo_formulas_parte_{PART:02d}.xlsx'
 NUM = re.compile(r'^-?(?:\d+(?:\.\d*)?|\.\d+)(?:[Ee][+-]?\d+)?$')
 
@@ -182,9 +182,9 @@ with open(SOURCE, encoding='utf-8-sig', newline='') as f:
         notes = [
             ('Item', 'Descrição'),
             ('Grão', 'Uma linha por propriedade; chave única priority_key.'),
-            ('Cobertura', f'Parte {PART}: propriedades {START + 1} a {END} da base de 168676.'),
+            ('Cobertura', f'Parte {PART}: propriedades {START + 1} a {END} da base de 169533.'),
             ('Colunas', '123 campos consolidados, seguidos por 113 colunas da fonte validada, 134 da digital e 201 da proxy. Total: 571 colunas.'),
-            ('Fórmulas', 'As 67 colunas de cálculo do Código Florestal em PROPRIEDADES contêm fórmulas Excel em todas as linhas e apontam para os campos brutos da fonte selecionada.'),
+            ('Fórmulas', 'As 77 colunas de cálculo do Código Florestal em PROPRIEDADES contêm fórmulas Excel em todas as linhas e apontam para os campos brutos da fonte selecionada.'),
             ('Prioridade', 'simcar_validado > simcar_digital > simcar_proxy; input_file_type indica a fonte selecionada.'),
             ('Código de referência', 'As fórmulas seguem a árvore principal code/ do repositório. RL existente usa vegetação nativa cruzada com RADAM; os valores da base consolidada são preservados como cache para conferência.'),
             ('Sem teto APP', 'O infinito do Python é representado por 1E+99 em app_cap_ha para permitir cálculo no Excel.'),
