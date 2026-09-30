@@ -28,6 +28,7 @@ PREPROCESSED_DIR = Path(os.environ.get("FCM_PREPROCESSED_DIR", PACKAGE_ROOT / "d
 
 DIGITAL_INTERSECT_DIR = RAW_DIR / "simcar_digital"
 DIGITAL_OUTPUT_DIR = PREPROCESSED_DIR / "car_digital"
+PROXY_PREPROCESSED = PREPROCESSED_DIR / "car_proxy" / "car_atp_joined_20260818.parquet"
 
 
 base.CONFIG["paths"]["intersect_dir"] = DIGITAL_INTERSECT_DIR
@@ -45,7 +46,7 @@ LAYER_NAME_MAP = {
     "SIMCAR_D_APPD_4A10MF_AC": "appd_4a10mf_cs08",
     "SIMCAR_D_APPD_MAIOR_10MF_AC": "appd_gt10mf_cs08",
     "SIMCAR_D_APPD_AUAS": "app_fnl_auas",
-    "SIMCAR_D_AREA_CONSOLIDADA": "cons_area_2000",
+    "SIMCAR_D_AREA_CONSOLIDADA": "cons_area_2008",
     "SIMCAR_D_ARL": "arl_declared_ha",
     "SIMCAR_D_AUAS": "auas_post2008",
     "SIMCAR_D_AVN": "avn_declared_ha",
@@ -227,21 +228,28 @@ def compute_forest_code_metrics(df: pd.DataFrame) -> pd.DataFrame:
     # longer overridden from arl_declared_ha; _base_compute_forest_code_metrics()
     # already derives them correctly from radam_forest_nveg24_ha /
     # radam_cerrado_nveg24_ha, now populated independently in join_layers().
-    # AREA_CONSOLIDADA is the official 2008 consolidated-area layer. Keep the
-    # legacy cons_area_2000 alias for backward-compatible scenario formulas,
-    # but also expose the semantically correct field in every downstream file.
-    df["cons_area_2008"] = base.col_or_zero(df, "cons_area_2000")
+    # The SIMCAR AREA_CONSOLIDADA layer is a 2008 field. The 2000 cut-off is
+    # supplied exclusively by the proxy PRODES-derived net/max layer.
+    if not PROXY_PREPROCESSED.exists():
+        raise FileNotFoundError(f"Proxy 2000 baseline not found: {PROXY_PREPROCESSED}")
+    lookup = pd.read_parquet(PROXY_PREPROCESSED, columns=["car_join", "cons_area_2000_net_max"])
+    lookup = lookup.groupby("car_join", as_index=False)["cons_area_2000_net_max"].max()
+    lookup = lookup.rename(columns={"cons_area_2000_net_max": "cons_area_2000_proxy"})
+    df = df.merge(lookup, on="car_join", how="left")
+    df["cons_area_2000_proxy_missing"] = df["cons_area_2000_proxy"].isna()
+    proxy_2000 = pd.to_numeric(df["cons_area_2000_proxy"], errors="coerce")
+    df["cons_area_2000"] = np.minimum(proxy_2000.fillna(df["area_ha_car"]).clip(lower=0), df["area_ha_car"])
+    df["cons_area_2000_source"] = np.where(df["cons_area_2000_proxy_missing"], "proxy_missing_conservative", "proxy_net_max")
     df = _base_compute_forest_code_metrics(df)
 
     df["app_preserved_ha"] = np.minimum(base.col_or_zero(df, "avn_declared_ha"), df["app_req_ha"])
     df["app_gross_deficit_ha"] = np.maximum(df["app_req_ha"] - df["app_preserved_ha"], 0)
-    df["app_consolidated_ha"] = np.minimum(base.col_or_zero(df, "cons_area_2000"), df["app_req_ha"])
+    df["app_consolidated_ha"] = np.minimum(base.col_or_zero(df, "cons_area_2008"), df["app_req_ha"])
     df["app_consol_restore_ha"] = np.minimum.reduce(
         [df["app_replant_raw_ha"], df["app_consolidated_ha"], df["app_gross_deficit_ha"]]
     )
-    df["app_restore_ha"] = np.minimum.reduce(
-        [df["app_consol_restore_ha"] + df["app_restore_auas_ha"], df["app_gross_deficit_ha"], df["app_cap_ha"]]
-    )
+    df["app_consol_restore_ha"] = np.minimum(df["app_consol_restore_ha"], df["app_cap_ha"])
+    df["app_restore_ha"] = np.minimum(df["app_consol_restore_ha"] + df["app_restore_auas_ha"], df["app_gross_deficit_ha"])
     return df
 
 

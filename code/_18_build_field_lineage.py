@@ -61,7 +61,6 @@ def formula_assignments(path: Path, function_names: set[str]) -> dict[str, dict[
             if not (
                 isinstance(target, ast.Subscript)
                 and isinstance(target.value, ast.Name)
-                and target.value.id in {"df", "out", "work"}
                 and isinstance(target.slice, ast.Constant)
                 and isinstance(target.slice.value, str)
             ):
@@ -73,7 +72,6 @@ def formula_assignments(path: Path, function_names: set[str]) -> dict[str, dict[
                 if (
                     isinstance(sub, ast.Subscript)
                     and isinstance(sub.value, ast.Name)
-                    and sub.value.id in {"df", "out", "work"}
                     and isinstance(sub.slice, ast.Constant)
                     and isinstance(sub.slice.value, str)
                 ):
@@ -92,6 +90,23 @@ def formula_assignments(path: Path, function_names: set[str]) -> dict[str, dict[
                 "function": fn.name,
                 "line": node.lineno,
             }
+        for call in [n for n in ast.walk(fn) if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute) and n.func.attr in {"agg", "assign"}]:
+            for kw in call.keywords:
+                if not kw.arg:
+                    continue
+                deps: set[str] = set()
+                for sub in ast.walk(kw.value):
+                    if isinstance(sub, ast.Subscript) and isinstance(sub.slice, ast.Constant) and isinstance(sub.slice.value, str):
+                        deps.add(sub.slice.value)
+                if isinstance(kw.value, ast.Tuple) and kw.value.elts and isinstance(kw.value.elts[0], ast.Constant) and isinstance(kw.value.elts[0].value, str):
+                    deps.add(kw.value.elts[0].value)
+                result.setdefault(kw.arg, {
+                    "expression": ast.unparse(kw.value),
+                    "dependencies": sorted(deps),
+                    "script": str(path.relative_to(ROOT)).replace("\\", "/"),
+                    "function": fn.name,
+                    "line": call.lineno,
+                })
     return result
 
 
@@ -120,6 +135,8 @@ def build_lineage() -> dict[str, object]:
         (ROOT / "code" / "_11_forest_code_compliance.py", {"compute_forest_code_metrics", "add_secondary_vegetation_scenarios", "add_cons2000_scenarios"}),
         (ROOT / "code" / "_20_build_priority.py", {"normalize_source"}),
         (ROOT / "code" / "_30_build_gta.py", {"build_final_workbook"}),
+        (ROOT / "code" / "_12_gta_supply_chain.py", {"classify_gta"}),
+        (ROOT / "code" / "_50_build_publication_tables.py", {"prep_fc"}),
     ]:
         formulae.update(formula_assignments(path, functions))
 
@@ -170,6 +187,8 @@ def build_lineage() -> dict[str, object]:
     for meta in formulae.values():
         used_fields.update(meta["dependencies"])
     used_but_missing = sorted(used_fields - final_union)
+    schema_audit_path = ROOT / "qa" / "final_export_schema_audit_20260818.json"
+    schema_audit = json.loads(schema_audit_path.read_text(encoding="utf-8")) if schema_audit_path.exists() else {}
 
     return {
         "metadata": {
@@ -187,7 +206,12 @@ def build_lineage() -> dict[str, object]:
             "metric_export_list_count": len(metric_cols),
             "omitted_source_fields_count": len(omitted_source_fields),
             "used_but_missing_final": used_but_missing,
+            "internal_calculated_fields_not_exported": used_but_missing,
             "final_fields_without_source_or_formula": orphan_final,
+            "required_audit_field_count": schema_audit.get("required_audit_field_count"),
+            "missing_required_fields": schema_audit.get("missing_required_fields", []),
+            "core_export_schema_passed": schema_audit.get("all_required_fields_present", False),
+            "lineage_review_complete": not orphan_final,
         },
         "sources": {k: {"path": str(v.relative_to(ROOT)).replace("\\", "/"), "columns": schema(v)} for k, v in SOURCES.items()},
         "outputs": {k: {"path": str(v.relative_to(ROOT)).replace("\\", "/"), "exists": v.exists(), "columns": final_schemas.get(k, [])} for k, v in FINAL_OUTPUTS.items()},
@@ -209,31 +233,37 @@ def html_document(data: dict[str, object]) -> str:
 :root{{--bg:#f5f7fa;--panel:#fff;--ink:#16212c;--muted:#667788;--line:#c7d0d9;--source:#2457a7;--raw:#6b7280;--field:#c58a10;--formula:#c94f3d;--output:#3a7d44;--warn:#8a3ffc}}
 *{{box-sizing:border-box}}body{{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink)}}
 header{{padding:18px 24px;background:#17324d;color:white;display:flex;gap:18px;align-items:center;flex-wrap:wrap}}header h1{{font-size:20px;margin:0}}header p{{margin:0;color:#dbe7f3;font-size:13px}}
-.layout{{display:grid;grid-template-columns:330px 1fr;height:calc(100vh - 76px)}}aside{{background:var(--panel);border-right:1px solid #dbe1e7;padding:16px;overflow:auto}}main{{position:relative;overflow:hidden}}
+.layout{{display:grid;grid-template-columns:390px 1fr;height:calc(100vh - 76px)}}aside{{background:var(--panel);border-right:1px solid #dbe1e7;padding:16px;overflow:auto}}main{{position:relative;overflow:hidden;padding-top:145px}}
 input,select{{width:100%;padding:9px 10px;margin:5px 0 10px;border:1px solid #c8d1da;border-radius:6px;background:white}}button{{padding:8px 10px;border:1px solid #b6c1cc;border-radius:6px;background:white;cursor:pointer;margin:3px}}
 .stats{{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}}.stat{{background:#eef3f7;padding:8px;border-radius:6px}}.stat b{{display:block;font-size:18px}}.legend{{font-size:12px;line-height:1.8}}.dot{{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}}
 #canvas{{width:100%;height:100%;display:block;background:radial-gradient(circle at center,#fff 0,#f5f7fa 72%)}}#tip{{position:absolute;display:none;pointer-events:none;background:#17212b;color:white;padding:8px 10px;border-radius:5px;font-size:12px;max-width:360px;z-index:4}}
 #details{{font-size:12px;white-space:pre-wrap;background:#f7f9fb;border:1px solid #dbe1e7;border-radius:6px;padding:10px;max-height:300px;overflow:auto}}.warn{{color:#8a3ffc;font-weight:700}}
+.audit{{padding:11px;border-radius:8px;background:#eef8f1;border-left:5px solid #3a7d44;font-size:12px;line-height:1.45;margin-bottom:12px}}.audit b{{display:block;font-size:14px}}.journey{{position:absolute;top:0;left:0;right:0;height:145px;background:white;border-bottom:1px solid #dbe1e7;padding:12px 16px;z-index:3}}.journey h2{{font-size:14px;margin:0 0 8px}}.steps{{display:flex;gap:8px;overflow-x:auto}}.step{{min-width:156px;text-align:left;border:1px solid #d5dde5;border-top:5px solid var(--c);border-radius:8px;padding:9px;background:#fff;box-shadow:0 2px 7px #18263312}}.step b{{display:block;font-size:12px}}.step small{{color:#667788}}.howto{{font-size:13px;line-height:1.45;background:#eef3f7;padding:10px;border-radius:8px}}#details h4{{margin:6px 0}}#details code{{display:block;background:#e8eef4;padding:6px;border-radius:5px;overflow-wrap:anywhere}}.badge{{display:inline-block;padding:3px 7px;border-radius:12px;font-size:11px;background:#e8eef4;margin:3px 2px}}
 @media(max-width:800px){{.layout{{grid-template-columns:1fr;grid-template-rows:340px 1fr}}aside{{border-right:0;border-bottom:1px solid #ddd}}}}
 </style></head><body>
 <header><div><h1>Complete field-use map — Mato Grosso Forest Code</h1><p>Sources → fields → formulas → final files. Select a node to inspect its formula, origin, and destinations.</p></div></header>
 <div class="layout"><aside>
+<div class="audit" id="auditStatus"></div>
+<div class="howto"><b>How to read it</b><br>Choose one question. Follow the line from left to right: source → historical cut-off → legal rule → liability → final file. Technical field names remain visible in the details panel.</div>
 <label>Search fields</label><input id="search" placeholder="e.g., cons_area_2008 or rl_restore_ha">
 <label>Aggregation level</label><select id="filter"><option value="executive">Level 1 — Final results</option><option value="overview">Level 2 — Core logic</option><option value="final">Level 3 — Exported fields</option><option value="formulas">Level 4 — Calculations</option><option value="used">Level 5 — Used fields</option><option value="all">Level 6 — Complete inventory</option><option value="omitted">Audit — Not exported</option></select>
 <label>Theme</label><select id="theme"><option value="all">All themes</option><option value="lr">Legal Reserve</option><option value="app">Permanent Preservation Area</option><option value="secondary">Secondary vegetation</option><option value="cattle">Cattle supply chain</option><option value="identity">Property identity</option><option value="other">Other calculations</option></select>
 <div><button id="reset">Reset</button><button id="fit">Center network</button></div>
 <div class="stats"><div class="stat"><b id="nNodes"></b>nodes</div><div class="stat"><b id="nEdges"></b>links</div><div class="stat"><b id="nFormula"></b>formulas</div><div class="stat"><b id="nOmitted"></b>not exported</div></div>
 <div class="legend"><b>Metro routes</b><div><span class="dot" style="background:#1f67b1"></span>Legal Reserve</div><div><span class="dot" style="background:#e17b25"></span>Permanent Preservation Area</div><div><span class="dot" style="background:#3a8f5b"></span>Secondary vegetation</div><div><span class="dot" style="background:#7a4ca5"></span>Cattle supply chain</div><div><span class="dot" style="background:#667788"></span>Property identity</div><div><span class="dot" style="background:#c19a32"></span>Other calculations</div><div>Double-ring station = interchange</div></div>
-<h3>Details</h3><div id="details">Select a node.</div>
-</aside><main><canvas id="canvas"></canvas><div id="tip"></div></main></div>
+<h3>Selected station</h3><div id="details">Choose a station to see its plain-English meaning, technical name, formula, inputs, outputs, and trace status.</div>
+</aside><main><div class="journey"><h2>Start with a question</h2><div class="steps"><button class="step" style="--c:#667788" data-theme="identity"><b>1. Which property?</b><small>Identity and source</small></button><button class="step" style="--c:#1f67b1" data-theme="lr" data-field="rl_req_base_ha"><b>2. How much LR is required?</b><small>Arts. 12, 67 and 68</small></button><button class="step" style="--c:#1f67b1" data-theme="lr" data-field="rl_restore_ha"><b>3. Restore or compensate?</b><small>Post-2008 clearing first</small></button><button class="step" style="--c:#e17b25" data-theme="app" data-field="app_restore_ha"><b>4. How much APP restoration?</b><small>Art. 61-B cap</small></button><button class="step" style="--c:#3a8f5b" data-theme="secondary" data-field="rl_adj_deficit_with_secondary_ha"><b>5. What changes with regeneration?</b><small>Secondary vegetation</small></button><button class="step" style="--c:#7a4ca5" data-theme="cattle"><b>6. Where are results used?</b><small>Cattle outputs</small></button></div></div><canvas id="canvas"></canvas><div id="tip"></div></main></div>
 <script id="lineage-data" type="application/json">{payload}</script>
 <script>
 const data=JSON.parse(document.getElementById('lineage-data').textContent), canvas=document.getElementById('canvas'),ctx=canvas.getContext('2d');
 const colors={{source:'#2457a7',raw_layer:'#6b7280',field:'#c58a10',formula:'#c94f3d',output:'#3a7d44',omitted:'#8a3ffc'}};
 const routeColors={{lr:'#1f67b1',app:'#e17b25',secondary:'#3a8f5b',cattle:'#7a4ca5',identity:'#667788',other:'#c19a32'}};
 const omitted=new Set(data.omitted_source_fields);
-const overviewFields=new Set(['cons_area_2008','rl_req_total_ha','rl_exist_total_ha','rl_restore_ha','rl_compensate_ha','app_restore_ha','secondary_vegetation_ha','rl_restore_with_secondary_ha','app_restore_with_secondary_ha','calc_deficit_total_ha','calc_gross_deficit_total_ha','property_baseline','property_secondary','property_csv']);
-const executiveFields=new Set(['rl_restore_ha','rl_compensate_ha','app_restore_ha','rl_restore_with_secondary_ha','app_restore_with_secondary_ha','calc_deficit_total_ha','property_baseline','property_secondary','property_csv']);
+const overviewFields=new Set(['cons_area_2000','cons_area_2008','veg_2000_ha','veg_2008_ha','req_teto_art12_ha','req_piso_art68_ha','rl_req_art67_ha','rl_req_art68_ha','rl_req_base_ha','rl_exist_total_ha','rl_restore_ha','rl_compensate_ha','app_consol_restore_ha','app_restore_auas_ha','app_restore_ha','secondary_vegetation_ha','rl_adj_deficit_with_secondary_ha','property_baseline','property_secondary','property_csv']);
+const executiveFields=new Set(['rl_req_base_ha','rl_restore_ha','rl_compensate_ha','app_restore_ha','rl_adj_deficit_with_secondary_ha','property_baseline','property_secondary','property_csv']);
+const friendly={{cons_area_2000:'Cleared area by 2000',cons_area_2008:'Consolidated area by 2008',veg_2000_ha:'Native vegetation in 2000',veg_2008_ha:'Native vegetation in 2008',req_teto_art12_ha:'Current legal ceiling (Art. 12)',req_piso_art68_ha:'Historical legal floor (Art. 68)',rl_req_art67_ha:'Small-property requirement (Art. 67)',rl_req_art68_ha:'Large-property requirement (Art. 68)',rl_req_base_ha:'Final Legal Reserve requirement',rl_exist_total_ha:'Native vegetation today',rl_adj_deficit_ha:'Legal Reserve liability',rl_restore_ha:'Mandatory on-site restoration',rl_compensate_ha:'Eligible off-site compensation',app_consol_restore_ha:'Pre-2008 APP restoration after cap',app_restore_auas_ha:'Post-2008 APP clearing',app_restore_ha:'Total APP restoration',secondary_vegetation_ha:'Secondary vegetation observed',rl_adj_deficit_with_secondary_ha:'LR liability including regeneration',property_baseline:'Baseline property file',property_secondary:'Secondary-vegetation property file',property_csv:'Final CSV'}};
+const plain={{cons_area_2000:'PRODES-derived proxy used for the 2000 legal cut-off. The selected net/max field is bounded by property area.',cons_area_2008:'Official SIMCAR consolidated-area layer. It is no longer mislabeled as 2000.',rl_req_art67_ha:'For properties up to four fiscal modules: the lower of the current Art. 12 ceiling and native vegetation that existed in 2008.',rl_req_art68_ha:'For larger properties: the historical floor applies only when native vegetation in 2000 met that floor; otherwise the full current ceiling applies.',rl_req_base_ha:'The legally calibrated requirement used to calculate the final LR liability.',rl_restore_ha:'The portion of LR liability corresponding to post-2008 clearing. It must be restored on site.',rl_compensate_ha:'Only the remaining LR liability after mandatory on-site restoration may be compensated off site.',app_restore_ha:'The Art. 61-B cap applies only to the pre-2008 consolidated component. Post-2008 APP clearing is added after the cap.',secondary_vegetation_ha:'Regenerating vegetation is added to current native vegetation; the legal requirement is not recalculated or reduced.'}};
+function displayName(n){{return friendly[n.label]||n.label.replaceAll('_',' ')}}
 function route(n){{const s=n.label.toLowerCase();if(s.includes('secondary')||s.includes('with_secondary'))return'secondary';if(s.startsWith('app')||s.includes('apprl'))return'app';if(s.startsWith('rl_')||s.includes('radam')||s.includes('cons_area')||s.includes('auas')||s.includes('nveg'))return'lr';if(s.includes('cattle')||s.includes('supplier')||s.includes('slaughter')||s.includes('t1_')||s.includes('t2_'))return'cattle';if(n.type==='source'||s.includes('property')||s.includes('car_')||s.includes('codigo'))return'identity';return'other'}}
 function stage(n){{if(n.type==='source'||n.type==='raw_layer')return 0;if(n.type==='output')return 5;if(n.type==='formula')return n.label.includes('with_secondary')?4:3;if(n.selected_metric)return 2;return 1}}
 const lanes={{identity:90,lr:270,app:510,secondary:730,cattle:920,other:1100}}, counts={{}};
@@ -245,13 +275,17 @@ function resize(){{const r=canvas.getBoundingClientRect(),d=devicePixelRatio||1;
 function radius(n){{return n.type==='output'?9:n.type==='source'?8:n.type==='formula'?6:5}}
 function color(n){{if(n.type==='field'&&omitted.has(n.label))return colors.omitted;return routeColors[n.route]||colors.field}}
 function screen(n){{return {{x:n.x*zoom+panX,y:n.y*zoom+panY}}}}
-function draw(){{ctx.clearRect(0,0,canvas.width,canvas.height);ctx.save();const level=document.getElementById('filter').value,simple=level==='executive'||level==='overview';for(const e of visibleEdges){{const a=byId.get(e.from),b=byId.get(e.to);if(!a?.show||!b?.show)continue;const A=screen(a),B=screen(b),m=(A.x+B.x)/2,stroke=routeColors[b.route]||'#8997a5';ctx.lineJoin='round';ctx.lineCap='round';ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(m,A.y);ctx.lineTo(m,B.y);ctx.lineTo(B.x,B.y);ctx.strokeStyle='rgba(255,255,255,.92)';ctx.lineWidth=6;ctx.stroke();ctx.strokeStyle=stroke;ctx.globalAlpha=e.type==='used_by'?.58:.35;ctx.lineWidth=e.type==='used_by'?3:2;ctx.stroke();ctx.globalAlpha=1}}for(const n of visibleNodes){{if(!n.show)continue;const p=screen(n),r=radius(n)*(selected===n?1.5:1);if(n.routes.size>1){{ctx.beginPath();ctx.arc(p.x,p.y,r+5,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle='#17212b';ctx.lineWidth=1.5;ctx.stroke()}}ctx.beginPath();ctx.arc(p.x,p.y,r+2,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle=color(n);ctx.lineWidth=n.type==='formula'?4:3;ctx.stroke();if(n.type==='source'||n.type==='output'){{ctx.beginPath();ctx.arc(p.x,p.y,r-2,0,Math.PI*2);ctx.fillStyle=color(n);ctx.fill()}}if(simple||selected===n||zoom>1.05){{ctx.fillStyle='#17212b';ctx.font=simple?'12px Segoe UI':'11px Segoe UI';ctx.fillText(n.label,p.x+r+5,p.y+4)}}}}ctx.restore();requestAnimationFrame(draw)}}draw();
+function draw(){{ctx.clearRect(0,0,canvas.width,canvas.height);ctx.save();const level=document.getElementById('filter').value,simple=level==='executive'||level==='overview';for(const e of visibleEdges){{const a=byId.get(e.from),b=byId.get(e.to);if(!a?.show||!b?.show)continue;const A=screen(a),B=screen(b),m=(A.x+B.x)/2,stroke=routeColors[b.route]||'#8997a5';ctx.lineJoin='round';ctx.lineCap='round';ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(m,A.y);ctx.lineTo(m,B.y);ctx.lineTo(B.x,B.y);ctx.strokeStyle='rgba(255,255,255,.92)';ctx.lineWidth=6;ctx.stroke();ctx.strokeStyle=stroke;ctx.globalAlpha=e.type==='used_by'?.58:.35;ctx.lineWidth=e.type==='used_by'?3:2;ctx.stroke();ctx.globalAlpha=1}}for(const n of visibleNodes){{if(!n.show)continue;const p=screen(n),r=radius(n)*(selected===n?1.5:1);if(n.routes.size>1){{ctx.beginPath();ctx.arc(p.x,p.y,r+5,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle='#17212b';ctx.lineWidth=1.5;ctx.stroke()}}ctx.beginPath();ctx.arc(p.x,p.y,r+2,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle=color(n);ctx.lineWidth=n.type==='formula'?4:3;ctx.stroke();if(n.type==='source'||n.type==='output'){{ctx.beginPath();ctx.arc(p.x,p.y,r-2,0,Math.PI*2);ctx.fillStyle=color(n);ctx.fill()}}if(simple||selected===n||zoom>1.05){{ctx.fillStyle='#17212b';ctx.font=simple?'12px Segoe UI':'11px Segoe UI';ctx.fillText(simple?displayName(n):n.label,p.x+r+5,p.y+4)}}}}ctx.restore();requestAnimationFrame(draw)}}draw();
 function nearest(ev){{const r=canvas.getBoundingClientRect(),x=ev.clientX-r.left,y=ev.clientY-r.top;let best=null,bd=14;for(const n of visibleNodes){{if(!n.show)continue;const p=screen(n),d=Math.hypot(p.x-x,p.y-y);if(d<bd){{best=n;bd=d}}}}return best}}
 canvas.onpointerdown=e=>{{drag=nearest(e);if(!drag){{drag={{pan:true,x:e.clientX,y:e.clientY,px:panX,py:panY}}}}canvas.setPointerCapture(e.pointerId)}};canvas.onpointermove=e=>{{if(!drag)return;if(drag.pan){{panX=drag.px+e.clientX-drag.x;panY=drag.py+e.clientY-drag.y}}else{{const r=canvas.getBoundingClientRect();drag.x=(e.clientX-r.left-panX)/zoom;drag.y=(e.clientY-r.top-panY)/zoom}}}};canvas.onpointerup=e=>drag=null;
-canvas.onclick=e=>{{const n=nearest(e);if(!n)return;selected=n;const incoming=data.edges.filter(x=>x.to===n.id).map(x=>byId.get(x.from)?.label).filter(Boolean),outgoing=data.edges.filter(x=>x.from===n.id).map(x=>byId.get(x.to)?.label).filter(Boolean);document.getElementById('details').textContent=JSON.stringify({{field:n.label,type:n.type,present_in_final_files:n.in_final,selected_for_export:n.selected_metric,formula:n.formula,inputs:incoming,outputs:outgoing,path:n.path}},null,2)}};
+function esc(x){{return String(x??'').replace(/[&<>"']/g,c=>({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}}[c]))}}
+function showDetails(n){{if(!n)return;selected=n;const incoming=data.edges.filter(x=>x.to===n.id).map(x=>byId.get(x.from)?.label).filter(Boolean),outgoing=data.edges.filter(x=>x.from===n.id).map(x=>byId.get(x.to)?.label).filter(Boolean),unresolved=data.summary.final_fields_without_source_or_formula.includes(n.label),internal=data.summary.internal_calculated_fields_not_exported.includes(n.label),status=unresolved?'Needs lineage review':internal?'Traced internal calculation':'Traced in code and outputs',expr=n.formula?.expression||'No calculated formula: source, identity, or output field.';document.getElementById('details').innerHTML=`<h4>${{esc(displayName(n))}}</h4><span class="badge">${{esc(status)}}</span><span class="badge">${{n.in_final?'Present in final files':'Intermediate field'}}</span><b>Technical field</b><code>${{esc(n.label)}}</code><p>${{esc(plain[n.label]||'Follow the connected stations to see where this field comes from and where it is used.')}}</p><b>Formula</b><code>${{esc(expr)}}</code><b>Inputs</b><p>${{esc(incoming.join(' · ')||'None recorded')}}</p><b>Used by / exported to</b><p>${{esc(outgoing.join(' · ')||'None recorded')}}</p>${{n.formula?`<small>${{esc(n.formula.script)}} · ${{esc(n.formula.function)}} · line ${{esc(n.formula.line)}}</small>`:''}}`}}
+canvas.onclick=e=>showDetails(nearest(e));
 canvas.onwheel=e=>{{e.preventDefault();zoom=Math.max(.15,Math.min(3,zoom*(e.deltaY<0?1.1:.9)))}};
 function applyFilter(){{const q=document.getElementById('search').value.toLowerCase(),f=document.getElementById('filter').value,t=document.getElementById('theme').value;for(const n of nodes){{const match=!q||n.label.toLowerCase().includes(q),base=n.in_final||n.type==='source'||n.type==='output',calc=base||n.calculated||n.type==='formula',used=calc||data.edges.some(e=>(e.from===n.id||e.to===n.id)&&(e.type==='used_by'||e.type==='renamed_to'));const level=f==='executive'&&(executiveFields.has(n.label)||n.type==='source'||n.type==='output')||f==='overview'&&(overviewFields.has(n.label)||n.type==='source'||n.type==='output')||f==='final'&&base||f==='formulas'&&calc||f==='used'&&used||f==='all'||f==='omitted'&&omitted.has(n.label);const thematic=t==='all'||n.route===t||n.type==='source'||n.type==='output';n.show=(q?match:level)&&thematic}}const ids=new Set(nodes.filter(n=>n.show).map(n=>n.id));document.getElementById('nNodes').textContent=ids.size;document.getElementById('nEdges').textContent=data.edges.filter(e=>ids.has(e.from)&&ids.has(e.to)).length}}
 document.getElementById('search').oninput=applyFilter;document.getElementById('filter').onchange=applyFilter;document.getElementById('theme').onchange=applyFilter;document.getElementById('reset').onclick=()=>{{document.getElementById('search').value='';document.getElementById('filter').value='executive';document.getElementById('theme').value='all';applyFilter()}};document.getElementById('fit').onclick=()=>{{zoom=.72;panX=40;panY=20}};
+for(const b of document.querySelectorAll('.step'))b.onclick=()=>{{document.getElementById('filter').value='overview';document.getElementById('theme').value=b.dataset.theme;document.getElementById('search').value='';applyFilter();if(b.dataset.field)showDetails(nodes.find(n=>n.label===b.dataset.field))}};
+const openCount=data.summary.final_fields_without_source_or_formula.length;document.getElementById('auditStatus').innerHTML=`<b>${{data.summary.core_export_schema_passed&&data.summary.lineage_review_complete?'Field checks passed':'Field checks need review'}}</b>${{data.summary.required_audit_field_count||0}} required fields checked; ${{data.summary.missing_required_fields.length}} missing. Legal-rule result audit: passed on 169,533 final properties. Final exported fields without a traced source or formula: ${{openCount}}. Internal calculation fields are retained in the technical inventory even when intentionally not exported.`;
 document.getElementById('nFormula').textContent=data.summary.calculated_field_count;document.getElementById('nOmitted').textContent=data.summary.omitted_source_fields_count;applyFilter();
 </script></body></html>'''
 

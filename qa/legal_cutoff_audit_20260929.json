@@ -1,0 +1,32 @@
+{
+  "generated_at_utc": "2026-09-30T03:26:28.097577+00:00",
+  "dataset": "out/table/forest_code_mt_priority_consolidated_20260818.parquet",
+  "rows": 169533,
+  "input_rows": {
+    "simcar_digital": 84928,
+    "simcar_proxy": 43890,
+    "simcar_validado": 40715
+  },
+  "proxy_2000_source_counts": {
+    "proxy_net_max": 169533
+  },
+  "proxy_2000_missing_rows": 0,
+  "checks": {
+    "cons_area_2000_not_above_property": 0,
+    "cons_area_2008_not_above_property": 0,
+    "negative_historical_area_cells": 0,
+    "veg_2000_identity_max_diff": 0.0,
+    "veg_2008_identity_max_diff": 0.0,
+    "art67_requirement_max_diff": 0.0,
+    "art68_requirement_max_diff": 0.0,
+    "base_requirement_max_diff": 0.0,
+    "rl_deficit_max_diff": 0.0,
+    "rl_restore_max_diff": 0.0,
+    "rl_compensate_max_diff": 0.0,
+    "app_consolidated_above_cap": 0,
+    "app_restore_post_cap_max_diff": 0.0,
+    "secondary_deficit_max_diff": 0.0
+  },
+  "passed": true,
+  "failures": {}
+}

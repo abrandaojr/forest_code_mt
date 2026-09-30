@@ -74,12 +74,17 @@ def compute_forest_code_metrics(df: pd.DataFrame, config: dict) -> pd.DataFrame:
     df["radam_cerrado_ha"] = df["radam_cerrado_ha_raw"] * df["radam_scale"]
     df["radam_total_ha"] = df["radam_forest_ha"] + df["radam_cerrado_ha"]
 
-    df["avail_ha"] = np.maximum(df["area_ha_car"] - col_or_zero(df, "cons_area_2000"), 0)
+    # Actual historical native vegetation at the two statutory cut-off dates.
+    df["veg_2000_ha"] = np.maximum(df["area_ha_car"] - col_or_zero(df, "cons_area_2000"), 0)
+    df["veg_2008_ha"] = np.maximum(df["area_ha_car"] - col_or_zero(df, "cons_area_2008"), 0)
+    df["avail_ha"] = df["veg_2000_ha"]
 
     df["rl_req_uncapped_forest_ha"] = df["radam_forest_ha"] * rules["rl_forest_pct"]
     df["rl_req_uncapped_cerrado_ha"] = df["radam_cerrado_ha"] * rules["rl_cerrado_pct"]
     df["rl_req_uncapped_total_ha"] = df["rl_req_uncapped_forest_ha"] + df["rl_req_uncapped_cerrado_ha"]
-    df["rl_cap_ha"] = np.minimum(df["rl_req_uncapped_total_ha"], df["avail_ha"])
+    # Art. 12 is the full present-day ceiling; historical vegetation must not
+    # reduce it here because Arts. 67/68 are applied explicitly below.
+    df["rl_cap_ha"] = df["rl_req_uncapped_total_ha"]
     total_req = df["rl_req_uncapped_total_ha"].replace(0, np.nan)
     df["rl_req_forest_ha"] = np.where(total_req.notna(), df["rl_cap_ha"] * df["rl_req_uncapped_forest_ha"] / total_req, 0)
     df["rl_req_cerrado_ha"] = np.where(total_req.notna(), df["rl_cap_ha"] * df["rl_req_uncapped_cerrado_ha"] / total_req, 0)
@@ -89,7 +94,7 @@ def compute_forest_code_metrics(df: pd.DataFrame, config: dict) -> pd.DataFrame:
     df["rl_req_pre2000_uncapped_c"] = df["radam_cerrado_ha"] * rules["rl_cerrado_pre2000"]
     df["rl_req_pre2000_total_unc"] = df["rl_req_pre2000_uncapped_f"] + df["rl_req_pre2000_uncapped_c"]
     pre_total = df["rl_req_pre2000_total_unc"].replace(0, np.nan)
-    pre_cap = np.minimum(df["rl_req_pre2000_total_unc"], df["avail_ha"])
+    pre_cap = df["rl_req_pre2000_total_unc"]
     df["rl_req_pre2000_forest_ha"] = np.where(pre_total.notna(), pre_cap * df["rl_req_pre2000_uncapped_f"] / pre_total, 0)
     df["rl_req_pre2000_cerrado_ha"] = np.where(pre_total.notna(), pre_cap * df["rl_req_pre2000_uncapped_c"] / pre_total, 0)
 
@@ -107,22 +112,31 @@ def compute_forest_code_metrics(df: pd.DataFrame, config: dict) -> pd.DataFrame:
     df["rl_gross_deficit_ha"] = df["rl_gross_deficit_forest_ha"] + df["rl_gross_deficit_cerrado_ha"]
     df["rl_surplus_forest_ha"] = np.maximum(df["rl_exist_forest_ha"] - df["rl_req_forest_ha"], 0)
     df["rl_surplus_cerrado_ha"] = np.maximum(df["rl_exist_cerrado_ha"] - df["rl_req_cerrado_ha"], 0)
-    df["rl_surplus_total_ha"] = df["rl_surplus_forest_ha"] + df["rl_surplus_cerrado_ha"]
+    # Art. 67: the small-property requirement is the lower of the current Art. 12
+    # ceiling and the native vegetation that actually existed on 22 July 2008.
+    df["req_teto_art12_ha"] = df["rl_req_total_ha"]
+    df["req_piso_art68_ha"] = df["rl_req_pre2000_total_unc"]
+    df["rl_req_art67_ha"] = np.minimum(df["req_teto_art12_ha"], df["veg_2008_ha"])
 
-    df["art68_exempt_forest"] = (df["rl_exist_forest_ha"] >= df["rl_req_pre2000_forest_ha"]) & (df["radam_forest_ha"] > 0)
-    df["art68_exempt_cerrado"] = (df["rl_exist_cerrado_ha"] >= df["rl_req_pre2000_cerrado_ha"]) & (df["radam_cerrado_ha"] > 0)
-    df["rl_adj_deficit_forest_ha"] = np.select(
-        [df["art67_small_prop"], df["art68_exempt_forest"], df["mt_special_mun"]],
-        [0, np.maximum(df["rl_req_pre2000_forest_ha"] - df["rl_exist_forest_ha"], 0), np.maximum(df["rl_req_mt_forest_ha"] - df["rl_exist_forest_ha"], 0)],
-        default=np.maximum(df["rl_req_forest_ha"] - df["rl_exist_forest_ha"], 0),
+    # Art. 68 is a binary legality test for properties above four fiscal modules:
+    # meeting the historical floor preserves it; failing it triggers full Art. 12.
+    df["art68_legal_2000"] = df["veg_2000_ha"] >= df["req_piso_art68_ha"]
+    df["rl_req_art68_ha"] = np.where(
+        df["art68_legal_2000"], df["req_piso_art68_ha"], df["req_teto_art12_ha"]
     )
-    df["rl_adj_deficit_cerrado_ha"] = np.select(
-        [df["art67_small_prop"], df["art68_exempt_cerrado"]],
-        [0, np.maximum(df["rl_req_pre2000_cerrado_ha"] - df["rl_exist_cerrado_ha"], 0)],
-        default=np.maximum(df["rl_req_cerrado_ha"] - df["rl_exist_cerrado_ha"], 0),
+    df["rl_req_base_ha"] = np.where(
+        df["art67_small_prop"], df["rl_req_art67_ha"], df["rl_req_art68_ha"]
     )
-    df["rl_adj_deficit_ha"] = df["rl_adj_deficit_forest_ha"] + df["rl_adj_deficit_cerrado_ha"]
-    df["rl_post2008_ha"] = np.minimum(col_or_zero(df, "auas_post2008"), df["avail_ha"])
+    df["art68_exempt_forest"] = (~df["art67_small_prop"]) & df["art68_legal_2000"] & (df["radam_forest_ha"] > 0)
+    df["art68_exempt_cerrado"] = (~df["art67_small_prop"]) & df["art68_legal_2000"] & (df["radam_cerrado_ha"] > 0)
+    df["rl_adj_deficit_ha"] = np.maximum(df["rl_req_base_ha"] - df["rl_exist_total_ha"], 0)
+    gross_total = (df["rl_gross_deficit_forest_ha"] + df["rl_gross_deficit_cerrado_ha"]).replace(0, np.nan)
+    df["rl_adj_deficit_forest_ha"] = np.where(
+        gross_total.notna(), df["rl_adj_deficit_ha"] * df["rl_gross_deficit_forest_ha"] / gross_total, 0
+    )
+    df["rl_adj_deficit_cerrado_ha"] = df["rl_adj_deficit_ha"] - df["rl_adj_deficit_forest_ha"]
+    df["rl_surplus_total_ha"] = np.maximum(df["rl_exist_total_ha"] - df["rl_req_base_ha"], 0)
+    df["rl_post2008_ha"] = np.maximum(col_or_zero(df, "auas_post2008"), 0)
     df["rl_restore_ha"] = np.minimum(df["rl_post2008_ha"], df["rl_adj_deficit_ha"])
     df["rl_compensate_ha"] = np.maximum(df["rl_adj_deficit_ha"] - df["rl_restore_ha"], 0)
 
@@ -138,8 +152,14 @@ def compute_forest_code_metrics(df: pd.DataFrame, config: dict) -> pd.DataFrame:
     df["app_cap_ha"] = np.select([mf.isna(), mf <= 2, (mf > 2) & (mf <= 4)], [np.inf, 0.10 * df["area_ha_car"], 0.20 * df["area_ha_car"]], default=np.inf)
     df["app_restore_auas_ha"] = col_or_zero(df, "app_fnl_auas")
     df["app_consolidated_ha"] = col_or_zero(df, "app_fnl_cs08")
-    df["app_consol_restore_ha"] = np.minimum.reduce([df["app_replant_raw_ha"], df["app_consolidated_ha"], df["app_gross_deficit_ha"]])
-    df["app_restore_ha"] = np.minimum.reduce([df["app_consol_restore_ha"] + df["app_restore_auas_ha"], df["app_gross_deficit_ha"], df["app_cap_ha"]])
+    df["app_consol_restore_ha"] = np.minimum.reduce(
+        [df["app_replant_raw_ha"], df["app_consolidated_ha"], df["app_gross_deficit_ha"], df["app_cap_ha"]]
+    )
+    # Art. 61-B cap applies only to the pre-2008 consolidated component. Recent
+    # illegal clearing is added afterwards and therefore cannot be amnestied by it.
+    df["app_restore_ha"] = np.minimum(
+        df["app_consol_restore_ha"] + df["app_restore_auas_ha"], df["app_gross_deficit_ha"]
+    )
     return df
 
 
@@ -161,16 +181,22 @@ def add_secondary_vegetation_scenarios(df: pd.DataFrame, secondary: pd.DataFrame
     out["rl_gross_deficit_with_secondary_ha"] = out["rl_gross_deficit_forest_with_secondary_ha"] + col_or_zero(out, "rl_gross_deficit_cerrado_ha")
     out["rl_surplus_with_secondary_ha"] = out["rl_surplus_forest_with_secondary_ha"] + col_or_zero(out, "rl_surplus_cerrado_ha")
 
-    art68_f = (out["rl_exist_forest_with_secondary_ha"] >= col_or_zero(out, "rl_req_pre2000_forest_ha")) & (col_or_zero(out, "radam_forest_ha") > 0)
-    small = out["art67_small_prop"].astype(bool)
-    mt_special = out["mt_special_mun"].astype(bool)
-    out["rl_adj_deficit_forest_with_secondary_ha"] = np.select(
-        [small, art68_f, mt_special],
-        [0, 0, (col_or_zero(out, "rl_req_mt_forest_ha") - out["rl_exist_forest_with_secondary_ha"]).clip(lower=0)],
-        default=out["rl_gross_deficit_forest_with_secondary_ha"],
+    out["rl_exist_total_with_secondary_ha"] = col_or_zero(out, "rl_exist_total_ha") + out["secondary_vegetation_ha"]
+    out["rl_adj_deficit_with_secondary_ha"] = (
+        col_or_zero(out, "rl_req_base_ha") - out["rl_exist_total_with_secondary_ha"]
+    ).clip(lower=0)
+    baseline_total = col_or_zero(out, "rl_adj_deficit_ha").replace(0, np.nan)
+    out["rl_adj_deficit_forest_with_secondary_ha"] = np.where(
+        baseline_total.notna(),
+        out["rl_adj_deficit_with_secondary_ha"] * col_or_zero(out, "rl_adj_deficit_forest_ha") / baseline_total,
+        0,
     )
-    out["rl_adj_deficit_cerrado_with_secondary_ha"] = col_or_zero(out, "rl_adj_deficit_cerrado_ha")
-    out["rl_adj_deficit_with_secondary_ha"] = out["rl_adj_deficit_forest_with_secondary_ha"] + out["rl_adj_deficit_cerrado_with_secondary_ha"]
+    out["rl_adj_deficit_cerrado_with_secondary_ha"] = (
+        out["rl_adj_deficit_with_secondary_ha"] - out["rl_adj_deficit_forest_with_secondary_ha"]
+    )
+    out["rl_surplus_with_secondary_ha"] = (
+        out["rl_exist_total_with_secondary_ha"] - col_or_zero(out, "rl_req_base_ha")
+    ).clip(lower=0)
     out["rl_restore_with_secondary_ha"] = np.minimum(out["rl_adj_deficit_with_secondary_ha"], col_or_zero(out, "rl_post2008_ha"))
     out["rl_compensate_with_secondary_ha"] = (out["rl_adj_deficit_with_secondary_ha"] - out["rl_restore_with_secondary_ha"]).clip(lower=0)
     out["calc_gross_deficit_total_with_secondary_ha"] = out["rl_adj_deficit_with_secondary_ha"] + col_or_zero(out, "app_gross_deficit_ha")
@@ -184,57 +210,27 @@ def add_secondary_vegetation_scenarios(df: pd.DataFrame, secondary: pd.DataFrame
 
 def add_cons2000_scenarios(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
-    total_req = (
-        col_or_zero(out, "rl_req_uncapped_total_ha")
-        if "rl_req_uncapped_total_ha" in out.columns
-        else col_or_zero(out, "radam_forest_ha") * DEFAULT_RULES["rl_forest_pct"] + col_or_zero(out, "radam_cerrado_ha") * DEFAULT_RULES["rl_cerrado_pct"]
-    )
-    req_forest_unc = (
-        col_or_zero(out, "rl_req_uncapped_forest_ha")
-        if "rl_req_uncapped_forest_ha" in out.columns
-        else col_or_zero(out, "radam_forest_ha") * DEFAULT_RULES["rl_forest_pct"]
-    )
-    req_cerrado_unc = (
-        col_or_zero(out, "rl_req_uncapped_cerrado_ha")
-        if "rl_req_uncapped_cerrado_ha" in out.columns
-        else col_or_zero(out, "radam_cerrado_ha") * DEFAULT_RULES["rl_cerrado_pct"]
-    )
-    total_req_nonzero = total_req.replace(0, np.nan)
-    avail_without = col_or_zero(out, "area_ha_car")
-    cap_without = np.minimum(total_req, avail_without)
-    out["rl_req_total_without_cons2000_ha"] = cap_without
-    out["rl_req_forest_without_cons2000_ha"] = np.where(total_req_nonzero.notna(), cap_without * req_forest_unc / total_req_nonzero, 0)
-    out["rl_req_cerrado_without_cons2000_ha"] = np.where(total_req_nonzero.notna(), cap_without * req_cerrado_unc / total_req_nonzero, 0)
-
-    pre_unc_f = col_or_zero(out, "radam_forest_ha") * DEFAULT_RULES["rl_forest_pre2000"]
-    pre_unc_c = col_or_zero(out, "radam_cerrado_ha") * DEFAULT_RULES["rl_cerrado_pre2000"]
-    pre_total = (pre_unc_f + pre_unc_c).replace(0, np.nan)
-    pre_cap = np.minimum(pre_unc_f + pre_unc_c, avail_without)
-    pre_f = np.where(pre_total.notna(), pre_cap * pre_unc_f / pre_total, 0)
-    pre_c = np.where(pre_total.notna(), pre_cap * pre_unc_c / pre_total, 0)
-    mt_f = np.where(out["mt_special_mun"].astype(bool), np.minimum(col_or_zero(out, "radam_forest_ha") * DEFAULT_RULES["rl_mt_forest_pct"], avail_without), out["rl_req_forest_without_cons2000_ha"])
-
-    exist_f = col_or_zero(out, "rl_exist_forest_ha")
-    exist_c = col_or_zero(out, "rl_exist_cerrado_ha")
-    art68_f = (exist_f >= pre_f) & (col_or_zero(out, "radam_forest_ha") > 0)
-    art68_c = (exist_c >= pre_c) & (col_or_zero(out, "radam_cerrado_ha") > 0)
+    # Counterfactual: setting consolidated area in 2000 to zero makes every
+    # large property meet the Art. 68 historical floor. Small properties still
+    # follow the independent 2008 Art. 67 rule.
     small = out["art67_small_prop"].astype(bool)
-    mt_special = out["mt_special_mun"].astype(bool)
-    out["rl_adj_deficit_forest_without_cons2000_ha"] = np.select(
-        [small, art68_f, mt_special],
-        [0, np.maximum(pre_f - exist_f, 0), np.maximum(mt_f - exist_f, 0)],
-        default=np.maximum(out["rl_req_forest_without_cons2000_ha"] - exist_f, 0),
+    base_without = np.where(small, col_or_zero(out, "rl_req_art67_ha"), col_or_zero(out, "req_piso_art68_ha"))
+    out["rl_req_total_without_cons2000_ha"] = base_without
+    floor_total = col_or_zero(out, "req_piso_art68_ha").replace(0, np.nan)
+    out["rl_req_forest_without_cons2000_ha"] = np.where(
+        floor_total.notna(), base_without * col_or_zero(out, "rl_req_pre2000_uncapped_f") / floor_total, 0
     )
-    out["rl_adj_deficit_cerrado_without_cons2000_ha"] = np.select(
-        [small, art68_c],
-        [0, np.maximum(pre_c - exist_c, 0)],
-        default=np.maximum(out["rl_req_cerrado_without_cons2000_ha"] - exist_c, 0),
+    out["rl_req_cerrado_without_cons2000_ha"] = base_without - out["rl_req_forest_without_cons2000_ha"]
+    out["rl_adj_deficit_without_cons2000_ha"] = np.maximum(base_without - col_or_zero(out, "rl_exist_total_ha"), 0)
+    baseline_deficit = col_or_zero(out, "rl_adj_deficit_ha").replace(0, np.nan)
+    out["rl_adj_deficit_forest_without_cons2000_ha"] = np.where(
+        baseline_deficit.notna(), out["rl_adj_deficit_without_cons2000_ha"] * col_or_zero(out, "rl_adj_deficit_forest_ha") / baseline_deficit, 0
     )
-    out["rl_adj_deficit_without_cons2000_ha"] = out["rl_adj_deficit_forest_without_cons2000_ha"] + out["rl_adj_deficit_cerrado_without_cons2000_ha"]
+    out["rl_adj_deficit_cerrado_without_cons2000_ha"] = out["rl_adj_deficit_without_cons2000_ha"] - out["rl_adj_deficit_forest_without_cons2000_ha"]
     post2008 = col_or_zero(out, "auas_post2008")
     if (post2008 == 0).all():
         post2008 = col_or_zero(out, "rl_post2008_ha")
-    out["rl_restore_without_cons2000_ha"] = np.minimum(np.minimum(post2008, avail_without), out["rl_adj_deficit_without_cons2000_ha"])
+    out["rl_restore_without_cons2000_ha"] = np.minimum(np.maximum(post2008, 0), out["rl_adj_deficit_without_cons2000_ha"])
     out["rl_compensate_without_cons2000_ha"] = np.maximum(out["rl_adj_deficit_without_cons2000_ha"] - out["rl_restore_without_cons2000_ha"], 0)
 
     out["app_restore_without_cons2000_ha"] = col_or_zero(out, "app_restore_ha")

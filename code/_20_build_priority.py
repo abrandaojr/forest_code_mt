@@ -40,6 +40,7 @@ ID_COLS = [
     "NUMEROESTA", "NOMESPROPR", "NOMEPROPRI", "PROTOCOLO", "SITUACAO",
     "SITUACAO_C", "MUNICIPIO_", "mun_geocodigo", "MODULOS_FI", "AREA_HA",
     "area_ha_car", "car_valid", "status_rank", "size_class",
+    "cons_area_2000_source",
 ]
 
 METRIC_COLS = [
@@ -56,7 +57,9 @@ METRIC_COLS = [
     "app", "app_req_ha", "app_preserved_ha", "app_gross_deficit_ha",
     "app_restore_ha", "app_replant_raw_ha", "app_consolidated_ha",
     "app_consol_restore_ha", "app_restore_auas_ha", "cons_area_2000",
-    "cons_area_2008",
+    "cons_area_2008", "cons_area_2000_proxy", "cons_area_2000_proxy_missing",
+    "veg_2000_ha", "veg_2008_ha", "req_teto_art12_ha", "req_piso_art68_ha",
+    "rl_req_art67_ha", "rl_req_art68_ha", "rl_req_base_ha", "art68_legal_2000",
     "app_fnl_cs08", "app_fnl_auas", "app_fnl_avn24", "auas_post2008", "app_cap_ha",
     "appd_lte1mf_cs08", "appd_1a2mf_cs08", "appd_2a4mf_cs08",
     "appd_4a10mf_cs08", "appd_gt10mf_cs08",
@@ -84,7 +87,9 @@ CANONICAL_NUMERIC = [
     "rl_gross_deficit_ha", "rl_surplus_total_ha", "rl_adj_deficit_ha",
     "rl_post2008_ha", "rl_restore_ha", "rl_compensate_ha", "app_req_ha",
     "app_preserved_ha", "app_gross_deficit_ha", "app_restore_ha",
-    "cons_area_2000", "cons_area_2008", "app_consolidated_ha", "app_consol_restore_ha",
+    "cons_area_2000", "cons_area_2008", "cons_area_2000_proxy", "veg_2000_ha", "veg_2008_ha",
+    "req_teto_art12_ha", "req_piso_art68_ha", "rl_req_art67_ha", "rl_req_art68_ha", "rl_req_base_ha",
+    "app_consolidated_ha", "app_consol_restore_ha",
     "app_restore_auas_ha", "app_cap_ha",
     "calc_gross_deficit_total_ha",
     "calc_deficit_total_ha",
