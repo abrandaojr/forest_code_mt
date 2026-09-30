@@ -190,6 +190,44 @@ def build_lineage() -> dict[str, object]:
     schema_audit_path = ROOT / "qa" / "final_export_schema_audit_20260818.json"
     schema_audit = json.loads(schema_audit_path.read_text(encoding="utf-8")) if schema_audit_path.exists() else {}
 
+    aggregation_levels = [
+        {
+            "id": "executive",
+            "name": "Level 1 — Final answers",
+            "purpose": "The five fields a decision-maker normally needs.",
+            "items": [
+                {"question": "How much LR must be restored on site?", "inputs": ["rl_req_base_ha", "rl_exist_total_ha", "auas_post2008"], "formula": "rl_restore_ha = min(max(rl_req_base_ha - rl_exist_total_ha, 0), auas_post2008)", "output": "rl_restore_ha", "destination": ["property_baseline", "property_secondary", "property_csv", "cattle_baseline", "cattle_secondary"]},
+                {"question": "How much LR may be compensated off site?", "inputs": ["rl_adj_deficit_ha", "rl_restore_ha"], "formula": "rl_compensate_ha = max(rl_adj_deficit_ha - rl_restore_ha, 0)", "output": "rl_compensate_ha", "destination": ["property_baseline", "property_secondary", "property_csv", "cattle_baseline", "cattle_secondary"]},
+                {"question": "How much APP must be restored?", "inputs": ["app_consol_restore_ha", "app_restore_auas_ha", "app_gross_deficit_ha"], "formula": "app_restore_ha = min(app_consol_restore_ha + app_restore_auas_ha, app_gross_deficit_ha)", "output": "app_restore_ha", "destination": ["property_baseline", "property_secondary", "property_csv", "cattle_baseline", "cattle_secondary"]},
+                {"question": "What is the total baseline liability?", "inputs": ["rl_adj_deficit_ha", "app_restore_ha"], "formula": "calc_deficit_total_ha = rl_adj_deficit_ha + app_restore_ha", "output": "calc_deficit_total_ha", "destination": ["property_baseline", "property_secondary", "property_csv"]},
+                {"question": "What changes when secondary vegetation is counted?", "inputs": ["rl_req_base_ha", "rl_exist_total_ha", "secondary_vegetation_ha"], "formula": "rl_adj_deficit_with_secondary_ha = max(rl_req_base_ha - (rl_exist_total_ha + secondary_vegetation_ha), 0)", "output": "rl_adj_deficit_with_secondary_ha", "destination": ["property_secondary", "property_csv", "cattle_secondary"]},
+            ],
+        },
+        {
+            "id": "overview",
+            "name": "Level 2 — Legal logic",
+            "purpose": "The cut-off dates and statutory decision rules behind the final answers.",
+            "items": [
+                {"question": "Native vegetation at the 2000 cut-off", "inputs": ["area_ha_car", "cons_area_2000"], "formula": "veg_2000_ha = max(area_ha_car - cons_area_2000, 0)", "output": "veg_2000_ha", "legal_rule": "Art. 68 eligibility test"},
+                {"question": "Native vegetation at the 2008 cut-off", "inputs": ["area_ha_car", "cons_area_2008"], "formula": "veg_2008_ha = max(area_ha_car - cons_area_2008, 0)", "output": "veg_2008_ha", "legal_rule": "Art. 67 cut-off"},
+                {"question": "Small-property LR requirement", "inputs": ["req_teto_art12_ha", "veg_2008_ha"], "formula": "rl_req_art67_ha = min(req_teto_art12_ha, veg_2008_ha)", "output": "rl_req_art67_ha", "legal_rule": "Art. 67"},
+                {"question": "Large-property LR requirement", "inputs": ["veg_2000_ha", "req_piso_art68_ha", "req_teto_art12_ha"], "formula": "rl_req_art68_ha = req_piso_art68_ha if veg_2000_ha ≥ req_piso_art68_ha; otherwise req_teto_art12_ha", "output": "rl_req_art68_ha", "legal_rule": "Binary Art. 68 trigger"},
+                {"question": "Final LR requirement", "inputs": ["art67_small_prop", "rl_req_art67_ha", "rl_req_art68_ha"], "formula": "rl_req_base_ha = rl_req_art67_ha for ≤4 fiscal modules; otherwise rl_req_art68_ha", "output": "rl_req_base_ha", "legal_rule": "Arts. 12, 67 and 68"},
+                {"question": "APP restoration cap", "inputs": ["app_replant_raw_ha", "app_consolidated_ha", "app_gross_deficit_ha", "app_cap_ha"], "formula": "app_consol_restore_ha = min(app_replant_raw_ha, app_consolidated_ha, app_gross_deficit_ha, app_cap_ha); post-2008 clearing is added afterwards", "output": "app_restore_ha", "legal_rule": "Art. 61-B"},
+            ],
+        },
+        {
+            "id": "final",
+            "name": "Level 3 — Exported fields",
+            "purpose": "Every field present in at least one final property or cattle file.",
+            "field_count": len(final_union),
+            "fields": sorted(final_union),
+        },
+        {"id": "formulas", "name": "Level 4 — Calculated fields", "purpose": "All fields with a formula traced to a script, function and line.", "field_count": len(formulae), "fields": sorted(formulae)},
+        {"id": "used", "name": "Level 5 — Formula inputs", "purpose": "Calculated fields plus every upstream field directly used by a formula.", "field_count": len(used_fields), "fields": sorted(used_fields)},
+        {"id": "all", "name": "Level 6 — Complete inventory", "purpose": "All sources, raw layers, canonical fields, calculations and final files.", "node_count": len(nodes), "edge_count": len(edges)},
+    ]
+
     return {
         "metadata": {
             "title": "Mato Grosso Forest Code — complete field lineage",
@@ -219,6 +257,7 @@ def build_lineage() -> dict[str, object]:
         "source_mappings": source_maps,
         "metric_export_fields": sorted(metric_cols),
         "omitted_source_fields": omitted_source_fields,
+        "aggregation_levels": aggregation_levels,
         "nodes": list(nodes.values()),
         "edges": edges,
     }
@@ -239,6 +278,7 @@ input,select{{width:100%;padding:9px 10px;margin:5px 0 10px;border:1px solid #c8
 #canvas{{width:100%;height:100%;display:block;background:radial-gradient(circle at center,#fff 0,#f5f7fa 72%)}}#tip{{position:absolute;display:none;pointer-events:none;background:#17212b;color:white;padding:8px 10px;border-radius:5px;font-size:12px;max-width:360px;z-index:4}}
 #details{{font-size:12px;white-space:pre-wrap;background:#f7f9fb;border:1px solid #dbe1e7;border-radius:6px;padding:10px;max-height:300px;overflow:auto}}.warn{{color:#8a3ffc;font-weight:700}}
 .audit{{padding:11px;border-radius:8px;background:#eef8f1;border-left:5px solid #3a7d44;font-size:12px;line-height:1.45;margin-bottom:12px}}.audit b{{display:block;font-size:14px}}.journey{{position:absolute;top:0;left:0;right:0;height:145px;background:white;border-bottom:1px solid #dbe1e7;padding:12px 16px;z-index:3}}.journey h2{{font-size:14px;margin:0 0 8px}}.steps{{display:flex;gap:8px;overflow-x:auto}}.step{{min-width:156px;text-align:left;border:1px solid #d5dde5;border-top:5px solid var(--c);border-radius:8px;padding:9px;background:#fff;box-shadow:0 2px 7px #18263312}}.step b{{display:block;font-size:12px}}.step small{{color:#667788}}.howto{{font-size:13px;line-height:1.45;background:#eef3f7;padding:10px;border-radius:8px}}#details h4{{margin:6px 0}}#details code{{display:block;background:#e8eef4;padding:6px;border-radius:5px;overflow-wrap:anywhere}}.badge{{display:inline-block;padding:3px 7px;border-radius:12px;font-size:11px;background:#e8eef4;margin:3px 2px}}
+.leveldocs{{margin:10px 0 14px;border:1px solid #cdd7e1;border-radius:9px;background:#fbfcfd;padding:10px;font-size:12px;line-height:1.4}}.leveldocs h3{{font-size:14px;margin:0 0 3px}}.leveldocs>p{{margin:0 0 9px;color:#526577}}.rulecard{{border-left:4px solid #1f67b1;background:white;padding:8px;margin:7px 0;border-radius:5px;box-shadow:0 1px 3px #17212b12}}.rulecard b{{display:block;margin-bottom:4px}}.docrow{{margin:5px 0}}.doclabel{{font-weight:700;color:#53677a}}.fieldchip{{display:inline-block;padding:2px 6px;margin:2px;border-radius:10px;background:#e8eef4;font-family:Consolas,monospace;font-size:10px}}.formula{{display:block;background:#fff3e8;border:1px solid #f0d1b2;border-radius:5px;padding:6px;margin:4px 0;font-family:Consolas,monospace;overflow-wrap:anywhere}}.fieldlist{{max-height:190px;overflow:auto;border-top:1px solid #e1e7ed;padding-top:5px}}.sourceblock{{margin:6px 0;padding:6px;background:white;border-radius:5px}}.sourceblock code{{overflow-wrap:anywhere}}
 @media(max-width:800px){{.layout{{grid-template-columns:1fr;grid-template-rows:340px 1fr}}aside{{border-right:0;border-bottom:1px solid #ddd}}}}
 </style></head><body>
 <header><div><h1>Complete field-use map — Mato Grosso Forest Code</h1><p>Sources → fields → formulas → final files. Select a node to inspect its formula, origin, and destinations.</p></div></header>
@@ -248,6 +288,7 @@ input,select{{width:100%;padding:9px 10px;margin:5px 0 10px;border:1px solid #c8
 <label>Search fields</label><input id="search" placeholder="e.g., cons_area_2008 or rl_restore_ha">
 <label>Aggregation level</label><select id="filter"><option value="executive">Level 1 — Final results</option><option value="overview">Level 2 — Core logic</option><option value="final">Level 3 — Exported fields</option><option value="formulas">Level 4 — Calculations</option><option value="used">Level 5 — Used fields</option><option value="all">Level 6 — Complete inventory</option><option value="omitted">Audit — Not exported</option></select>
 <label>Theme</label><select id="theme"><option value="all">All themes</option><option value="lr">Legal Reserve</option><option value="app">Permanent Preservation Area</option><option value="secondary">Secondary vegetation</option><option value="cattle">Cattle supply chain</option><option value="identity">Property identity</option><option value="other">Other calculations</option></select>
+<div class="leveldocs" id="levelDocs"></div>
 <div><button id="reset">Reset</button><button id="fit">Center network</button></div>
 <div class="stats"><div class="stat"><b id="nNodes"></b>nodes</div><div class="stat"><b id="nEdges"></b>links</div><div class="stat"><b id="nFormula"></b>formulas</div><div class="stat"><b id="nOmitted"></b>not exported</div></div>
 <div class="legend"><b>Metro routes</b><div><span class="dot" style="background:#1f67b1"></span>Legal Reserve</div><div><span class="dot" style="background:#e17b25"></span>Permanent Preservation Area</div><div><span class="dot" style="background:#3a8f5b"></span>Secondary vegetation</div><div><span class="dot" style="background:#7a4ca5"></span>Cattle supply chain</div><div><span class="dot" style="background:#667788"></span>Property identity</div><div><span class="dot" style="background:#c19a32"></span>Other calculations</div><div>Double-ring station = interchange</div></div>
@@ -282,7 +323,25 @@ function esc(x){{return String(x??'').replace(/[&<>"']/g,c=>({{'&':'&amp;','<':'
 function showDetails(n){{if(!n)return;selected=n;const incoming=data.edges.filter(x=>x.to===n.id).map(x=>byId.get(x.from)?.label).filter(Boolean),outgoing=data.edges.filter(x=>x.from===n.id).map(x=>byId.get(x.to)?.label).filter(Boolean),unresolved=data.summary.final_fields_without_source_or_formula.includes(n.label),internal=data.summary.internal_calculated_fields_not_exported.includes(n.label),status=unresolved?'Needs lineage review':internal?'Traced internal calculation':'Traced in code and outputs',expr=n.formula?.expression||'No calculated formula: source, identity, or output field.';document.getElementById('details').innerHTML=`<h4>${{esc(displayName(n))}}</h4><span class="badge">${{esc(status)}}</span><span class="badge">${{n.in_final?'Present in final files':'Intermediate field'}}</span><b>Technical field</b><code>${{esc(n.label)}}</code><p>${{esc(plain[n.label]||'Follow the connected stations to see where this field comes from and where it is used.')}}</p><b>Formula</b><code>${{esc(expr)}}</code><b>Inputs</b><p>${{esc(incoming.join(' · ')||'None recorded')}}</p><b>Used by / exported to</b><p>${{esc(outgoing.join(' · ')||'None recorded')}}</p>${{n.formula?`<small>${{esc(n.formula.script)}} · ${{esc(n.formula.function)}} · line ${{esc(n.formula.line)}}</small>`:''}}`}}
 canvas.onclick=e=>showDetails(nearest(e));
 canvas.onwheel=e=>{{e.preventDefault();zoom=Math.max(.15,Math.min(3,zoom*(e.deltaY<0?1.1:.9)))}};
-function applyFilter(){{const q=document.getElementById('search').value.toLowerCase(),f=document.getElementById('filter').value,t=document.getElementById('theme').value;for(const n of nodes){{const match=!q||n.label.toLowerCase().includes(q),base=n.in_final||n.type==='source'||n.type==='output',calc=base||n.calculated||n.type==='formula',used=calc||data.edges.some(e=>(e.from===n.id||e.to===n.id)&&(e.type==='used_by'||e.type==='renamed_to'));const level=f==='executive'&&(executiveFields.has(n.label)||n.type==='source'||n.type==='output')||f==='overview'&&(overviewFields.has(n.label)||n.type==='source'||n.type==='output')||f==='final'&&base||f==='formulas'&&calc||f==='used'&&used||f==='all'||f==='omitted'&&omitted.has(n.label);const thematic=t==='all'||n.route===t||n.type==='source'||n.type==='output';n.show=(q?match:level)&&thematic}}const ids=new Set(nodes.filter(n=>n.show).map(n=>n.id));document.getElementById('nNodes').textContent=ids.size;document.getElementById('nEdges').textContent=data.edges.filter(e=>ids.has(e.from)&&ids.has(e.to)).length}}
+function chips(values){{return (values||[]).map(x=>`<span class="fieldchip">${{esc(x)}}</span>`).join('')}}
+function renderLevelDocs(){{
+ const id=document.getElementById('filter').value,theme=document.getElementById('theme').value,box=document.getElementById('levelDocs'),level=data.aggregation_levels.find(x=>x.id===id);
+ if(id==='omitted'){{box.innerHTML=`<h3>Audit â€” source fields not exported</h3><p>${{data.omitted_source_fields.length}} source fields are intentionally absent from final files. They remain documented for completeness.</p><div class="fieldlist">${{chips(data.omitted_source_fields)}}</div>`;return}}
+ if(!level){{box.innerHTML='';return}}
+ let body=`<h3>${{esc(level.name)}}</h3><p>${{esc(level.purpose)}}</p>`;
+ if(level.items){{
+  const items=level.items.filter(item=>{{if(theme==='all')return true;const labels=[...(item.inputs||[]),item.output||''];return labels.some(label=>route({{label,type:'field'}})===theme)}});
+  body+=items.map(item=>`<div class="rulecard"><b>${{esc(item.question)}}</b><div class="docrow"><span class="doclabel">Data / input fields:</span><br>${{chips(item.inputs)}}</div><div class="docrow"><span class="doclabel">Formula applied:</span><code class="formula">${{esc(item.formula)}}</code></div><div class="docrow"><span class="doclabel">Produced field:</span> ${{chips([item.output])}}</div>${{item.legal_rule?`<div class="docrow"><span class="doclabel">Legal rule:</span> ${{esc(item.legal_rule)}}</div>`:''}}${{item.destination?`<div class="docrow"><span class="doclabel">Final files:</span><br>${{chips(item.destination)}}</div>`:''}}</div>`).join('')||'<p>No item in this theme.</p>';
+ }}else if(level.fields){{
+  const fields=level.fields.filter(name=>theme==='all'||route({{label:name,type:'field'}})===theme);body+=`<div class="docrow"><b>${{fields.length}} fields shown</b></div>`;
+  if(id==='formulas')body+=`<div class="fieldlist">${{fields.map(name=>{{const f=data.formulas[name];return `<div class="rulecard"><b>${{esc(name)}}</b><span class="doclabel">Inputs:</span> ${{chips(f?.dependencies)}}<code class="formula">${{esc(f?.expression||'Formula metadata unavailable')}}</code><small>${{esc(f?.script||'')}}${{f?.line?' â€” line '+esc(f.line):''}}</small></div>`}}).join('')}}</div>`;
+  else body+=`<div class="fieldlist">${{chips(fields)}}</div>`;
+ }}else{{
+  body+=`<div class="docrow"><b>${{level.node_count}} documented nodes â†’ ${{level.edge_count}} traced connections</b></div><b>Input datasets</b>${{Object.entries(data.sources).map(([name,s])=>`<div class="sourceblock"><b>${{esc(name)}}</b><code>${{esc(s.path)}}</code><div>${{s.columns.length}} fields</div><details><summary>Show fields</summary>${{chips(s.columns)}}</details></div>`).join('')}}<b>Final datasets</b>${{Object.entries(data.outputs).map(([name,s])=>`<div class="sourceblock"><b>${{esc(name)}}</b><code>${{esc(s.path)}}</code><div>${{s.columns.length}} fields</div></div>`).join('')}}`;
+ }}
+ box.innerHTML=body;
+}}
+function applyFilter(){{const q=document.getElementById('search').value.toLowerCase(),f=document.getElementById('filter').value,t=document.getElementById('theme').value;for(const n of nodes){{const match=!q||n.label.toLowerCase().includes(q),base=n.in_final||n.type==='source'||n.type==='output',calc=base||n.calculated||n.type==='formula',used=calc||data.edges.some(e=>(e.from===n.id||e.to===n.id)&&(e.type==='used_by'||e.type==='renamed_to'));const level=f==='executive'&&(executiveFields.has(n.label)||n.type==='source'||n.type==='output')||f==='overview'&&(overviewFields.has(n.label)||n.type==='source'||n.type==='output')||f==='final'&&base||f==='formulas'&&calc||f==='used'&&used||f==='all'||f==='omitted'&&omitted.has(n.label);const thematic=t==='all'||n.route===t||n.type==='source'||n.type==='output';n.show=(q?match:level)&&thematic}}const ids=new Set(nodes.filter(n=>n.show).map(n=>n.id));document.getElementById('nNodes').textContent=ids.size;document.getElementById('nEdges').textContent=data.edges.filter(e=>ids.has(e.from)&&ids.has(e.to)).length;renderLevelDocs()}}
 document.getElementById('search').oninput=applyFilter;document.getElementById('filter').onchange=applyFilter;document.getElementById('theme').onchange=applyFilter;document.getElementById('reset').onclick=()=>{{document.getElementById('search').value='';document.getElementById('filter').value='executive';document.getElementById('theme').value='all';applyFilter()}};document.getElementById('fit').onclick=()=>{{zoom=.72;panX=40;panY=20}};
 for(const b of document.querySelectorAll('.step'))b.onclick=()=>{{document.getElementById('filter').value='overview';document.getElementById('theme').value=b.dataset.theme;document.getElementById('search').value='';applyFilter();if(b.dataset.field)showDetails(nodes.find(n=>n.label===b.dataset.field))}};
 const openCount=data.summary.final_fields_without_source_or_formula.length;document.getElementById('auditStatus').innerHTML=`<b>${{data.summary.core_export_schema_passed&&data.summary.lineage_review_complete?'Field checks passed':'Field checks need review'}}</b>${{data.summary.required_audit_field_count||0}} required fields checked; ${{data.summary.missing_required_fields.length}} missing. Legal-rule result audit: passed on 169,533 final properties. Final exported fields without a traced source or formula: ${{openCount}}. Internal calculation fields are retained in the technical inventory even when intentionally not exported.`;
