@@ -1,5 +1,16 @@
 # Final LR, APP, and secondary-vegetation fields
 
+## Final data folder
+
+`02_FINAL_DATA` is organized by format:
+
+1. `01_PARQUET`: one baseline file and two secondary-scenario parts.
+2. `02_CSV/01_FINAL_RESULTS`: four parts containing the final consolidated results.
+3. `02_CSV/02_RAW_INPUTS`: fifteen parts containing 169,533 properties and all 638 traceable raw/source fields.
+4. `03_EXCEL`: eleven workbooks containing the same 169,533 properties, raw fields, and 77 live compliance formulas per property.
+
+Files are split only to remain below the Google Drive upload limit. Read the numbered parts in order; headers are repeated in every CSV part.
+
 ## Final baseline fields
 
 | Topic | Final field | Interpretation |
