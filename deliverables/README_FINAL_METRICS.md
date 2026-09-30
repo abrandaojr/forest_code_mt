@@ -6,10 +6,21 @@
 
 1. `01_PARQUET`: one baseline file and two secondary-scenario parts.
 2. `02_CSV/01_FINAL_RESULTS`: four parts containing the final consolidated results.
-3. `02_CSV/02_RAW_INPUTS`: fifteen parts containing 169,533 properties and all 638 traceable raw/source fields.
-4. `03_EXCEL`: eleven workbooks containing the same 169,533 properties, raw fields, and 77 live compliance formulas per property.
+3. `02_CSV/02_RAW_INPUTS`: fifteen parts containing 169,533 properties and 638 total columns (source fields, identifiers, audit fields, and calculated outputs).
+4. `03_EXCEL`: eleven workbooks containing the same 169,533 properties and 638 total columns. Of these, 77 columns contain live compliance formulas and 561 contain identifiers, source values, or non-formula audit fields.
 
 Files are split only to remain below the Google Drive upload limit. Read the numbered parts in order; headers are repeated in every CSV part.
+
+## Compliance mega table
+
+The folders numbered `01_MEGA_TABLE_*` are the complete property-level compliance mega table, split into numbered parts only because of file-size limits. Each row is one unique property (`priority_key`). The 638 columns comprise:
+
+1. 128 source columns from validated SIMCAR (`simcar_validado__raw__*`).
+2. 149 source columns from digital SIMCAR (`simcar_digital__raw__*`).
+3. 215 source columns from the SIMCAR proxy (`simcar_proxy__raw__*`).
+4. 146 harmonized identifiers, selected inputs, intermediate variables, audit controls, scenario fields, and final compliance results.
+
+The Excel version has the same 638-column structure. Seventy-seven calculated columns contain live formulas; the other 561 columns contain identifiers, source values, selected inputs, and non-formula audit fields. Therefore, the workbook has 638 columns total—not 638 input columns plus 77 formulas.
 
 ## Final baseline fields
 
