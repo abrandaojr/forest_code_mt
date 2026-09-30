@@ -17,8 +17,6 @@ The Excel model with raw input columns and live compliance formulas is documente
 9. `09_TECHNICAL_LINEAGE_DATA.json` — inspect machine-readable field lineage.
 10. `10_README_FINAL_METRICS.md` — consult the concise metric definitions.
 
-Files numbered `90` or higher are isolated review candidates and are not part of the final analytical package.
-
 ## Method
 
 Input priority:
