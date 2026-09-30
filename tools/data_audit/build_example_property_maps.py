@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import pyarrow.parquet as pq
 import requests
 from PIL import Image
+import pandas as pd
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -22,6 +23,9 @@ EXAMPLES = [
         "field": "CODIGO_CAR",
         "key": "MT-5107875-FCDC7412E5B04C10A7B5B8FA8CE4B049",
         "color": "#8BC34A",
+        "join": "car_115587",
+        "objectid": 115587,
+        "source": "digital",
     },
     {
         "label": "small_property",
@@ -29,6 +33,10 @@ EXAMPLES = [
         "field": "CAR_FEDERA",
         "key": "MT-5103437-3035138E282C4E6686B61959CF506B0D",
         "color": "#FFB23E",
+        "join": "MT37754/2020_|_MT-5103437-3035138E282C4E6686B61959CF506B0D_|_24389",
+        "proxy_join": "car_145560",
+        "cons2000_join": "car_172072",
+        "source": "validated",
     },
 ]
 
@@ -124,6 +132,150 @@ def render(spec):
     return target
 
 
+def read_geometry(path, filters=None):
+    """Read only geometry and useful labels from an intersect GeoParquet."""
+    path = Path(path)
+    if not path.exists():
+        return None
+    schema = pq.ParquetFile(path).schema_arrow.names
+    wanted = [c for c in [
+        "geometry", "car_join", "prop_id_unique", "car_OBJECTID",
+        "FITOECOLOG", "lyr_FITOECOLOG", "area_ha", "Shape_Area",
+    ] if c in schema]
+    try:
+        return gpd.read_parquet(path, columns=wanted, filters=filters)
+    except Exception:
+        table = pq.read_table(path, columns=wanted, filters=filters)
+    try:
+        return gpd.GeoDataFrame.from_arrow(table)
+    except Exception:
+        table = pq.read_table(path, columns=wanted)
+        frame = table.to_pandas()
+        for col, op, value in filters or []:
+            if op == "=":
+                frame = frame[frame[col] == value]
+        if frame.empty:
+            return gpd.GeoDataFrame(frame, geometry="geometry")
+        if "geometry" in frame.columns:
+            import shapely
+            frame["geometry"] = shapely.from_wkb(frame["geometry"].to_numpy())
+        return gpd.GeoDataFrame(frame, geometry="geometry", crs=ESRI_102033)
+
+
+def clip_to_property(layer, prop):
+    if layer is None or layer.empty:
+        return None
+    if layer.crs != prop.crs:
+        layer = layer.to_crs(prop.crs)
+    clipped = gpd.clip(layer, prop)
+    return None if clipped.empty else clipped
+
+
+def layer_area(layer):
+    if layer is None or layer.empty:
+        return 0.0
+    metric = layer.to_crs(ESRI_102033)
+    return float(metric.geometry.area.sum() / 10000)
+
+
+ESRI_102033 = "+proj=aea +lat_0=-32 +lon_0=-60 +lat_1=-5 +lat_2=-42 +x_0=0 +y_0=0 +datum=SAD69 +units=m +no_defs"
+
+
+def example_layers(spec):
+    prop = load_one(spec)
+    root = ROOT / "data" / "raw"
+    proxy = root / "simcar_proxy"
+    if spec["source"] == "digital":
+        oid = spec["objectid"]
+        f = [("car_OBJECTID", "=", oid)]
+        source = root / "simcar_digital"
+        layers = {
+            "radam": read_geometry(proxy / "SIMCAR_P_vegetacao_radambrasil_x_car_atp.parquet", [("car_join", "=", spec["join"])]),
+            "native": read_geometry(proxy / "SIMCAR_P_vegetacao_radambrasil_x_car_atp_nveg24.parquet", [("car_join", "=", spec["join"])]),
+            "cons2000": read_geometry(proxy / "SIMCAR_P_cons_area_2000_net_max_x_car_atp.parquet", [("car_join", "=", spec["join"])]),
+            "cons2008": read_geometry(source / "SIMCAR_D_AREA_CONSOLIDADA_x_car_atp.parquet", f),
+            "auas": read_geometry(source / "SIMCAR_D_AUAS_x_car_atp.parquet", f),
+            "app": read_geometry(source / "SIMCAR_D_APP_x_car_atp.parquet", f),
+            "avn": read_geometry(source / "SIMCAR_D_AVN_x_car_atp.parquet", f),
+            "appd": read_geometry(source / "SIMCAR_D_APPD_4A10MF_AC_x_car_atp.parquet", f),
+            "app_auas": read_geometry(source / "SIMCAR_D_APPD_AUAS_x_car_atp.parquet", f),
+        }
+    else:
+        f = [("prop_id_unique", "=", spec["join"])]
+        source = root / "simcar_validado"
+        layers = {
+            "radam": read_geometry(proxy / "SIMCAR_P_vegetacao_radambrasil_x_car_atp.parquet", [("car_join", "=", spec["proxy_join"])]),
+            "cons2000": read_geometry(proxy / "SIMCAR_P_cons_area_2000_net_max_x_car_atp.parquet", [("car_join", "=", spec["cons2000_join"])]),
+            "cons2008": read_geometry(source / "SIMCAR_CAR_AREA_CONSOLIDADA_x_car_atp.parquet", f),
+            "auas": read_geometry(source / "CAR_AUAS_x_car_atp.parquet", f),
+            "app": read_geometry(source / "CAR_APP_x_car_atp.parquet", f),
+            "avn": read_geometry(source / "CAR_AVN_x_car_atp.parquet", f),
+            "appd": read_geometry(source / "CAR_APPD_x_car_atp.parquet", f),
+            "app_auas": None,
+        }
+        # The authoritative current-vegetation and secondary-vegetation values
+        # are spatial intersections of this source vector with the property.
+        src = gpd.read_file(proxy / "input_prodes_native_vegetation_2024_plus_sv.shp", bbox=tuple(prop.total_bounds))
+        layers["native"] = src[src["layer"].astype(str).eq("input_prodes_native_vegetation_2024_TILED")].copy()
+    src = gpd.read_file(proxy / "input_prodes_native_vegetation_2024_plus_sv.shp", bbox=tuple(prop.total_bounds))
+    layers["secondary"] = src[src["layer"].astype(str).eq("input_secondary_forest_dissolved")].copy()
+    return prop, {k: clip_to_property(v, prop) for k, v in layers.items()}
+
+
+def draw_layer_panel(ax, prop, layer, title, reported, color, mosaic, extent, categorical=False):
+    ax.imshow(mosaic, extent=extent, origin="upper")
+    if layer is not None and not layer.empty:
+        layer = layer.to_crs(3857)
+        if categorical:
+            field = "FITOECOLOG" if "FITOECOLOG" in layer.columns else "lyr_FITOECOLOG"
+            values = layer[field].astype(str).str.upper() if field in layer.columns else pd.Series("OTHER", index=layer.index)
+            for label, shade in [("FLORESTA", "#1E6B52"), ("CERRADO", "#D49A45")]:
+                part = layer[values.eq(label)]
+                if not part.empty:
+                    part.plot(ax=ax, facecolor=shade, edgecolor="white", linewidth=1.2, alpha=0.62)
+        else:
+            layer.plot(ax=ax, facecolor=color, edgecolor="white", linewidth=1.2, alpha=0.62)
+    prop.to_crs(3857).plot(ax=ax, facecolor="none", edgecolor="#FFFFFF", linewidth=2.8)
+    prop.to_crs(3857).plot(ax=ax, facecolor="none", edgecolor="#17312B", linewidth=1.1)
+    ax.set_title(f"{title}\n{reported}", loc="left", fontsize=12, weight="bold", color="#17312B", pad=7)
+    if layer is None or layer.empty:
+        ax.text(.5, .5, "NO INTERSECTING FEATURE", transform=ax.transAxes, ha="center", va="center",
+                fontsize=10, weight="bold", color="#B95B4C", bbox=dict(facecolor="white", alpha=.88, edgecolor="none", pad=5))
+    ax.set_axis_off()
+
+
+def render_layer_atlases(spec):
+    prop, layers = example_layers(spec)
+    prop3857 = prop.to_crs(3857)
+    minx, miny, maxx, maxy = prop3857.total_bounds
+    span = max(maxx - minx, maxy - miny)
+    pad = max(span * .18, 500)
+    mosaic, extent = esri_mosaic((minx-pad, miny-pad, maxx+pad, maxy+pad), target_px=900)
+    reported = {
+        "large_property": {"radam":"Forest 169.21 ha | Cerrado 430.71 ha", "native":"Current native vegetation 118.13 ha", "secondary":"Secondary vegetation 79.11 ha", "cons2000":"273.13 ha", "cons2008":"0.00 ha", "auas":"0.00004 ha", "app":"APP requirement 8.65 ha", "avn":"Declared native vegetation 115.46 ha", "appd":"0.00 ha", "app_auas":"0.00 ha"},
+        "small_property": {"radam":"Forest 108.66 ha | Cerrado 80.90 ha", "native":"Current native vegetation 61.34 ha", "secondary":"Secondary vegetation 48.40 ha", "cons2000":"140.02 ha", "cons2008":"64.85 ha", "auas":"0.00 ha", "app":"APP requirement 3.53 ha", "avn":"0.00 ha", "appd":"Pre-2008 APP restoration 3.17 ha", "app_auas":"0.00 ha"},
+    }[spec["label"]]
+    groups = [
+        ("lr_layers", [("radam","RADAM vegetation formation","#1E6B52",True),("native","Native vegetation in 2024","#2E8B57",False),("secondary","Secondary vegetation scenario","#9FC65B",False)]),
+        ("temporal_layers", [("cons2000","Cleared area by 2000","#B95B4C",False),("cons2008","Consolidated area by 2008","#D49A45",False),("auas","Post-2008 alternative land use","#7A4CA5",False)]),
+        ("app_layers", [("app","Permanent Preservation Area (APP)","#2F80ED",False),("avn","Declared native vegetation (AVN)","#1E6B52",False),("appd","Pre-2008 APP liability (APPD)","#D49A45",False),("app_auas","Post-2008 clearing inside APP","#B95B4C",False)]),
+    ]
+    outputs = []
+    for suffix, panels in groups:
+        fig, axes = plt.subplots(1, len(panels), figsize=(15, 5.1), dpi=180)
+        for ax, (key, title, color, categorical) in zip(axes, panels):
+            draw_layer_panel(ax, prop, layers[key], title, reported[key], color, mosaic, extent, categorical)
+        fig.text(.01, .012, "White/dark outline: CAR property boundary  |  Satellite: Esri World Imagery", fontsize=8, color="#5D716C")
+        fig.tight_layout(rect=(0, .04, 1, 1), w_pad=1.2)
+        target = OUT / f"{spec['label']}_{suffix}.png"
+        fig.savefig(target, bbox_inches="tight", pad_inches=.04, facecolor="white")
+        plt.close(fig)
+        outputs.append(target)
+    return outputs
+
+
 if __name__ == "__main__":
     for example in EXAMPLES:
         print(render(example))
+        for atlas in render_layer_atlases(example):
+            print(atlas)
