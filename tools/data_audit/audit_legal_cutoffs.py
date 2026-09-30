@@ -33,6 +33,8 @@ def main() -> None:
     expected_restore = np.minimum(np.maximum(num(d, "auas_post2008"), 0), deficit)
     expected_comp = np.maximum(deficit - expected_restore, 0)
     expected_app = np.minimum(num(d, "app_consol_restore_ha") + num(d, "app_restore_auas_ha"), num(d, "app_gross_deficit_ha"))
+    expected_total = np.minimum(deficit + expected_app, area)
+    expected_gross_total = np.minimum(num(d, "rl_gross_deficit_ha") + num(d, "app_gross_deficit_ha"), area)
 
     checks = {
         "cons_area_2000_not_above_property": int((c00 > area + 1e-8).sum()),
@@ -48,11 +50,25 @@ def main() -> None:
         "rl_compensate_max_diff": maxdiff(num(d, "rl_compensate_ha"), expected_comp),
         "app_consolidated_above_cap": int((num(d, "app_consol_restore_ha") > num(d, "app_cap_ha") + 1e-8).sum()),
         "app_restore_post_cap_max_diff": maxdiff(num(d, "app_restore_ha"), expected_app),
+        "current_vegetation_above_property": int((num(d, "rl_exist_total_ha") > area + 1e-8).sum()),
+        "final_total_above_property": int((num(d, "calc_deficit_total_ha") > area + 1e-8).sum()),
+        "gross_total_above_property": int((num(d, "calc_gross_deficit_total_ha") > area + 1e-8).sum()),
+        "final_total_formula_max_diff": maxdiff(num(d, "calc_deficit_total_ha"), expected_total),
+        "gross_total_formula_max_diff": maxdiff(num(d, "calc_gross_deficit_total_ha"), expected_gross_total),
     }
     if SECONDARY.exists():
         s = pd.read_parquet(SECONDARY)
         expected_secondary = np.maximum(num(s, "rl_req_base_ha") - num(s, "rl_exist_total_with_secondary_ha"), 0)
         checks["secondary_deficit_max_diff"] = maxdiff(num(s, "rl_adj_deficit_with_secondary_ha"), expected_secondary)
+        checks["secondary_total_vegetation_above_property"] = int(
+            (num(s, "rl_exist_total_with_secondary_ha") > num(s, "area_ha_car") + 1e-8).sum()
+        )
+        checks["secondary_effective_above_available_space"] = int(
+            (num(s, "secondary_vegetation_ha") > (num(s, "area_ha_car") - num(s, "rl_exist_total_ha")).clip(lower=0) + 1e-8).sum()
+        )
+        checks["secondary_final_total_above_property"] = int(
+            (num(s, "calc_deficit_total_with_secondary_ha") > num(s, "area_ha_car") + 1e-8).sum()
+        )
 
     failures = {k: v for k, v in checks.items() if abs(v) > 1e-7}
     payload = {

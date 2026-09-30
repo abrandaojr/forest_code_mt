@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from datetime import date
 from pathlib import Path
@@ -26,6 +27,17 @@ def bytes_to_mb(value: int) -> float:
 
 def num(df: pd.DataFrame, col: str) -> pd.Series:
     return kernel.num(df, col)
+
+
+def workspace_paths():
+    """Walk the package without entering dependency caches or reparse points."""
+    for parent, dirs, files in os.walk(ROOT, followlinks=False):
+        dirs[:] = [d for d in dirs if d not in {".git", "node_modules"}]
+        base = Path(parent)
+        for name in dirs:
+            yield base / name
+        for name in files:
+            yield base / name
 
 
 def collect_findings() -> dict[str, object]:
@@ -57,12 +69,12 @@ def collect_findings() -> dict[str, object]:
     missing_files = [path for path in required_files if not (ROOT / path).is_file()]
     cache_dirs = [
         str(path.relative_to(ROOT))
-        for path in ROOT.rglob("*")
+        for path in workspace_paths()
         if path.is_dir() and path.name in {"__pycache__", ".pytest_cache", ".ipynb_checkpoints"}
     ]
     empty_dirs = [
         str(path.relative_to(ROOT))
-        for path in ROOT.rglob("*")
+        for path in workspace_paths()
         if path.is_dir() and not is_ignored_metadata(path.relative_to(ROOT)) and not any(path.iterdir())
     ]
     large_files = [
@@ -70,7 +82,7 @@ def collect_findings() -> dict[str, object]:
             "path": str(path.relative_to(ROOT)),
             "mb": bytes_to_mb(path.stat().st_size),
         }
-        for path in ROOT.rglob("*")
+        for path in workspace_paths()
         if path.is_file() and not is_ignored_metadata(path.relative_to(ROOT)) and path.stat().st_size > 100 * 1024 * 1024
     ]
     fc = kernel.load_priority(with_secondary=True)
@@ -158,4 +170,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-09-30T03:26:28.097577+00:00",
+  "generated_at_utc": "2026-09-30T14:36:46.204821+00:00",
   "dataset": "out/table/forest_code_mt_priority_consolidated_20260818.parquet",
   "rows": 169533,
   "input_rows": {
@@ -25,7 +25,15 @@
     "rl_compensate_max_diff": 0.0,
     "app_consolidated_above_cap": 0,
     "app_restore_post_cap_max_diff": 0.0,
-    "secondary_deficit_max_diff": 0.0
+    "current_vegetation_above_property": 0,
+    "final_total_above_property": 0,
+    "gross_total_above_property": 0,
+    "final_total_formula_max_diff": 0.0,
+    "gross_total_formula_max_diff": 0.0,
+    "secondary_deficit_max_diff": 0.0,
+    "secondary_total_vegetation_above_property": 0,
+    "secondary_effective_above_available_space": 0,
+    "secondary_final_total_above_property": 0
   },
   "passed": true,
   "failures": {}

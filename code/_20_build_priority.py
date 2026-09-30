@@ -199,8 +199,15 @@ def normalize_source(df: pd.DataFrame, source: str, path: Path) -> pd.DataFrame:
 
     df["mun_geocodigo"] = derive_municipality_code(df)
     df["car_valid"] = boolish(df, "car_valid", default=True)
-    df["calc_gross_deficit_total_ha"] = num(df, "rl_gross_deficit_ha") + num(df, "app_gross_deficit_ha")
-    df["calc_deficit_total_ha"] = num(df, "rl_adj_deficit_ha") + num(df, "app_restore_ha")
+    property_area = num(df, "area_ha_car").clip(lower=0)
+    # Aggregate compliance results are union-style property liabilities and
+    # therefore cannot exceed the physical property area.
+    df["calc_gross_deficit_total_ha"] = np.minimum(
+        num(df, "rl_gross_deficit_ha") + num(df, "app_gross_deficit_ha"), property_area
+    )
+    df["calc_deficit_total_ha"] = np.minimum(
+        num(df, "rl_adj_deficit_ha") + num(df, "app_restore_ha"), property_area
+    )
     return df
 
 

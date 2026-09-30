@@ -104,8 +104,20 @@ def compute_forest_code_metrics(df: pd.DataFrame, config: dict) -> pd.DataFrame:
         df["rl_req_forest_ha"],
     )
 
-    df["rl_exist_forest_ha"] = col_or_zero(df, "radam_forest_nveg24_ha")
-    df["rl_exist_cerrado_ha"] = col_or_zero(df, "radam_cerrado_nveg24_ha")
+    # Current native-vegetation components are scaled together when topology
+    # slivers make their sum exceed the property. This preserves composition
+    # while enforcing the physical property-area ceiling.
+    df["rl_exist_forest_raw_ha"] = col_or_zero(df, "radam_forest_nveg24_ha").clip(lower=0)
+    df["rl_exist_cerrado_raw_ha"] = col_or_zero(df, "radam_cerrado_nveg24_ha").clip(lower=0)
+    exist_raw_total = df["rl_exist_forest_raw_ha"] + df["rl_exist_cerrado_raw_ha"]
+    exist_scale = np.where(
+        (exist_raw_total > df["area_ha_car"]) & (exist_raw_total > 0),
+        df["area_ha_car"] / exist_raw_total,
+        1.0,
+    )
+    df["rl_exist_scale"] = exist_scale
+    df["rl_exist_forest_ha"] = df["rl_exist_forest_raw_ha"] * exist_scale
+    df["rl_exist_cerrado_ha"] = df["rl_exist_cerrado_raw_ha"] * exist_scale
     df["rl_exist_total_ha"] = df["rl_exist_forest_ha"] + df["rl_exist_cerrado_ha"]
     df["rl_gross_deficit_forest_ha"] = np.maximum(df["rl_req_forest_ha"] - df["rl_exist_forest_ha"], 0)
     df["rl_gross_deficit_cerrado_ha"] = np.maximum(df["rl_req_cerrado_ha"] - df["rl_exist_cerrado_ha"], 0)
@@ -140,8 +152,10 @@ def compute_forest_code_metrics(df: pd.DataFrame, config: dict) -> pd.DataFrame:
     df["rl_restore_ha"] = np.minimum(df["rl_post2008_ha"], df["rl_adj_deficit_ha"])
     df["rl_compensate_ha"] = np.maximum(df["rl_adj_deficit_ha"] - df["rl_restore_ha"], 0)
 
-    df["app_req_ha"] = col_or_zero(df, "app")
-    df["app_preserved_ha"] = col_or_zero(df, "app_fnl_avn24")
+    df["app_req_ha"] = np.minimum(col_or_zero(df, "app").clip(lower=0), df["area_ha_car"])
+    df["app_preserved_ha"] = np.minimum(
+        col_or_zero(df, "app_fnl_avn24").clip(lower=0), df["app_req_ha"]
+    )
     df["app_gross_deficit_ha"] = np.maximum(df["app_req_ha"] - df["app_preserved_ha"], 0)
     mf = pd.to_numeric(df.get("MODULOS_FI", 0), errors="coerce")
     df["app_replant_raw_ha"] = np.select(
@@ -150,8 +164,12 @@ def compute_forest_code_metrics(df: pd.DataFrame, config: dict) -> pd.DataFrame:
         default=0,
     )
     df["app_cap_ha"] = np.select([mf.isna(), mf <= 2, (mf > 2) & (mf <= 4)], [np.inf, 0.10 * df["area_ha_car"], 0.20 * df["area_ha_car"]], default=np.inf)
-    df["app_restore_auas_ha"] = col_or_zero(df, "app_fnl_auas")
-    df["app_consolidated_ha"] = col_or_zero(df, "app_fnl_cs08")
+    df["app_restore_auas_ha"] = np.minimum(
+        col_or_zero(df, "app_fnl_auas").clip(lower=0), df["area_ha_car"]
+    )
+    df["app_consolidated_ha"] = np.minimum(
+        col_or_zero(df, "app_fnl_cs08").clip(lower=0), df["area_ha_car"]
+    )
     df["app_consol_restore_ha"] = np.minimum.reduce(
         [df["app_replant_raw_ha"], df["app_consolidated_ha"], df["app_gross_deficit_ha"], df["app_cap_ha"]]
     )
@@ -167,6 +185,8 @@ def add_secondary_vegetation_scenarios(df: pd.DataFrame, secondary: pd.DataFrame
     stale_cols = [
         c for c in df.columns
         if c == "secondary_vegetation_ha" or c.endswith("_with_secondary_ha") or c in {
+            "secondary_vegetation_raw_ha",
+            "secondary_available_space_ha",
             "secondary_deficit_reduction_ha",
             "compliant_baseline",
             "compliant_with_secondary",
@@ -174,7 +194,15 @@ def add_secondary_vegetation_scenarios(df: pd.DataFrame, secondary: pd.DataFrame
         }
     ]
     out = df.drop(columns=stale_cols, errors="ignore").merge(secondary, on="priority_key", how="left")
-    out["secondary_vegetation_ha"] = col_or_zero(out, "secondary_vegetation_ha").clip(lower=0)
+    out["secondary_vegetation_raw_ha"] = col_or_zero(out, "secondary_vegetation_ha").clip(lower=0)
+    out["secondary_available_space_ha"] = (
+        col_or_zero(out, "area_ha_car") - col_or_zero(out, "rl_exist_total_ha")
+    ).clip(lower=0)
+    # Secondary vegetation contributes to remaining native vegetation, but the
+    # combined vegetation stock can never exceed the property area.
+    out["secondary_vegetation_ha"] = np.minimum(
+        out["secondary_vegetation_raw_ha"], out["secondary_available_space_ha"]
+    )
     out["rl_exist_forest_with_secondary_ha"] = col_or_zero(out, "rl_exist_forest_ha") + out["secondary_vegetation_ha"]
     out["rl_gross_deficit_forest_with_secondary_ha"] = (col_or_zero(out, "rl_req_forest_ha") - out["rl_exist_forest_with_secondary_ha"]).clip(lower=0)
     out["rl_surplus_forest_with_secondary_ha"] = (out["rl_exist_forest_with_secondary_ha"] - col_or_zero(out, "rl_req_forest_ha")).clip(lower=0)
@@ -199,8 +227,14 @@ def add_secondary_vegetation_scenarios(df: pd.DataFrame, secondary: pd.DataFrame
     ).clip(lower=0)
     out["rl_restore_with_secondary_ha"] = np.minimum(out["rl_adj_deficit_with_secondary_ha"], col_or_zero(out, "rl_post2008_ha"))
     out["rl_compensate_with_secondary_ha"] = (out["rl_adj_deficit_with_secondary_ha"] - out["rl_restore_with_secondary_ha"]).clip(lower=0)
-    out["calc_gross_deficit_total_with_secondary_ha"] = out["rl_adj_deficit_with_secondary_ha"] + col_or_zero(out, "app_gross_deficit_ha")
-    out["calc_deficit_total_with_secondary_ha"] = out["rl_adj_deficit_with_secondary_ha"] + col_or_zero(out, "app_restore_ha")
+    out["calc_gross_deficit_total_with_secondary_ha"] = np.minimum(
+        out["rl_adj_deficit_with_secondary_ha"] + col_or_zero(out, "app_gross_deficit_ha"),
+        col_or_zero(out, "area_ha_car"),
+    )
+    out["calc_deficit_total_with_secondary_ha"] = np.minimum(
+        out["rl_adj_deficit_with_secondary_ha"] + col_or_zero(out, "app_restore_ha"),
+        col_or_zero(out, "area_ha_car"),
+    )
     out["secondary_deficit_reduction_ha"] = (col_or_zero(out, "calc_deficit_total_ha") - out["calc_deficit_total_with_secondary_ha"]).clip(lower=0)
     out["compliant_baseline"] = col_or_zero(out, "calc_deficit_total_ha").le(0)
     out["compliant_with_secondary"] = out["calc_deficit_total_with_secondary_ha"].le(0)

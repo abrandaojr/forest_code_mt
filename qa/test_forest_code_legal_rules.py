@@ -83,6 +83,19 @@ def main():
         baseline, pd.DataFrame({"priority_key": ["p1"], "secondary_vegetation_ha": [20.0]})
     ).iloc[0]
     close(secondary.rl_adj_deficit_with_secondary_ha, 10, "secondary vegetation scenario")
+
+    topology = compliance.compute_forest_code_metrics(
+        pd.DataFrame([row(radam_forest_nveg24_ha=90, radam_cerrado_nveg24_ha=20)]), CONFIG
+    ).iloc[0]
+    close(topology.rl_exist_total_ha, 100, "current vegetation property-area ceiling")
+
+    capped_secondary = compliance.add_secondary_vegetation_scenarios(
+        pd.DataFrame([topology]),
+        pd.DataFrame({"priority_key": ["p1"], "secondary_vegetation_ha": [500.0]}),
+    ).iloc[0]
+    close(capped_secondary.secondary_vegetation_ha, 0, "secondary vegetation available-space ceiling")
+    close(capped_secondary.rl_exist_total_with_secondary_ha, 100, "combined vegetation property-area ceiling")
+    assert capped_secondary.calc_deficit_total_with_secondary_ha <= capped_secondary.area_ha_car
     print("PASS: statutory cut-offs, Arts. 67/68, RL pathways, Art. 61-B, and secondary vegetation")
 
 

@@ -1,18 +1,18 @@
 {
   "metadata": {
     "title": "Mato Grosso Forest Code — complete field lineage",
-    "generated_at_utc": "2026-09-30T11:26:13.066319+00:00",
+    "generated_at_utc": "2026-09-30T14:40:56.270879+00:00",
     "model_date": "20260818",
     "scope": "SIMCAR validated, digital and proxy inputs; Python formulas; property and cattle outputs",
-    "node_count": 367,
-    "edge_count": 1289
+    "node_count": 372,
+    "edge_count": 1314
   },
   "summary": {
-    "source_field_count": 256,
-    "final_field_count": 168,
-    "calculated_field_count": 133,
+    "source_field_count": 259,
+    "final_field_count": 170,
+    "calculated_field_count": 138,
     "metric_export_list_count": 96,
-    "omitted_source_fields_count": 140,
+    "omitted_source_fields_count": 143,
     "used_but_missing_final": [
       "NumCattleToFederalSlh",
       "NumCattleToOtherSlh",
@@ -44,6 +44,9 @@
       "rl_cerrado_pre2000",
       "rl_compensate_without_cons2000_ha",
       "rl_cons2000_delta_ha",
+      "rl_exist_cerrado_raw_ha",
+      "rl_exist_forest_raw_ha",
+      "rl_exist_scale",
       "rl_forest_pct",
       "rl_forest_pre2000",
       "rl_mt_forest_pct",
@@ -86,6 +89,9 @@
       "rl_cerrado_pre2000",
       "rl_compensate_without_cons2000_ha",
       "rl_cons2000_delta_ha",
+      "rl_exist_cerrado_raw_ha",
+      "rl_exist_forest_raw_ha",
+      "rl_exist_scale",
       "rl_forest_pct",
       "rl_forest_pre2000",
       "rl_mt_forest_pct",
@@ -200,6 +206,9 @@
         "rl_req_pre2000_forest_ha",
         "rl_req_pre2000_cerrado_ha",
         "rl_req_mt_forest_ha",
+        "rl_exist_forest_raw_ha",
+        "rl_exist_cerrado_raw_ha",
+        "rl_exist_scale",
         "rl_exist_forest_ha",
         "rl_exist_cerrado_ha",
         "rl_exist_total_ha",
@@ -351,6 +360,9 @@
         "rl_req_pre2000_forest_ha",
         "rl_req_pre2000_cerrado_ha",
         "rl_req_mt_forest_ha",
+        "rl_exist_forest_raw_ha",
+        "rl_exist_cerrado_raw_ha",
+        "rl_exist_scale",
         "rl_exist_forest_ha",
         "rl_exist_cerrado_ha",
         "rl_exist_total_ha",
@@ -568,6 +580,9 @@
         "rl_req_pre2000_forest_ha",
         "rl_req_pre2000_cerrado_ha",
         "rl_req_mt_forest_ha",
+        "rl_exist_forest_raw_ha",
+        "rl_exist_cerrado_raw_ha",
+        "rl_exist_scale",
         "rl_exist_forest_ha",
         "rl_exist_cerrado_ha",
         "rl_exist_total_ha",
@@ -866,6 +881,8 @@
         "assentamentos_intermat_x_car_atp_fnl",
         "mun_geocodigo_norm",
         "secondary_vegetation_ha",
+        "secondary_vegetation_raw_ha",
+        "secondary_available_space_ha",
         "rl_exist_forest_with_secondary_ha",
         "rl_gross_deficit_forest_with_secondary_ha",
         "rl_surplus_forest_with_secondary_ha",
@@ -1200,6 +1217,8 @@
         "export_columns_used",
         "mun_geocodigo_norm",
         "secondary_vegetation_ha",
+        "secondary_vegetation_raw_ha",
+        "secondary_available_space_ha",
         "rl_exist_forest_with_secondary_ha",
         "rl_gross_deficit_forest_with_secondary_ha",
         "rl_surplus_forest_with_secondary_ha",
@@ -1472,23 +1491,48 @@
       "function": "compute_forest_code_metrics",
       "line": 101
     },
-    "rl_exist_forest_ha": {
-      "expression": "col_or_zero(df, 'radam_forest_nveg24_ha')",
+    "rl_exist_forest_raw_ha": {
+      "expression": "col_or_zero(df, 'radam_forest_nveg24_ha').clip(lower=0)",
       "dependencies": [
         "radam_forest_nveg24_ha"
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 107
+      "line": 110
     },
-    "rl_exist_cerrado_ha": {
-      "expression": "col_or_zero(df, 'radam_cerrado_nveg24_ha')",
+    "rl_exist_cerrado_raw_ha": {
+      "expression": "col_or_zero(df, 'radam_cerrado_nveg24_ha').clip(lower=0)",
       "dependencies": [
         "radam_cerrado_nveg24_ha"
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 108
+      "line": 111
+    },
+    "rl_exist_scale": {
+      "expression": "exist_scale",
+      "dependencies": [],
+      "script": "code/_11_forest_code_compliance.py",
+      "function": "compute_forest_code_metrics",
+      "line": 118
+    },
+    "rl_exist_forest_ha": {
+      "expression": "df['rl_exist_forest_raw_ha'] * exist_scale",
+      "dependencies": [
+        "rl_exist_forest_raw_ha"
+      ],
+      "script": "code/_11_forest_code_compliance.py",
+      "function": "compute_forest_code_metrics",
+      "line": 119
+    },
+    "rl_exist_cerrado_ha": {
+      "expression": "df['rl_exist_cerrado_raw_ha'] * exist_scale",
+      "dependencies": [
+        "rl_exist_cerrado_raw_ha"
+      ],
+      "script": "code/_11_forest_code_compliance.py",
+      "function": "compute_forest_code_metrics",
+      "line": 120
     },
     "rl_exist_total_ha": {
       "expression": "df['rl_exist_forest_ha'] + df['rl_exist_cerrado_ha']",
@@ -1498,7 +1542,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 109
+      "line": 121
     },
     "rl_gross_deficit_forest_ha": {
       "expression": "np.maximum(df['rl_req_forest_ha'] - df['rl_exist_forest_ha'], 0)",
@@ -1508,7 +1552,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 110
+      "line": 122
     },
     "rl_gross_deficit_cerrado_ha": {
       "expression": "np.maximum(df['rl_req_cerrado_ha'] - df['rl_exist_cerrado_ha'], 0)",
@@ -1518,7 +1562,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 111
+      "line": 123
     },
     "rl_gross_deficit_ha": {
       "expression": "df['rl_gross_deficit_forest_ha'] + df['rl_gross_deficit_cerrado_ha']",
@@ -1528,7 +1572,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 112
+      "line": 124
     },
     "rl_surplus_forest_ha": {
       "expression": "np.maximum(df['rl_exist_forest_ha'] - df['rl_req_forest_ha'], 0)",
@@ -1538,7 +1582,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 113
+      "line": 125
     },
     "rl_surplus_cerrado_ha": {
       "expression": "np.maximum(df['rl_exist_cerrado_ha'] - df['rl_req_cerrado_ha'], 0)",
@@ -1548,7 +1592,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 114
+      "line": 126
     },
     "req_teto_art12_ha": {
       "expression": "df['rl_req_total_ha']",
@@ -1557,7 +1601,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 117
+      "line": 129
     },
     "req_piso_art68_ha": {
       "expression": "df['rl_req_pre2000_total_unc']",
@@ -1566,7 +1610,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 118
+      "line": 130
     },
     "rl_req_art67_ha": {
       "expression": "np.minimum(df['req_teto_art12_ha'], df['veg_2008_ha'])",
@@ -1576,7 +1620,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 119
+      "line": 131
     },
     "art68_legal_2000": {
       "expression": "df['veg_2000_ha'] >= df['req_piso_art68_ha']",
@@ -1586,7 +1630,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 123
+      "line": 135
     },
     "rl_req_art68_ha": {
       "expression": "np.where(df['art68_legal_2000'], df['req_piso_art68_ha'], df['req_teto_art12_ha'])",
@@ -1597,7 +1641,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 124
+      "line": 136
     },
     "rl_req_base_ha": {
       "expression": "np.where(df['art67_small_prop'], df['rl_req_art67_ha'], df['rl_req_art68_ha'])",
@@ -1608,7 +1652,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 127
+      "line": 139
     },
     "art68_exempt_forest": {
       "expression": "~df['art67_small_prop'] & df['art68_legal_2000'] & (df['radam_forest_ha'] > 0)",
@@ -1619,7 +1663,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 130
+      "line": 142
     },
     "art68_exempt_cerrado": {
       "expression": "~df['art67_small_prop'] & df['art68_legal_2000'] & (df['radam_cerrado_ha'] > 0)",
@@ -1630,7 +1674,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 131
+      "line": 143
     },
     "rl_adj_deficit_ha": {
       "expression": "np.maximum(df['rl_req_base_ha'] - df['rl_exist_total_ha'], 0)",
@@ -1640,7 +1684,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 132
+      "line": 144
     },
     "rl_adj_deficit_forest_ha": {
       "expression": "np.where(gross_total.notna(), df['rl_adj_deficit_ha'] * df['rl_gross_deficit_forest_ha'] / gross_total, 0)",
@@ -1650,7 +1694,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 134
+      "line": 146
     },
     "rl_adj_deficit_cerrado_ha": {
       "expression": "df['rl_adj_deficit_ha'] - df['rl_adj_deficit_forest_ha']",
@@ -1660,7 +1704,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 137
+      "line": 149
     },
     "rl_surplus_total_ha": {
       "expression": "np.maximum(df['rl_exist_total_ha'] - df['rl_req_base_ha'], 0)",
@@ -1670,7 +1714,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 138
+      "line": 150
     },
     "rl_post2008_ha": {
       "expression": "np.maximum(col_or_zero(df, 'auas_post2008'), 0)",
@@ -1679,7 +1723,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 139
+      "line": 151
     },
     "rl_restore_ha": {
       "expression": "np.minimum(df['rl_post2008_ha'], df['rl_adj_deficit_ha'])",
@@ -1689,7 +1733,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 140
+      "line": 152
     },
     "rl_compensate_ha": {
       "expression": "np.maximum(df['rl_adj_deficit_ha'] - df['rl_restore_ha'], 0)",
@@ -1699,7 +1743,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 141
+      "line": 153
     },
     "app_req_ha": {
       "expression": "num(df, 'app')",
@@ -1711,13 +1755,14 @@
       "line": 198
     },
     "app_preserved_ha": {
-      "expression": "col_or_zero(df, 'app_fnl_avn24')",
+      "expression": "np.minimum(col_or_zero(df, 'app_fnl_avn24').clip(lower=0), df['app_req_ha'])",
       "dependencies": [
-        "app_fnl_avn24"
+        "app_fnl_avn24",
+        "app_req_ha"
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 144
+      "line": 156
     },
     "app_gross_deficit_ha": {
       "expression": "np.maximum(df['app_req_ha'] - df['app_preserved_ha'], 0)",
@@ -1727,7 +1772,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 145
+      "line": 159
     },
     "app_replant_raw_ha": {
       "expression": "np.select([mf.isna(), mf <= 1, (mf > 1) & (mf <= 2), (mf > 2) & (mf <= 4), (mf > 4) & (mf <= 10), mf > 10], [0, col_or_zero(df, 'appd_lte1mf_cs08'), col_or_zero(df, 'appd_1a2mf_cs08'), col_or_zero(df, 'appd_2a4mf_cs08'), col_or_zero(df, 'appd_4a10mf_cs08'), col_or_zero(df, 'appd_gt10mf_cs08')], default=0)",
@@ -1740,7 +1785,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 147
+      "line": 161
     },
     "app_cap_ha": {
       "expression": "np.select([mf.isna(), mf <= 2, (mf > 2) & (mf <= 4)], [np.inf, 0.1 * df['area_ha_car'], 0.2 * df['area_ha_car']], default=np.inf)",
@@ -1749,25 +1794,27 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 152
+      "line": 166
     },
     "app_restore_auas_ha": {
-      "expression": "col_or_zero(df, 'app_fnl_auas')",
+      "expression": "np.minimum(col_or_zero(df, 'app_fnl_auas').clip(lower=0), df['area_ha_car'])",
       "dependencies": [
-        "app_fnl_auas"
+        "app_fnl_auas",
+        "area_ha_car"
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 153
+      "line": 167
     },
     "app_consolidated_ha": {
-      "expression": "col_or_zero(df, 'app_fnl_cs08')",
+      "expression": "np.minimum(col_or_zero(df, 'app_fnl_cs08').clip(lower=0), df['area_ha_car'])",
       "dependencies": [
-        "app_fnl_cs08"
+        "app_fnl_cs08",
+        "area_ha_car"
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 154
+      "line": 170
     },
     "app_consol_restore_ha": {
       "expression": "np.minimum.reduce([df['app_replant_raw_ha'], df['app_consolidated_ha'], df['app_gross_deficit_ha'], df['app_cap_ha']])",
@@ -1779,7 +1826,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 155
+      "line": 173
     },
     "app_restore_ha": {
       "expression": "np.minimum(df['app_consol_restore_ha'] + df['app_restore_auas_ha'], df['app_gross_deficit_ha'])",
@@ -1790,14 +1837,36 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "compute_forest_code_metrics",
-      "line": 160
+      "line": 178
     },
-    "secondary_vegetation_ha": {
+    "secondary_vegetation_raw_ha": {
       "expression": "col_or_zero(out, 'secondary_vegetation_ha').clip(lower=0)",
-      "dependencies": [],
+      "dependencies": [
+        "secondary_vegetation_ha"
+      ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_secondary_vegetation_scenarios",
-      "line": 177
+      "line": 197
+    },
+    "secondary_available_space_ha": {
+      "expression": "(col_or_zero(out, 'area_ha_car') - col_or_zero(out, 'rl_exist_total_ha')).clip(lower=0)",
+      "dependencies": [
+        "area_ha_car",
+        "rl_exist_total_ha"
+      ],
+      "script": "code/_11_forest_code_compliance.py",
+      "function": "add_secondary_vegetation_scenarios",
+      "line": 198
+    },
+    "secondary_vegetation_ha": {
+      "expression": "np.minimum(out['secondary_vegetation_raw_ha'], out['secondary_available_space_ha'])",
+      "dependencies": [
+        "secondary_available_space_ha",
+        "secondary_vegetation_raw_ha"
+      ],
+      "script": "code/_11_forest_code_compliance.py",
+      "function": "add_secondary_vegetation_scenarios",
+      "line": 203
     },
     "rl_exist_forest_with_secondary_ha": {
       "expression": "col_or_zero(out, 'rl_exist_forest_ha') + out['secondary_vegetation_ha']",
@@ -1807,7 +1876,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_secondary_vegetation_scenarios",
-      "line": 178
+      "line": 206
     },
     "rl_gross_deficit_forest_with_secondary_ha": {
       "expression": "(col_or_zero(out, 'rl_req_forest_ha') - out['rl_exist_forest_with_secondary_ha']).clip(lower=0)",
@@ -1817,7 +1886,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_secondary_vegetation_scenarios",
-      "line": 179
+      "line": 207
     },
     "rl_surplus_forest_with_secondary_ha": {
       "expression": "(out['rl_exist_forest_with_secondary_ha'] - col_or_zero(out, 'rl_req_forest_ha')).clip(lower=0)",
@@ -1827,7 +1896,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_secondary_vegetation_scenarios",
-      "line": 180
+      "line": 208
     },
     "rl_gross_deficit_with_secondary_ha": {
       "expression": "out['rl_gross_deficit_forest_with_secondary_ha'] + col_or_zero(out, 'rl_gross_deficit_cerrado_ha')",
@@ -1837,7 +1906,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_secondary_vegetation_scenarios",
-      "line": 181
+      "line": 209
     },
     "rl_surplus_with_secondary_ha": {
       "expression": "(out['rl_exist_total_with_secondary_ha'] - col_or_zero(out, 'rl_req_base_ha')).clip(lower=0)",
@@ -1847,7 +1916,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_secondary_vegetation_scenarios",
-      "line": 197
+      "line": 225
     },
     "rl_exist_total_with_secondary_ha": {
       "expression": "col_or_zero(out, 'rl_exist_total_ha') + out['secondary_vegetation_ha']",
@@ -1857,7 +1926,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_secondary_vegetation_scenarios",
-      "line": 184
+      "line": 212
     },
     "rl_adj_deficit_with_secondary_ha": {
       "expression": "(col_or_zero(out, 'rl_req_base_ha') - out['rl_exist_total_with_secondary_ha']).clip(lower=0)",
@@ -1867,7 +1936,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_secondary_vegetation_scenarios",
-      "line": 185
+      "line": 213
     },
     "rl_adj_deficit_forest_with_secondary_ha": {
       "expression": "np.where(baseline_total.notna(), out['rl_adj_deficit_with_secondary_ha'] * col_or_zero(out, 'rl_adj_deficit_forest_ha') / baseline_total, 0)",
@@ -1877,7 +1946,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_secondary_vegetation_scenarios",
-      "line": 189
+      "line": 217
     },
     "rl_adj_deficit_cerrado_with_secondary_ha": {
       "expression": "out['rl_adj_deficit_with_secondary_ha'] - out['rl_adj_deficit_forest_with_secondary_ha']",
@@ -1887,7 +1956,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_secondary_vegetation_scenarios",
-      "line": 194
+      "line": 222
     },
     "rl_restore_with_secondary_ha": {
       "expression": "np.minimum(out['rl_adj_deficit_with_secondary_ha'], col_or_zero(out, 'rl_post2008_ha'))",
@@ -1897,7 +1966,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_secondary_vegetation_scenarios",
-      "line": 200
+      "line": 228
     },
     "rl_compensate_with_secondary_ha": {
       "expression": "(out['rl_adj_deficit_with_secondary_ha'] - out['rl_restore_with_secondary_ha']).clip(lower=0)",
@@ -1907,27 +1976,29 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_secondary_vegetation_scenarios",
-      "line": 201
+      "line": 229
     },
     "calc_gross_deficit_total_with_secondary_ha": {
-      "expression": "out['rl_adj_deficit_with_secondary_ha'] + col_or_zero(out, 'app_gross_deficit_ha')",
+      "expression": "np.minimum(out['rl_adj_deficit_with_secondary_ha'] + col_or_zero(out, 'app_gross_deficit_ha'), col_or_zero(out, 'area_ha_car'))",
       "dependencies": [
         "app_gross_deficit_ha",
+        "area_ha_car",
         "rl_adj_deficit_with_secondary_ha"
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_secondary_vegetation_scenarios",
-      "line": 202
+      "line": 230
     },
     "calc_deficit_total_with_secondary_ha": {
-      "expression": "out['rl_adj_deficit_with_secondary_ha'] + col_or_zero(out, 'app_restore_ha')",
+      "expression": "np.minimum(out['rl_adj_deficit_with_secondary_ha'] + col_or_zero(out, 'app_restore_ha'), col_or_zero(out, 'area_ha_car'))",
       "dependencies": [
         "app_restore_ha",
+        "area_ha_car",
         "rl_adj_deficit_with_secondary_ha"
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_secondary_vegetation_scenarios",
-      "line": 203
+      "line": 234
     },
     "secondary_deficit_reduction_ha": {
       "expression": "(col_or_zero(out, 'calc_deficit_total_ha') - out['calc_deficit_total_with_secondary_ha']).clip(lower=0)",
@@ -1937,7 +2008,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_secondary_vegetation_scenarios",
-      "line": 204
+      "line": 238
     },
     "compliant_baseline": {
       "expression": "col_or_zero(out, 'calc_deficit_total_ha').le(0)",
@@ -1946,7 +2017,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_secondary_vegetation_scenarios",
-      "line": 205
+      "line": 239
     },
     "compliant_with_secondary": {
       "expression": "out['calc_deficit_total_with_secondary_ha'].le(0)",
@@ -1955,7 +2026,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_secondary_vegetation_scenarios",
-      "line": 206
+      "line": 240
     },
     "secondary_changes_to_compliant": {
       "expression": "~out['compliant_baseline'] & out['compliant_with_secondary']",
@@ -1965,14 +2036,14 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_secondary_vegetation_scenarios",
-      "line": 207
+      "line": 241
     },
     "rl_req_total_without_cons2000_ha": {
       "expression": "base_without",
       "dependencies": [],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_cons2000_scenarios",
-      "line": 218
+      "line": 252
     },
     "rl_req_forest_without_cons2000_ha": {
       "expression": "np.where(floor_total.notna(), base_without * col_or_zero(out, 'rl_req_pre2000_uncapped_f') / floor_total, 0)",
@@ -1981,7 +2052,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_cons2000_scenarios",
-      "line": 220
+      "line": 254
     },
     "rl_req_cerrado_without_cons2000_ha": {
       "expression": "base_without - out['rl_req_forest_without_cons2000_ha']",
@@ -1990,7 +2061,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_cons2000_scenarios",
-      "line": 223
+      "line": 257
     },
     "rl_adj_deficit_without_cons2000_ha": {
       "expression": "np.maximum(base_without - col_or_zero(out, 'rl_exist_total_ha'), 0)",
@@ -1999,7 +2070,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_cons2000_scenarios",
-      "line": 224
+      "line": 258
     },
     "rl_adj_deficit_forest_without_cons2000_ha": {
       "expression": "np.where(baseline_deficit.notna(), out['rl_adj_deficit_without_cons2000_ha'] * col_or_zero(out, 'rl_adj_deficit_forest_ha') / baseline_deficit, 0)",
@@ -2009,7 +2080,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_cons2000_scenarios",
-      "line": 226
+      "line": 260
     },
     "rl_adj_deficit_cerrado_without_cons2000_ha": {
       "expression": "out['rl_adj_deficit_without_cons2000_ha'] - out['rl_adj_deficit_forest_without_cons2000_ha']",
@@ -2019,7 +2090,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_cons2000_scenarios",
-      "line": 229
+      "line": 263
     },
     "rl_restore_without_cons2000_ha": {
       "expression": "np.minimum(np.maximum(post2008, 0), out['rl_adj_deficit_without_cons2000_ha'])",
@@ -2028,7 +2099,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_cons2000_scenarios",
-      "line": 233
+      "line": 267
     },
     "rl_compensate_without_cons2000_ha": {
       "expression": "np.maximum(out['rl_adj_deficit_without_cons2000_ha'] - out['rl_restore_without_cons2000_ha'], 0)",
@@ -2038,7 +2109,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_cons2000_scenarios",
-      "line": 234
+      "line": 268
     },
     "app_restore_without_cons2000_ha": {
       "expression": "col_or_zero(out, 'app_restore_ha')",
@@ -2047,7 +2118,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_cons2000_scenarios",
-      "line": 236
+      "line": 270
     },
     "combined_with_cons2000_ha": {
       "expression": "col_or_zero(out, 'rl_adj_deficit_ha') + col_or_zero(out, 'app_restore_ha')",
@@ -2057,7 +2128,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_cons2000_scenarios",
-      "line": 237
+      "line": 271
     },
     "combined_without_cons2000_ha": {
       "expression": "out['rl_adj_deficit_without_cons2000_ha'] + out['app_restore_without_cons2000_ha']",
@@ -2067,7 +2138,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_cons2000_scenarios",
-      "line": 238
+      "line": 272
     },
     "rl_cons2000_delta_ha": {
       "expression": "out['rl_adj_deficit_without_cons2000_ha'] - col_or_zero(out, 'rl_adj_deficit_ha')",
@@ -2077,7 +2148,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_cons2000_scenarios",
-      "line": 239
+      "line": 273
     },
     "app_cons2000_delta_ha": {
       "expression": "out['app_restore_without_cons2000_ha'] - col_or_zero(out, 'app_restore_ha')",
@@ -2087,7 +2158,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_cons2000_scenarios",
-      "line": 240
+      "line": 274
     },
     "combined_cons2000_delta_ha": {
       "expression": "out['combined_without_cons2000_ha'] - out['combined_with_cons2000_ha']",
@@ -2097,7 +2168,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_cons2000_scenarios",
-      "line": 241
+      "line": 275
     },
     "compliant_with_cons2000": {
       "expression": "out['combined_with_cons2000_ha'] <= 0",
@@ -2106,7 +2177,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_cons2000_scenarios",
-      "line": 242
+      "line": 276
     },
     "compliant_without_cons2000": {
       "expression": "out['combined_without_cons2000_ha'] <= 0",
@@ -2115,7 +2186,7 @@
       ],
       "script": "code/_11_forest_code_compliance.py",
       "function": "add_cons2000_scenarios",
-      "line": 243
+      "line": 277
     },
     "input_file_type": {
       "expression": "source",
@@ -2185,24 +2256,24 @@
       "line": 453
     },
     "calc_gross_deficit_total_ha": {
-      "expression": "num(df, 'rl_gross_deficit_ha') + num(df, 'app_gross_deficit_ha')",
+      "expression": "np.minimum(num(df, 'rl_gross_deficit_ha') + num(df, 'app_gross_deficit_ha'), property_area)",
       "dependencies": [
         "app_gross_deficit_ha",
         "rl_gross_deficit_ha"
       ],
       "script": "code/_20_build_priority.py",
       "function": "normalize_source",
-      "line": 202
+      "line": 205
     },
     "calc_deficit_total_ha": {
-      "expression": "num(df, 'rl_adj_deficit_ha') + num(df, 'app_restore_ha')",
+      "expression": "np.minimum(num(df, 'rl_adj_deficit_ha') + num(df, 'app_restore_ha'), property_area)",
       "dependencies": [
         "app_restore_ha",
         "rl_adj_deficit_ha"
       ],
       "script": "code/_20_build_priority.py",
       "function": "normalize_source",
-      "line": 203
+      "line": 208
     },
     "SITUACAO": {
       "expression": "df['SITUACAO_C']",
@@ -2721,6 +2792,9 @@
     "restinga_pct",
     "rio_10_a_50_pct",
     "rl_cap_ha",
+    "rl_exist_cerrado_raw_ha",
+    "rl_exist_forest_raw_ha",
+    "rl_exist_scale",
     "rl_req_pre2000_total_unc",
     "rl_req_pre2000_uncapped_c",
     "rl_req_pre2000_uncapped_f",
@@ -2793,9 +2867,10 @@
           "question": "What is the total baseline liability?",
           "inputs": [
             "rl_adj_deficit_ha",
-            "app_restore_ha"
+            "app_restore_ha",
+            "area_ha_car"
           ],
-          "formula": "calc_deficit_total_ha = rl_adj_deficit_ha + app_restore_ha",
+          "formula": "calc_deficit_total_ha = min(rl_adj_deficit_ha + app_restore_ha, area_ha_car)",
           "output": "calc_deficit_total_ha",
           "destination": [
             "property_baseline",
@@ -2808,9 +2883,10 @@
           "inputs": [
             "rl_req_base_ha",
             "rl_exist_total_ha",
-            "secondary_vegetation_ha"
+            "secondary_vegetation_raw_ha",
+            "area_ha_car"
           ],
-          "formula": "rl_adj_deficit_with_secondary_ha = max(rl_req_base_ha - (rl_exist_total_ha + secondary_vegetation_ha), 0)",
+          "formula": "secondary_vegetation_ha = min(secondary_vegetation_raw_ha, max(area_ha_car - rl_exist_total_ha, 0)); rl_adj_deficit_with_secondary_ha = max(rl_req_base_ha - (rl_exist_total_ha + secondary_vegetation_ha), 0)",
           "output": "rl_adj_deficit_with_secondary_ha",
           "destination": [
             "property_secondary",
@@ -2895,7 +2971,7 @@
       "id": "final",
       "name": "Level 3 — Exported fields",
       "purpose": "Every field present in at least one final property or cattle file.",
-      "field_count": 168,
+      "field_count": 170,
       "fields": [
         "AREA_HA",
         "CAR_FEDERA",
@@ -3035,9 +3111,11 @@
         "rl_surplus_forest_with_secondary_ha",
         "rl_surplus_total_ha",
         "rl_surplus_with_secondary_ha",
+        "secondary_available_space_ha",
         "secondary_changes_to_compliant",
         "secondary_deficit_reduction_ha",
         "secondary_vegetation_ha",
+        "secondary_vegetation_raw_ha",
         "size_class",
         "slaughter_or_export_cattle",
         "slaughter_or_export_ratio",
@@ -3071,7 +3149,7 @@
       "id": "formulas",
       "name": "Level 4 — Calculated fields",
       "purpose": "All fields with a formula traced to a script, function and line.",
-      "field_count": 133,
+      "field_count": 138,
       "fields": [
         "PROPERTY_ID",
         "SITUACAO",
@@ -3146,8 +3224,11 @@
         "rl_compensate_without_cons2000_ha",
         "rl_cons2000_delta_ha",
         "rl_exist_cerrado_ha",
+        "rl_exist_cerrado_raw_ha",
         "rl_exist_forest_ha",
+        "rl_exist_forest_raw_ha",
         "rl_exist_forest_with_secondary_ha",
+        "rl_exist_scale",
         "rl_exist_total_ha",
         "rl_exist_total_with_secondary_ha",
         "rl_gross_deficit_cerrado_ha",
@@ -3182,9 +3263,11 @@
         "rl_surplus_forest_with_secondary_ha",
         "rl_surplus_total_ha",
         "rl_surplus_with_secondary_ha",
+        "secondary_available_space_ha",
         "secondary_changes_to_compliant",
         "secondary_deficit_reduction_ha",
         "secondary_vegetation_ha",
+        "secondary_vegetation_raw_ha",
         "size_class",
         "slaughter_or_export_cattle",
         "slaughter_or_export_ratio",
@@ -3212,7 +3295,7 @@
       "id": "used",
       "name": "Level 5 — Formula inputs",
       "purpose": "Calculated fields plus every upstream field directly used by a formula.",
-      "field_count": 163,
+      "field_count": 168,
       "fields": [
         "AREA_HA",
         "NumCattleToFederalSlh",
@@ -3314,8 +3397,11 @@
         "rl_compensate_without_cons2000_ha",
         "rl_cons2000_delta_ha",
         "rl_exist_cerrado_ha",
+        "rl_exist_cerrado_raw_ha",
         "rl_exist_forest_ha",
+        "rl_exist_forest_raw_ha",
         "rl_exist_forest_with_secondary_ha",
+        "rl_exist_scale",
         "rl_exist_total_ha",
         "rl_exist_total_with_secondary_ha",
         "rl_forest_pct",
@@ -3353,9 +3439,11 @@
         "rl_surplus_forest_with_secondary_ha",
         "rl_surplus_total_ha",
         "rl_surplus_with_secondary_ha",
+        "secondary_available_space_ha",
         "secondary_changes_to_compliant",
         "secondary_deficit_reduction_ha",
         "secondary_vegetation_ha",
+        "secondary_vegetation_raw_ha",
         "size_class",
         "slaughter_or_export_cattle",
         "slaughter_or_export_ratio",
@@ -3383,8 +3471,8 @@
       "id": "all",
       "name": "Level 6 — Complete inventory",
       "purpose": "All sources, raw layers, canonical fields, calculations and final files.",
-      "node_count": 367,
-      "edge_count": 1289
+      "node_count": 372,
+      "edge_count": 1314
     }
   ],
   "nodes": [
@@ -4429,6 +4517,55 @@
       }
     },
     {
+      "id": "field:rl_exist_forest_raw_ha",
+      "label": "rl_exist_forest_raw_ha",
+      "type": "field",
+      "in_final": false,
+      "selected_metric": false,
+      "calculated": true,
+      "formula": {
+        "expression": "col_or_zero(df, 'radam_forest_nveg24_ha').clip(lower=0)",
+        "dependencies": [
+          "radam_forest_nveg24_ha"
+        ],
+        "script": "code/_11_forest_code_compliance.py",
+        "function": "compute_forest_code_metrics",
+        "line": 110
+      }
+    },
+    {
+      "id": "field:rl_exist_cerrado_raw_ha",
+      "label": "rl_exist_cerrado_raw_ha",
+      "type": "field",
+      "in_final": false,
+      "selected_metric": false,
+      "calculated": true,
+      "formula": {
+        "expression": "col_or_zero(df, 'radam_cerrado_nveg24_ha').clip(lower=0)",
+        "dependencies": [
+          "radam_cerrado_nveg24_ha"
+        ],
+        "script": "code/_11_forest_code_compliance.py",
+        "function": "compute_forest_code_metrics",
+        "line": 111
+      }
+    },
+    {
+      "id": "field:rl_exist_scale",
+      "label": "rl_exist_scale",
+      "type": "formula",
+      "in_final": false,
+      "selected_metric": false,
+      "calculated": true,
+      "formula": {
+        "expression": "exist_scale",
+        "dependencies": [],
+        "script": "code/_11_forest_code_compliance.py",
+        "function": "compute_forest_code_metrics",
+        "line": 118
+      }
+    },
+    {
       "id": "field:rl_exist_forest_ha",
       "label": "rl_exist_forest_ha",
       "type": "field",
@@ -4436,13 +4573,13 @@
       "selected_metric": true,
       "calculated": true,
       "formula": {
-        "expression": "col_or_zero(df, 'radam_forest_nveg24_ha')",
+        "expression": "df['rl_exist_forest_raw_ha'] * exist_scale",
         "dependencies": [
-          "radam_forest_nveg24_ha"
+          "rl_exist_forest_raw_ha"
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 107
+        "line": 119
       }
     },
     {
@@ -4453,13 +4590,13 @@
       "selected_metric": true,
       "calculated": true,
       "formula": {
-        "expression": "col_or_zero(df, 'radam_cerrado_nveg24_ha')",
+        "expression": "df['rl_exist_cerrado_raw_ha'] * exist_scale",
         "dependencies": [
-          "radam_cerrado_nveg24_ha"
+          "rl_exist_cerrado_raw_ha"
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 108
+        "line": 120
       }
     },
     {
@@ -4477,7 +4614,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 109
+        "line": 121
       }
     },
     {
@@ -4495,7 +4632,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 110
+        "line": 122
       }
     },
     {
@@ -4513,7 +4650,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 111
+        "line": 123
       }
     },
     {
@@ -4531,7 +4668,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 112
+        "line": 124
       }
     },
     {
@@ -4549,7 +4686,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 113
+        "line": 125
       }
     },
     {
@@ -4567,7 +4704,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 114
+        "line": 126
       }
     },
     {
@@ -4584,7 +4721,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 117
+        "line": 129
       }
     },
     {
@@ -4601,7 +4738,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 118
+        "line": 130
       }
     },
     {
@@ -4619,7 +4756,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 119
+        "line": 131
       }
     },
     {
@@ -4637,7 +4774,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 123
+        "line": 135
       }
     },
     {
@@ -4656,7 +4793,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 124
+        "line": 136
       }
     },
     {
@@ -4675,7 +4812,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 127
+        "line": 139
       }
     },
     {
@@ -4694,7 +4831,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 130
+        "line": 142
       }
     },
     {
@@ -4713,7 +4850,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 131
+        "line": 143
       }
     },
     {
@@ -4731,7 +4868,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 132
+        "line": 144
       }
     },
     {
@@ -4749,7 +4886,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 134
+        "line": 146
       }
     },
     {
@@ -4767,7 +4904,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 137
+        "line": 149
       }
     },
     {
@@ -4785,7 +4922,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 138
+        "line": 150
       }
     },
     {
@@ -4802,7 +4939,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 139
+        "line": 151
       }
     },
     {
@@ -4820,7 +4957,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 140
+        "line": 152
       }
     },
     {
@@ -4838,7 +4975,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 141
+        "line": 153
       }
     },
     {
@@ -4866,13 +5003,14 @@
       "selected_metric": true,
       "calculated": true,
       "formula": {
-        "expression": "col_or_zero(df, 'app_fnl_avn24')",
+        "expression": "np.minimum(col_or_zero(df, 'app_fnl_avn24').clip(lower=0), df['app_req_ha'])",
         "dependencies": [
-          "app_fnl_avn24"
+          "app_fnl_avn24",
+          "app_req_ha"
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 144
+        "line": 156
       }
     },
     {
@@ -4890,7 +5028,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 145
+        "line": 159
       }
     },
     {
@@ -4911,7 +5049,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 147
+        "line": 161
       }
     },
     {
@@ -4928,7 +5066,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 152
+        "line": 166
       }
     },
     {
@@ -4939,13 +5077,14 @@
       "selected_metric": true,
       "calculated": true,
       "formula": {
-        "expression": "col_or_zero(df, 'app_fnl_auas')",
+        "expression": "np.minimum(col_or_zero(df, 'app_fnl_auas').clip(lower=0), df['area_ha_car'])",
         "dependencies": [
-          "app_fnl_auas"
+          "app_fnl_auas",
+          "area_ha_car"
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 153
+        "line": 167
       }
     },
     {
@@ -4956,13 +5095,14 @@
       "selected_metric": true,
       "calculated": true,
       "formula": {
-        "expression": "col_or_zero(df, 'app_fnl_cs08')",
+        "expression": "np.minimum(col_or_zero(df, 'app_fnl_cs08').clip(lower=0), df['area_ha_car'])",
         "dependencies": [
-          "app_fnl_cs08"
+          "app_fnl_cs08",
+          "area_ha_car"
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 154
+        "line": 170
       }
     },
     {
@@ -4982,7 +5122,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 155
+        "line": 173
       }
     },
     {
@@ -5001,7 +5141,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "compute_forest_code_metrics",
-        "line": 160
+        "line": 178
       }
     },
     {
@@ -6232,17 +6372,55 @@
       "selected_metric": false
     },
     {
-      "id": "field:secondary_vegetation_ha",
-      "label": "secondary_vegetation_ha",
+      "id": "field:secondary_vegetation_raw_ha",
+      "label": "secondary_vegetation_raw_ha",
       "type": "field",
       "in_final": true,
       "calculated": true,
       "formula": {
         "expression": "col_or_zero(out, 'secondary_vegetation_ha').clip(lower=0)",
-        "dependencies": [],
+        "dependencies": [
+          "secondary_vegetation_ha"
+        ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_secondary_vegetation_scenarios",
-        "line": 177
+        "line": 197
+      },
+      "selected_metric": false
+    },
+    {
+      "id": "field:secondary_vegetation_ha",
+      "label": "secondary_vegetation_ha",
+      "type": "field",
+      "in_final": true,
+      "selected_metric": false,
+      "calculated": true,
+      "formula": {
+        "expression": "np.minimum(out['secondary_vegetation_raw_ha'], out['secondary_available_space_ha'])",
+        "dependencies": [
+          "secondary_available_space_ha",
+          "secondary_vegetation_raw_ha"
+        ],
+        "script": "code/_11_forest_code_compliance.py",
+        "function": "add_secondary_vegetation_scenarios",
+        "line": 203
+      }
+    },
+    {
+      "id": "field:secondary_available_space_ha",
+      "label": "secondary_available_space_ha",
+      "type": "field",
+      "in_final": true,
+      "calculated": true,
+      "formula": {
+        "expression": "(col_or_zero(out, 'area_ha_car') - col_or_zero(out, 'rl_exist_total_ha')).clip(lower=0)",
+        "dependencies": [
+          "area_ha_car",
+          "rl_exist_total_ha"
+        ],
+        "script": "code/_11_forest_code_compliance.py",
+        "function": "add_secondary_vegetation_scenarios",
+        "line": 198
       },
       "selected_metric": false
     },
@@ -6260,7 +6438,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_secondary_vegetation_scenarios",
-        "line": 178
+        "line": 206
       },
       "selected_metric": false
     },
@@ -6278,7 +6456,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_secondary_vegetation_scenarios",
-        "line": 179
+        "line": 207
       },
       "selected_metric": false
     },
@@ -6296,7 +6474,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_secondary_vegetation_scenarios",
-        "line": 180
+        "line": 208
       }
     },
     {
@@ -6313,7 +6491,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_secondary_vegetation_scenarios",
-        "line": 181
+        "line": 209
       }
     },
     {
@@ -6330,7 +6508,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_secondary_vegetation_scenarios",
-        "line": 197
+        "line": 225
       }
     },
     {
@@ -6348,7 +6526,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_secondary_vegetation_scenarios",
-        "line": 184
+        "line": 212
       }
     },
     {
@@ -6365,7 +6543,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_secondary_vegetation_scenarios",
-        "line": 185
+        "line": 213
       },
       "selected_metric": false
     },
@@ -6383,7 +6561,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_secondary_vegetation_scenarios",
-        "line": 189
+        "line": 217
       },
       "selected_metric": false
     },
@@ -6401,7 +6579,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_secondary_vegetation_scenarios",
-        "line": 194
+        "line": 222
       }
     },
     {
@@ -6418,7 +6596,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_secondary_vegetation_scenarios",
-        "line": 200
+        "line": 228
       },
       "selected_metric": false
     },
@@ -6436,7 +6614,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_secondary_vegetation_scenarios",
-        "line": 201
+        "line": 229
       }
     },
     {
@@ -6446,14 +6624,15 @@
       "in_final": true,
       "calculated": true,
       "formula": {
-        "expression": "out['rl_adj_deficit_with_secondary_ha'] + col_or_zero(out, 'app_gross_deficit_ha')",
+        "expression": "np.minimum(out['rl_adj_deficit_with_secondary_ha'] + col_or_zero(out, 'app_gross_deficit_ha'), col_or_zero(out, 'area_ha_car'))",
         "dependencies": [
           "app_gross_deficit_ha",
+          "area_ha_car",
           "rl_adj_deficit_with_secondary_ha"
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_secondary_vegetation_scenarios",
-        "line": 202
+        "line": 230
       }
     },
     {
@@ -6463,14 +6642,15 @@
       "in_final": true,
       "calculated": true,
       "formula": {
-        "expression": "out['rl_adj_deficit_with_secondary_ha'] + col_or_zero(out, 'app_restore_ha')",
+        "expression": "np.minimum(out['rl_adj_deficit_with_secondary_ha'] + col_or_zero(out, 'app_restore_ha'), col_or_zero(out, 'area_ha_car'))",
         "dependencies": [
           "app_restore_ha",
+          "area_ha_car",
           "rl_adj_deficit_with_secondary_ha"
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_secondary_vegetation_scenarios",
-        "line": 203
+        "line": 234
       },
       "selected_metric": false
     },
@@ -6488,7 +6668,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_secondary_vegetation_scenarios",
-        "line": 204
+        "line": 238
       }
     },
     {
@@ -6499,14 +6679,14 @@
       "selected_metric": false,
       "calculated": true,
       "formula": {
-        "expression": "num(df, 'rl_adj_deficit_ha') + num(df, 'app_restore_ha')",
+        "expression": "np.minimum(num(df, 'rl_adj_deficit_ha') + num(df, 'app_restore_ha'), property_area)",
         "dependencies": [
           "app_restore_ha",
           "rl_adj_deficit_ha"
         ],
         "script": "code/_20_build_priority.py",
         "function": "normalize_source",
-        "line": 203
+        "line": 208
       }
     },
     {
@@ -6522,7 +6702,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_secondary_vegetation_scenarios",
-        "line": 205
+        "line": 239
       },
       "selected_metric": false
     },
@@ -6539,7 +6719,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_secondary_vegetation_scenarios",
-        "line": 206
+        "line": 240
       },
       "selected_metric": false
     },
@@ -6557,7 +6737,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_secondary_vegetation_scenarios",
-        "line": 207
+        "line": 241
       }
     },
     {
@@ -6571,7 +6751,7 @@
         "dependencies": [],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_cons2000_scenarios",
-        "line": 218
+        "line": 252
       }
     },
     {
@@ -6587,7 +6767,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_cons2000_scenarios",
-        "line": 220
+        "line": 254
       },
       "selected_metric": false
     },
@@ -6604,7 +6784,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_cons2000_scenarios",
-        "line": 223
+        "line": 257
       }
     },
     {
@@ -6620,7 +6800,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_cons2000_scenarios",
-        "line": 224
+        "line": 258
       },
       "selected_metric": false
     },
@@ -6638,7 +6818,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_cons2000_scenarios",
-        "line": 226
+        "line": 260
       },
       "selected_metric": false
     },
@@ -6656,7 +6836,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_cons2000_scenarios",
-        "line": 229
+        "line": 263
       }
     },
     {
@@ -6672,7 +6852,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_cons2000_scenarios",
-        "line": 233
+        "line": 267
       },
       "selected_metric": false
     },
@@ -6690,7 +6870,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_cons2000_scenarios",
-        "line": 234
+        "line": 268
       }
     },
     {
@@ -6706,7 +6886,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_cons2000_scenarios",
-        "line": 236
+        "line": 270
       },
       "selected_metric": false
     },
@@ -6724,7 +6904,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_cons2000_scenarios",
-        "line": 237
+        "line": 271
       },
       "selected_metric": false
     },
@@ -6742,7 +6922,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_cons2000_scenarios",
-        "line": 238
+        "line": 272
       },
       "selected_metric": false
     },
@@ -6760,7 +6940,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_cons2000_scenarios",
-        "line": 239
+        "line": 273
       }
     },
     {
@@ -6777,7 +6957,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_cons2000_scenarios",
-        "line": 240
+        "line": 274
       }
     },
     {
@@ -6794,7 +6974,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_cons2000_scenarios",
-        "line": 241
+        "line": 275
       }
     },
     {
@@ -6810,7 +6990,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_cons2000_scenarios",
-        "line": 242
+        "line": 276
       }
     },
     {
@@ -6826,7 +7006,7 @@
         ],
         "script": "code/_11_forest_code_compliance.py",
         "function": "add_cons2000_scenarios",
-        "line": 243
+        "line": 277
       }
     },
     {
@@ -6940,14 +7120,14 @@
       "in_final": true,
       "calculated": true,
       "formula": {
-        "expression": "num(df, 'rl_gross_deficit_ha') + num(df, 'app_gross_deficit_ha')",
+        "expression": "np.minimum(num(df, 'rl_gross_deficit_ha') + num(df, 'app_gross_deficit_ha'), property_area)",
         "dependencies": [
           "app_gross_deficit_ha",
           "rl_gross_deficit_ha"
         ],
         "script": "code/_20_build_priority.py",
         "function": "normalize_source",
-        "line": 202
+        "line": 205
       }
     },
     {
@@ -8025,6 +8205,24 @@
     },
     {
       "from": "source:simcar_validado",
+      "to": "field:rl_exist_forest_raw_ha",
+      "type": "provides",
+      "source": "simcar_validado"
+    },
+    {
+      "from": "source:simcar_validado",
+      "to": "field:rl_exist_cerrado_raw_ha",
+      "type": "provides",
+      "source": "simcar_validado"
+    },
+    {
+      "from": "source:simcar_validado",
+      "to": "field:rl_exist_scale",
+      "type": "provides",
+      "source": "simcar_validado"
+    },
+    {
+      "from": "source:simcar_validado",
       "to": "field:rl_exist_forest_ha",
       "type": "provides",
       "source": "simcar_validado"
@@ -8962,6 +9160,24 @@
     {
       "from": "source:simcar_digital",
       "to": "field:rl_req_mt_forest_ha",
+      "type": "provides",
+      "source": "simcar_digital"
+    },
+    {
+      "from": "source:simcar_digital",
+      "to": "field:rl_exist_forest_raw_ha",
+      "type": "provides",
+      "source": "simcar_digital"
+    },
+    {
+      "from": "source:simcar_digital",
+      "to": "field:rl_exist_cerrado_raw_ha",
+      "type": "provides",
+      "source": "simcar_digital"
+    },
+    {
+      "from": "source:simcar_digital",
+      "to": "field:rl_exist_scale",
       "type": "provides",
       "source": "simcar_digital"
     },
@@ -10305,6 +10521,24 @@
     },
     {
       "from": "source:simcar_proxy",
+      "to": "field:rl_exist_forest_raw_ha",
+      "type": "provides",
+      "source": "simcar_proxy"
+    },
+    {
+      "from": "source:simcar_proxy",
+      "to": "field:rl_exist_cerrado_raw_ha",
+      "type": "provides",
+      "source": "simcar_proxy"
+    },
+    {
+      "from": "source:simcar_proxy",
+      "to": "field:rl_exist_scale",
+      "type": "provides",
+      "source": "simcar_proxy"
+    },
+    {
+      "from": "source:simcar_proxy",
       "to": "field:rl_exist_forest_ha",
       "type": "provides",
       "source": "simcar_proxy"
@@ -10737,15 +10971,27 @@
     },
     {
       "from": "field:radam_forest_nveg24_ha",
-      "to": "field:rl_exist_forest_ha",
+      "to": "field:rl_exist_forest_raw_ha",
       "type": "used_by",
-      "formula": "col_or_zero(df, 'radam_forest_nveg24_ha')"
+      "formula": "col_or_zero(df, 'radam_forest_nveg24_ha').clip(lower=0)"
     },
     {
       "from": "field:radam_cerrado_nveg24_ha",
+      "to": "field:rl_exist_cerrado_raw_ha",
+      "type": "used_by",
+      "formula": "col_or_zero(df, 'radam_cerrado_nveg24_ha').clip(lower=0)"
+    },
+    {
+      "from": "field:rl_exist_forest_raw_ha",
+      "to": "field:rl_exist_forest_ha",
+      "type": "used_by",
+      "formula": "df['rl_exist_forest_raw_ha'] * exist_scale"
+    },
+    {
+      "from": "field:rl_exist_cerrado_raw_ha",
       "to": "field:rl_exist_cerrado_ha",
       "type": "used_by",
-      "formula": "col_or_zero(df, 'radam_cerrado_nveg24_ha')"
+      "formula": "df['rl_exist_cerrado_raw_ha'] * exist_scale"
     },
     {
       "from": "field:rl_exist_cerrado_ha",
@@ -11015,7 +11261,13 @@
       "from": "field:app_fnl_avn24",
       "to": "field:app_preserved_ha",
       "type": "used_by",
-      "formula": "col_or_zero(df, 'app_fnl_avn24')"
+      "formula": "np.minimum(col_or_zero(df, 'app_fnl_avn24').clip(lower=0), df['app_req_ha'])"
+    },
+    {
+      "from": "field:app_req_ha",
+      "to": "field:app_preserved_ha",
+      "type": "used_by",
+      "formula": "np.minimum(col_or_zero(df, 'app_fnl_avn24').clip(lower=0), df['app_req_ha'])"
     },
     {
       "from": "field:app_preserved_ha",
@@ -11069,13 +11321,25 @@
       "from": "field:app_fnl_auas",
       "to": "field:app_restore_auas_ha",
       "type": "used_by",
-      "formula": "col_or_zero(df, 'app_fnl_auas')"
+      "formula": "np.minimum(col_or_zero(df, 'app_fnl_auas').clip(lower=0), df['area_ha_car'])"
+    },
+    {
+      "from": "field:area_ha_car",
+      "to": "field:app_restore_auas_ha",
+      "type": "used_by",
+      "formula": "np.minimum(col_or_zero(df, 'app_fnl_auas').clip(lower=0), df['area_ha_car'])"
     },
     {
       "from": "field:app_fnl_cs08",
       "to": "field:app_consolidated_ha",
       "type": "used_by",
-      "formula": "col_or_zero(df, 'app_fnl_cs08')"
+      "formula": "np.minimum(col_or_zero(df, 'app_fnl_cs08').clip(lower=0), df['area_ha_car'])"
+    },
+    {
+      "from": "field:area_ha_car",
+      "to": "field:app_consolidated_ha",
+      "type": "used_by",
+      "formula": "np.minimum(col_or_zero(df, 'app_fnl_cs08').clip(lower=0), df['area_ha_car'])"
     },
     {
       "from": "field:app_cap_ha",
@@ -11118,6 +11382,36 @@
       "to": "field:app_restore_ha",
       "type": "used_by",
       "formula": "np.minimum(df['app_consol_restore_ha'] + df['app_restore_auas_ha'], df['app_gross_deficit_ha'])"
+    },
+    {
+      "from": "field:secondary_vegetation_ha",
+      "to": "field:secondary_vegetation_raw_ha",
+      "type": "used_by",
+      "formula": "col_or_zero(out, 'secondary_vegetation_ha').clip(lower=0)"
+    },
+    {
+      "from": "field:area_ha_car",
+      "to": "field:secondary_available_space_ha",
+      "type": "used_by",
+      "formula": "(col_or_zero(out, 'area_ha_car') - col_or_zero(out, 'rl_exist_total_ha')).clip(lower=0)"
+    },
+    {
+      "from": "field:rl_exist_total_ha",
+      "to": "field:secondary_available_space_ha",
+      "type": "used_by",
+      "formula": "(col_or_zero(out, 'area_ha_car') - col_or_zero(out, 'rl_exist_total_ha')).clip(lower=0)"
+    },
+    {
+      "from": "field:secondary_available_space_ha",
+      "to": "field:secondary_vegetation_ha",
+      "type": "used_by",
+      "formula": "np.minimum(out['secondary_vegetation_raw_ha'], out['secondary_available_space_ha'])"
+    },
+    {
+      "from": "field:secondary_vegetation_raw_ha",
+      "to": "field:secondary_vegetation_ha",
+      "type": "used_by",
+      "formula": "np.minimum(out['secondary_vegetation_raw_ha'], out['secondary_available_space_ha'])"
     },
     {
       "from": "field:rl_exist_forest_ha",
@@ -11255,25 +11549,37 @@
       "from": "field:app_gross_deficit_ha",
       "to": "field:calc_gross_deficit_total_with_secondary_ha",
       "type": "used_by",
-      "formula": "out['rl_adj_deficit_with_secondary_ha'] + col_or_zero(out, 'app_gross_deficit_ha')"
+      "formula": "np.minimum(out['rl_adj_deficit_with_secondary_ha'] + col_or_zero(out, 'app_gross_deficit_ha'), col_or_zero(out, 'area_ha_car'))"
+    },
+    {
+      "from": "field:area_ha_car",
+      "to": "field:calc_gross_deficit_total_with_secondary_ha",
+      "type": "used_by",
+      "formula": "np.minimum(out['rl_adj_deficit_with_secondary_ha'] + col_or_zero(out, 'app_gross_deficit_ha'), col_or_zero(out, 'area_ha_car'))"
     },
     {
       "from": "field:rl_adj_deficit_with_secondary_ha",
       "to": "field:calc_gross_deficit_total_with_secondary_ha",
       "type": "used_by",
-      "formula": "out['rl_adj_deficit_with_secondary_ha'] + col_or_zero(out, 'app_gross_deficit_ha')"
+      "formula": "np.minimum(out['rl_adj_deficit_with_secondary_ha'] + col_or_zero(out, 'app_gross_deficit_ha'), col_or_zero(out, 'area_ha_car'))"
     },
     {
       "from": "field:app_restore_ha",
       "to": "field:calc_deficit_total_with_secondary_ha",
       "type": "used_by",
-      "formula": "out['rl_adj_deficit_with_secondary_ha'] + col_or_zero(out, 'app_restore_ha')"
+      "formula": "np.minimum(out['rl_adj_deficit_with_secondary_ha'] + col_or_zero(out, 'app_restore_ha'), col_or_zero(out, 'area_ha_car'))"
+    },
+    {
+      "from": "field:area_ha_car",
+      "to": "field:calc_deficit_total_with_secondary_ha",
+      "type": "used_by",
+      "formula": "np.minimum(out['rl_adj_deficit_with_secondary_ha'] + col_or_zero(out, 'app_restore_ha'), col_or_zero(out, 'area_ha_car'))"
     },
     {
       "from": "field:rl_adj_deficit_with_secondary_ha",
       "to": "field:calc_deficit_total_with_secondary_ha",
       "type": "used_by",
-      "formula": "out['rl_adj_deficit_with_secondary_ha'] + col_or_zero(out, 'app_restore_ha')"
+      "formula": "np.minimum(out['rl_adj_deficit_with_secondary_ha'] + col_or_zero(out, 'app_restore_ha'), col_or_zero(out, 'area_ha_car'))"
     },
     {
       "from": "field:calc_deficit_total_ha",
@@ -11465,25 +11771,25 @@
       "from": "field:app_gross_deficit_ha",
       "to": "field:calc_gross_deficit_total_ha",
       "type": "used_by",
-      "formula": "num(df, 'rl_gross_deficit_ha') + num(df, 'app_gross_deficit_ha')"
+      "formula": "np.minimum(num(df, 'rl_gross_deficit_ha') + num(df, 'app_gross_deficit_ha'), property_area)"
     },
     {
       "from": "field:rl_gross_deficit_ha",
       "to": "field:calc_gross_deficit_total_ha",
       "type": "used_by",
-      "formula": "num(df, 'rl_gross_deficit_ha') + num(df, 'app_gross_deficit_ha')"
+      "formula": "np.minimum(num(df, 'rl_gross_deficit_ha') + num(df, 'app_gross_deficit_ha'), property_area)"
     },
     {
       "from": "field:app_restore_ha",
       "to": "field:calc_deficit_total_ha",
       "type": "used_by",
-      "formula": "num(df, 'rl_adj_deficit_ha') + num(df, 'app_restore_ha')"
+      "formula": "np.minimum(num(df, 'rl_adj_deficit_ha') + num(df, 'app_restore_ha'), property_area)"
     },
     {
       "from": "field:rl_adj_deficit_ha",
       "to": "field:calc_deficit_total_ha",
       "type": "used_by",
-      "formula": "num(df, 'rl_adj_deficit_ha') + num(df, 'app_restore_ha')"
+      "formula": "np.minimum(num(df, 'rl_adj_deficit_ha') + num(df, 'app_restore_ha'), property_area)"
     },
     {
       "from": "field:SITUACAO_C",
@@ -12940,6 +13246,16 @@
     },
     {
       "from": "field:secondary_vegetation_ha",
+      "to": "output:property_secondary",
+      "type": "exported_to"
+    },
+    {
+      "from": "field:secondary_vegetation_raw_ha",
+      "to": "output:property_secondary",
+      "type": "exported_to"
+    },
+    {
+      "from": "field:secondary_available_space_ha",
       "to": "output:property_secondary",
       "type": "exported_to"
     },
@@ -14525,6 +14841,16 @@
     },
     {
       "from": "field:secondary_vegetation_ha",
+      "to": "output:cattle_secondary",
+      "type": "exported_to"
+    },
+    {
+      "from": "field:secondary_vegetation_raw_ha",
+      "to": "output:cattle_secondary",
+      "type": "exported_to"
+    },
+    {
+      "from": "field:secondary_available_space_ha",
       "to": "output:cattle_secondary",
       "type": "exported_to"
     },

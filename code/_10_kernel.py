@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 import _00_paths as paths
@@ -78,16 +79,17 @@ def load_priority(with_secondary: bool = False) -> pd.DataFrame:
 
 
 def formula_checks(fc: pd.DataFrame) -> dict[str, object]:
+    area = num(fc, "area_ha_car").clip(lower=0)
     checks = {
         "priority_order": list(fc["input_file_type"].astype(str).drop_duplicates()),
-        "net_formula_max_diff": float((num(fc, "calc_deficit_total_ha") - num(fc, "rl_adj_deficit_ha") - num(fc, "app_restore_ha")).abs().max()),
-        "gross_formula_max_diff": float((num(fc, "calc_gross_deficit_total_ha") - num(fc, "rl_gross_deficit_ha") - num(fc, "app_gross_deficit_ha")).abs().max()),
+        "net_formula_max_diff": float((num(fc, "calc_deficit_total_ha") - np.minimum(num(fc, "rl_adj_deficit_ha") + num(fc, "app_restore_ha"), area)).abs().max()),
+        "gross_formula_max_diff": float((num(fc, "calc_gross_deficit_total_ha") - np.minimum(num(fc, "rl_gross_deficit_ha") + num(fc, "app_gross_deficit_ha"), area)).abs().max()),
         "rl_split_max_diff": float((num(fc, "rl_adj_deficit_ha") - num(fc, "rl_adj_deficit_forest_ha") - num(fc, "rl_adj_deficit_cerrado_ha")).abs().max()),
         "rl_pathway_max_diff": float((num(fc, "rl_adj_deficit_ha") - num(fc, "rl_restore_ha") - num(fc, "rl_compensate_ha")).abs().max()),
         "negative_core_cells": int((fc[[c for c in ["rl_adj_deficit_ha", "rl_restore_ha", "rl_compensate_ha", "app_restore_ha", "calc_deficit_total_ha"] if c in fc]].apply(pd.to_numeric, errors="coerce").fillna(0) < -1e-9).sum().sum()),
     }
     if {"calc_deficit_total_with_secondary_ha", "rl_adj_deficit_with_secondary_ha", "app_restore_ha"}.issubset(fc.columns):
-        checks["secondary_formula_max_diff"] = float((num(fc, "calc_deficit_total_with_secondary_ha") - num(fc, "rl_adj_deficit_with_secondary_ha") - num(fc, "app_restore_ha")).abs().max())
+        checks["secondary_formula_max_diff"] = float((num(fc, "calc_deficit_total_with_secondary_ha") - np.minimum(num(fc, "rl_adj_deficit_with_secondary_ha") + num(fc, "app_restore_ha"), area)).abs().max())
     return checks
 
 
