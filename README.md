@@ -2,7 +2,22 @@
 
 Portable workflow for property-level Forest Code compliance in Mato Grosso.
 
-The Excel model with raw input columns and live compliance formulas is documented in `code/excel_property_level/`. Final deliverables are stored in [FOREST_CODE_MT_FINAL](https://drive.google.com/drive/folders/161HTtqc8nUkVA_R44kMz7GJ_Fglqsq4e).
+The Excel model with raw input columns and live compliance formulas is documented in `code/excel_property_level/`. Final deliverables are stored in the permanent [Forest Code MT final-results folder](https://drive.google.com/drive/folders/12ttP2ry23WF2Jq_GXVdXX4dGBpJMq544).
+
+## Start here — order of importance
+
+1. `01_START_HERE_fields_formulas_and_results.html` — read the final results, fields, formulas, legal rules, and output destinations.
+2. `02_FINAL_DATA/` — use the final property-level datasets.
+3. `03_FINAL_PROPERTY_PRIORITY_TABLES_20260818.xlsx` — review property prioritization results.
+4. `04_FINAL_GTA_RESULTS_20260818.xlsx` — review cattle supply-chain results.
+5. `05_FINAL_PUBLICATION_TABLES_AND_FIGURES_20260818.xlsx` — use publication-ready tables and figure data.
+6. `06_FINAL_TECHNICAL_REPORT_20260818.docx` — read the full technical interpretation.
+7. `07_FINAL_FIGURES/` — access final figures and maps.
+8. `08_FINAL_REPRODUCIBLE_CODE/` — reproduce the workflow.
+9. `09_TECHNICAL_LINEAGE_DATA.json` — inspect machine-readable field lineage.
+10. `10_README_FINAL_METRICS.md` — consult the concise metric definitions.
+
+Files numbered `90` or higher are isolated review candidates and are not part of the final analytical package.
 
 ## Method
 
