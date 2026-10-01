@@ -20,6 +20,7 @@ def cover(im, path, box, contain=True, pad=0):
         l=max(0,(src.width-w)//2); t=max(0,(src.height-h)//2); src=src.crop((l,t,l+w,t+h))
     im.alpha_composite(src,(int(x+(w-src.width)/2),int(y+(h-src.height)/2)))
 def txt(d,xy,text,size,color=INK,bold=False,serif=False,anchor='la',spacing=4):
+    size=max(16,min(40,size))
     f=font(SERIFB if serif and bold else SERIF if serif else SANSB if bold else SANS,size)
     d.multiline_text(xy,text,font=f,fill=color,anchor=anchor,spacing=spacing)
 def rounded(d,box,fill=WHITE,outline=LINE,r=18,width=2): d.rounded_rectangle(box,radius=r,fill=fill,outline=outline,width=width)
@@ -39,8 +40,17 @@ def fluid_bg(im, variant=0, strong=False):
     else:
         d.ellipse((-135,760,175,1030),fill=GOLD)
         d.ellipse((1470,-135,1760,160),fill=BLUE)
+def silver_canvas():
+    im=Image.new('RGBA',(W,H),BG)
+    px=im.load()
+    for y in range(H):
+        for x in range(W):
+            glow=int(10*(1-abs((x/W)-.42)))+int(5*(1-y/H))
+            v=max(225,min(249,236+glow))
+            px[x,y]=(v,v,v+1,255)
+    return im
 def base(section,page,title,subtitle):
-    im=Image.new('RGBA',(W,H),BG); fluid_bg(im,page); d=ImageDraw.Draw(im)
+    im=silver_canvas(); fluid_bg(im,page); d=ImageDraw.Draw(im)
     d.rectangle((0,0,16,H),fill=ORANGE)
     txt(d,(54,35),section.upper(),18,ORANGE,True)
     txt(d,(1545,35),f'{page:02d} / 14',17,MUTED,True,anchor='ra')
@@ -60,9 +70,9 @@ def save(im,i):
 
 slides=[]
 # 1 — cover
-im=Image.new('RGBA',(W,H),BG); fluid_bg(im,1,True); d=ImageDraw.Draw(im)
+im=silver_canvas(); fluid_bg(im,1,True); d=ImageDraw.Draw(im)
 cover(im,WEB/'nasa_cerrado_land_use_2000.jpg',(805,0,795,900),False)
-d.rectangle((0,0,920,900),fill=INK)
+d.rounded_rectangle((-80,-50,920,950),radius=150,fill=ORANGE)
 d.ellipse((720,-120,1100,260),fill=ORANGE); d.ellipse((740,650,1080,1010),fill=BLUE)
 txt(d,(70,70),'MATO GROSSO • PROPERTY-LEVEL EVIDENCE',18,'#9FD3B3',True)
 txt(d,(70,145),'Forest Code\ncompliance,\nmade visible',64,WHITE,True,True,spacing=8)
