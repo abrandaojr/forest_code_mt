@@ -10,7 +10,7 @@ OUT=ROOT/'deliverables'/'04_presentation'/'forest_code_mt_paper_dashboard_final.
 W,H=1600,900
 BG='#F3F2F0'; INK='#35247B'; GREEN='#1F7F53'; ORANGE='#EC4F6D'; BLUE='#08AAA8'; GOLD='#F6D65B'; MUTED='#65716D'; LINE='#D8DED7'; WHITE='#FFFFFF'; DARK='#102F2B'
 WEB=ROOT/'deliverables'/'04_presentation'/'assets'/'template_inspiration'
-SERIF='C:/Windows/Fonts/georgia.ttf'; SERIFB='C:/Windows/Fonts/georgiab.ttf'; SANS='C:/Windows/Fonts/segoeui.ttf'; SANSB='C:/Windows/Fonts/segoeuib.ttf'
+SERIF='C:/Windows/Fonts/arial.ttf'; SERIFB='C:/Windows/Fonts/arialbd.ttf'; SANS='C:/Windows/Fonts/arial.ttf'; SANSB='C:/Windows/Fonts/arialbd.ttf'
 def font(path,size): return ImageFont.truetype(path,size)
 def cover(im, path, box, contain=True, pad=0):
     x,y,w,h=box; src=Image.open(path).convert('RGBA')
@@ -20,7 +20,7 @@ def cover(im, path, box, contain=True, pad=0):
         l=max(0,(src.width-w)//2); t=max(0,(src.height-h)//2); src=src.crop((l,t,l+w,t+h))
     im.alpha_composite(src,(int(x+(w-src.width)/2),int(y+(h-src.height)/2)))
 def txt(d,xy,text,size,color=INK,bold=False,serif=False,anchor='la',spacing=4):
-    size=max(16,min(40,size))
+    size=max(20,min(40,size))
     f=font(SERIFB if serif and bold else SERIF if serif else SANSB if bold else SANS,size)
     d.multiline_text(xy,text,font=f,fill=color,anchor=anchor,spacing=spacing)
 def rounded(d,box,fill=WHITE,outline=LINE,r=18,width=2): d.rounded_rectangle(box,radius=r,fill=fill,outline=outline,width=width)

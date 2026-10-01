@@ -31,13 +31,11 @@ def silver_background(variant: int) -> Path:
         draw.ellipse((1590, -260, 2170, 280), fill=TEAL)
         draw.ellipse((1760, 920, 2100, 1240), fill=PINK)
     elif variant == 1:
-        draw.ellipse((-280, -260, 270, 250), fill=TEAL)
         draw.ellipse((1650, 900, 2170, 1370), fill=PINK)
         draw.ellipse((1660, -220, 2050, 170), fill=YELLOW)
     else:
         draw.ellipse((-260, 910, 260, 1360), fill=YELLOW)
         draw.ellipse((1610, -250, 2160, 270), fill=PINK)
-        draw.ellipse((-220, -210, 160, 170), fill=PURPLE)
     target = ASSET_DIR / f"fluid-background-{variant + 1}.png"
     image.save(target)
     return target
@@ -51,10 +49,11 @@ def clamp_font_sizes(prs: Presentation) -> None:
             for paragraph in shape.text_frame.paragraphs:
                 for run in paragraph.runs:
                     current = run.font.size.pt if run.font.size else None
+                    run.font.name = "Arial"
                     if current is None:
-                        run.font.size = Pt(16)
+                        run.font.size = Pt(20)
                     else:
-                        run.font.size = Pt(max(16, min(40, current)))
+                        run.font.size = Pt(max(20, min(40, current)))
 
 
 def apply_backgrounds(pptx: Path) -> None:
