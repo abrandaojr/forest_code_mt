@@ -118,12 +118,17 @@ def make_map(row, prop, layers, suffix, panels):
     p3857 = prop.to_crs(3857); minx, miny, maxx, maxy = p3857.total_bounds
     span = max(maxx-minx, maxy-miny); pad = max(span*.18, 500)
     mosaic, extent = base.esri_mosaic((minx-pad,miny-pad,maxx+pad,maxy+pad), target_px=800)
-    fig, axes = plt.subplots(1, len(panels), figsize=(15, 5.0), dpi=170)
+    # Match the exported image aspect ratio to the slide region.  The earlier
+    # 15 x 5 canvas left a large white band below long or narrow properties.
+    # A single context map is near-square; multi-panel atlases are deliberately
+    # shallow so the maps fill the presentation slide.
+    figsize = (7.4, 6.0) if len(panels) == 1 else (15, 3.35 if len(panels) == 4 else 3.55)
+    fig, axes = plt.subplots(1, len(panels), figsize=figsize, dpi=170)
     axes = np.atleast_1d(axes)
     for ax, (key, title, reported, color, cat) in zip(axes, panels):
         base.draw_layer_panel(ax, prop, layers.get(key), title, reported, color, mosaic, extent, cat)
     fig.text(.01,.012,"White/dark outline: CAR property boundary | Satellite: Esri World Imagery",fontsize=8,color="#5D716C")
-    fig.tight_layout(rect=(0,.04,1,1),w_pad=1.1)
+    fig.tight_layout(rect=(0,.055,1,1),w_pad=.75)
     path = OUT / f"{row['label']}_{suffix}.png"; fig.savefig(path,bbox_inches="tight",pad_inches=.04,facecolor="white"); plt.close(fig)
     return str(path).replace("\\", "/")
 
