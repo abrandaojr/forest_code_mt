@@ -8,7 +8,8 @@ FIG=ROOT/'out'/'fig'; HW=ROOT/'qa'/'presentation'/'scratch'/'assets'
 PRE=ROOT/'qa'/'presentation'/'dashboard_v2'; PRE.mkdir(parents=True,exist_ok=True)
 OUT=ROOT/'deliverables'/'04_presentation'/'forest_code_mt_paper_dashboard_final.pptx'
 W,H=1600,900
-BG='#F4F1E8'; INK='#123B35'; GREEN='#1F7F53'; ORANGE='#E86C2D'; BLUE='#176581'; MUTED='#697770'; LINE='#D8DED7'; WHITE='#FFFFFF'; DARK='#102F2B'
+BG='#F3F2F0'; INK='#35247B'; GREEN='#1F7F53'; ORANGE='#EC4F6D'; BLUE='#08AAA8'; GOLD='#F6D65B'; MUTED='#65716D'; LINE='#D8DED7'; WHITE='#FFFFFF'; DARK='#102F2B'
+WEB=ROOT/'deliverables'/'04_presentation'/'assets'/'template_inspiration'
 SERIF='C:/Windows/Fonts/georgia.ttf'; SERIFB='C:/Windows/Fonts/georgiab.ttf'; SANS='C:/Windows/Fonts/segoeui.ttf'; SANSB='C:/Windows/Fonts/segoeuib.ttf'
 def font(path,size): return ImageFont.truetype(path,size)
 def cover(im, path, box, contain=True, pad=0):
@@ -22,8 +23,24 @@ def txt(d,xy,text,size,color=INK,bold=False,serif=False,anchor='la',spacing=4):
     f=font(SERIFB if serif and bold else SERIF if serif else SANSB if bold else SANS,size)
     d.multiline_text(xy,text,font=f,fill=color,anchor=anchor,spacing=spacing)
 def rounded(d,box,fill=WHITE,outline=LINE,r=18,width=2): d.rounded_rectangle(box,radius=r,fill=fill,outline=outline,width=width)
+def fluid_bg(im, variant=0, strong=False):
+    """Organic edge fields inspired by the supplied fluid-shapes template."""
+    d=ImageDraw.Draw(im)
+    if strong:
+        d.ellipse((-170,-210,560,315),fill=ORANGE)
+        d.ellipse((1320,-190,1770,260),fill=GOLD)
+        d.ellipse((-190,690,330,1110),fill=BLUE)
+    elif variant%3==0:
+        d.ellipse((-145,730,240,1040),fill=ORANGE)
+        d.ellipse((1450,-150,1730,150),fill=GOLD)
+    elif variant%3==1:
+        d.ellipse((-160,-160,190,175),fill=BLUE)
+        d.ellipse((1450,740,1760,1050),fill=ORANGE)
+    else:
+        d.ellipse((-135,760,175,1030),fill=GOLD)
+        d.ellipse((1470,-135,1760,160),fill=BLUE)
 def base(section,page,title,subtitle):
-    im=Image.new('RGBA',(W,H),BG); d=ImageDraw.Draw(im)
+    im=Image.new('RGBA',(W,H),BG); fluid_bg(im,page); d=ImageDraw.Draw(im)
     d.rectangle((0,0,16,H),fill=ORANGE)
     txt(d,(54,35),section.upper(),18,ORANGE,True)
     txt(d,(1545,35),f'{page:02d} / 14',17,MUTED,True,anchor='ra')
@@ -43,15 +60,18 @@ def save(im,i):
 
 slides=[]
 # 1 — cover
-im=Image.new('RGBA',(W,H),DARK); d=ImageDraw.Draw(im); d.rectangle((0,0,18,H),fill=ORANGE)
-cover(im,FIG/'Figure_03_study_area_mato_grosso.png',(875,70,650,700),True)
+im=Image.new('RGBA',(W,H),BG); fluid_bg(im,1,True); d=ImageDraw.Draw(im)
+cover(im,WEB/'nasa_cerrado_land_use_2000.jpg',(805,0,795,900),False)
+d.rectangle((0,0,920,900),fill=INK)
+d.ellipse((720,-120,1100,260),fill=ORANGE); d.ellipse((740,650,1080,1010),fill=BLUE)
 txt(d,(70,70),'MATO GROSSO • PROPERTY-LEVEL EVIDENCE',18,'#9FD3B3',True)
 txt(d,(70,145),'Forest Code\ncompliance,\nmade visible',64,WHITE,True,True,spacing=8)
 txt(d,(74,430),'An auditable model of Legal Reserve, APP,\nregularization pathways and sensitivity.',25,'#D9E7DF')
 d.line((74,550,620,550),fill=ORANGE,width=5)
 txt(d,(74,590),'168,676',42,'#A9E0BE',True,True); txt(d,(270,603),'distinct rural-property records',18,WHITE)
 txt(d,(74,660),'7.64 Mha',34,'#A9E0BE',True,True); txt(d,(245,672),'registered property area',18,WHITE)
-txt(d,(74,805),'Scientific dashboard • methods, results, uncertainty and use',16,'#9BB0A8')
+txt(d,(74,805),'Scientific dashboard • methods, results, uncertainty and use',16,'#D3DCCE')
+txt(d,(1515,865),'Satellite image: NASA Earth Observatory / Landsat',13,WHITE,True,anchor='ra')
 slides.append(save(im,1))
 
 # 2 — executive dashboard
@@ -139,13 +159,16 @@ txt(d,(75,805),'Direct suppliers: 20,316 properties',21,GREEN,True); txt(d,(805,
 slides.append(save(im,13))
 
 # 14 — landing
-im=Image.new('RGBA',(W,H),DARK); d=ImageDraw.Draw(im); d.rectangle((0,0,18,H),fill=ORANGE)
+im=Image.new('RGBA',(W,H),INK); d=ImageDraw.Draw(im)
+cover(im,WEB/'un_page_mato_grosso_cattle.jpg',(870,0,730,900),False)
+d.rectangle((0,0,1010,900),fill=INK)
+d.ellipse((790,-150,1110,210),fill=GOLD); d.ellipse((790,690,1130,1030),fill=ORANGE)
 txt(d,(65,55),'CONCLUSION',18,'#A9E0BE',True)
 txt(d,(65,115),'Property-level transparency\nturns a statewide total\ninto an operating system.',48,WHITE,True,True,spacing=9)
-cover(im,HW/'handwritten_reproducibility.png',(845,55,680,430),True)
 for i,(n,l,c) in enumerate([('01','Screen every record','Breadth'),('02','Prioritize hectare burden','Scale'),('03','Test legal assumptions','Uncertainty'),('04','Connect properties to markets','Action')]):
-    y=520+i*74; d.line((70,y+60,1500,y+60),fill='#31534D',width=2); txt(d,(75,y),n,25,ORANGE,True,True); txt(d,(145,y+2),l,23,WHITE,True); txt(d,(1470,y+5),c.upper(),15,'#9FD3B3',True,anchor='ra')
+    y=500+i*74; d.line((70,y+60,790,y+60),fill='#5E4DA0',width=2); txt(d,(75,y),n,25,ORANGE,True,True); txt(d,(145,y+2),l,23,WHITE,True); txt(d,(770,y+5),c.upper(),15,'#A9E0BE',True,anchor='ra')
 txt(d,(75,840),'Mato Grosso Forest Code model • reproducible Python + property-level Excel formulas',15,'#8EA49D')
+txt(d,(1510,865),'Photo: UN PAGE • Mato Grosso Goes Green',13,WHITE,True,anchor='ra')
 slides.append(save(im,14))
 
 # Build a PowerPoint with pixel-perfect full-slide compositions.
