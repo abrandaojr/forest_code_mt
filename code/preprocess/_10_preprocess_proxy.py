@@ -520,6 +520,32 @@ def diagnostics(df: pd.DataFrame) -> pd.DataFrame:
 
 def compute_forest_code_metrics(df: pd.DataFrame) -> pd.DataFrame:
     print("\nSTEP 8: Computing Forest Code metrics...")
+    # Canonical historical cut-offs: net/max removes overlap double counting.
+    # Both values are bounded to the physical CAR area before legal formulas.
+    for year in (2000, 2008):
+        selected = f"cons_area_{year}_net_max"
+        canonical = f"cons_area_{year}"
+        if selected in df.columns:
+            values = pd.to_numeric(df[selected], errors="coerce").fillna(0)
+        elif canonical in df.columns:
+            values = pd.to_numeric(df[canonical], errors="coerce").fillna(0)
+        else:
+            raise KeyError(f"Required historical baseline missing: {canonical}")
+        df[f"cons_area_{year}"] = np.minimum(
+            values.clip(lower=0),
+            pd.to_numeric(df["area_ha_car"], errors="coerce").fillna(0),
+        )
+    df["cons_area_2000_raw_proxy_ha"] = df["cons_area_2000"]
+    df["cons_area_2000"] = np.minimum(df["cons_area_2000"], df["cons_area_2008"])
+    df["cons_area_2000_temporal_clip_ha"] = (
+        df["cons_area_2000_raw_proxy_ha"] - df["cons_area_2000"]
+    ).clip(lower=0)
+    if "cons_area_2000_proxy" not in df.columns:
+        df["cons_area_2000_proxy"] = df["cons_area_2000"]
+    if "cons_area_2000_proxy_missing" not in df.columns:
+        df["cons_area_2000_proxy_missing"] = False
+    if "cons_area_2000_source" not in df.columns:
+        df["cons_area_2000_source"] = "proxy_net_max"
     return forest_code_compliance(df, CONFIG)
 
 

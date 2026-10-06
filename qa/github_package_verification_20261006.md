@@ -1,0 +1,126 @@
+# GitHub package verification
+
+Checked at: 2026-10-06
+Ready for GitHub: False
+
+## Findings
+- Missing directories: 0
+- Missing files: 0
+- Cache directories: 9
+- Empty directories: 17
+- Large files over 100 MB: 100
+- Municipality zero-code count: 0
+- Municipality invalid-code count (non-MT prefix): 0
+- RADAM zero-coverage count (area>0, radam_total_ha<=0): 28
+- Method checks pass: True
+
+## Method Checks
+- priority_order: ['simcar_validado', 'simcar_digital', 'simcar_proxy']
+- net_formula_max_diff: 0.0
+- gross_formula_max_diff: 0.0
+- rl_split_max_diff: 0.0
+- rl_pathway_max_diff: 0.0
+- negative_core_cells: 0
+- secondary_formula_max_diff: 0.0
+
+## Large Files
+- archive\delivery_2026-09-03\01_excel\forest_code_gta.xlsx (135.3 MB)
+- archive\delivery_2026-09-03\02_data\car_priority_secondary.csv (222.626 MB)
+- data\pre\car_digital\car_atp_joined_20260818.csv (256.568 MB)
+- data\pre\car_digital\car_atp_joined_20260818.parquet (113.591 MB)
+- data\pre\car_digital\car_atp_joined_20261005.csv (257.749 MB)
+- data\pre\car_digital\car_atp_joined_20261005.parquet (114.422 MB)
+- data\pre\car_digital\car_atp_joined_20261006.csv (257.749 MB)
+- data\pre\car_digital\car_atp_joined_20261006.parquet (114.422 MB)
+- data\pre\car_digital\fc_summary_mt_20260818.xlsx (148.284 MB)
+- data\pre\car_digital\fc_summary_mt_20261005.xlsx (148.54 MB)
+- data\pre\car_digital\fc_summary_mt_20261006.xlsx (148.54 MB)
+- data\pre\car_proxy\car_atp_joined_20260818.csv (453.51 MB)
+- data\pre\car_proxy\car_atp_joined_20260818.parquet (214.059 MB)
+- data\pre\car_proxy\car_atp_joined_20261005.csv (456.338 MB)
+- data\pre\car_proxy\car_atp_joined_20261005.parquet (217.657 MB)
+- data\pre\car_proxy\car_atp_joined_20261006.csv (456.338 MB)
+- data\pre\car_proxy\car_atp_joined_20261006.parquet (217.657 MB)
+- data\pre\car_proxy\fc_summary_mt_20260818.xlsx (259.344 MB)
+- data\pre\car_proxy\fc_summary_mt_20261005.xlsx (260.395 MB)
+- data\pre\car_proxy\fc_summary_mt_20261006.xlsx (260.395 MB)
+- data\proc\simcar_proxy\simcar_p_march2026_geo_master.parquet (157.944 MB)
+- data\raw\simcar_digital\SIMCAR_D_APPD_1A2MF_AC_x_car_atp.parquet (475.329 MB)
+- data\raw\simcar_digital\SIMCAR_D_APPD_2A4MF_AC_x_car_atp.parquet (501.749 MB)
+- data\raw\simcar_digital\SIMCAR_D_APPD_4A10MF_AC_x_car_atp.parquet (521.401 MB)
+- data\raw\simcar_digital\SIMCAR_D_APPD_ATE1MF_AC_x_car_atp.parquet (466.735 MB)
+- data\raw\simcar_digital\SIMCAR_D_APPD_MAIOR_10MF_AC_x_car_atp.parquet (543.307 MB)
+- data\raw\simcar_digital\SIMCAR_D_APP_x_car_atp.parquet (1080.591 MB)
+- data\raw\simcar_digital\SIMCAR_D_AREA_CONSOLIDADA_x_car_atp.parquet (375.535 MB)
+- data\raw\simcar_digital\SIMCAR_D_AREA_INUNDADA_x_car_atp.parquet (372.247 MB)
+- data\raw\simcar_digital\SIMCAR_D_AREA_UMIDA_x_car_atp.parquet (119.353 MB)
+- data\raw\simcar_digital\SIMCAR_D_ARL_x_car_atp.parquet (645.445 MB)
+- data\raw\simcar_digital\SIMCAR_D_AUAS_x_car_atp.parquet (163.658 MB)
+- data\raw\simcar_digital\SIMCAR_D_AVN_x_car_atp.parquet (774.382 MB)
+- data\raw\simcar_proxy\input_prodes_native_vegetation_2024_plus_sv.dbf (234.649 MB)
+- data\raw\simcar_proxy\input_prodes_native_vegetation_2024_plus_sv.shp (1308.792 MB)
+- data\raw\simcar_proxy\SIMCAR_P_appd_1a2mf_cs08_net_x_car_atp.parquet (429.045 MB)
+- data\raw\simcar_proxy\SIMCAR_P_appd_1a2mf_cs08_x_car_atp.parquet (977.611 MB)
+- data\raw\simcar_proxy\SIMCAR_P_appd_1a2mf_cs08_x_car_atp_fnl.parquet (424.543 MB)
+- data\raw\simcar_proxy\SIMCAR_P_appd_2a4mf_cs08_net_x_car_atp.parquet (432.13 MB)
+- data\raw\simcar_proxy\SIMCAR_P_appd_2a4mf_cs08_x_car_atp.parquet (974.691 MB)
+- data\raw\simcar_proxy\SIMCAR_P_appd_2a4mf_cs08_x_car_atp_fnl.parquet (449.799 MB)
+- data\raw\simcar_proxy\SIMCAR_P_appd_4a10mf_cs08_net_x_car_atp.parquet (432.45 MB)
+- data\raw\simcar_proxy\SIMCAR_P_appd_4a10mf_cs08_x_car_atp.parquet (972.168 MB)
+- data\raw\simcar_proxy\SIMCAR_P_appd_4a10mf_cs08_x_car_atp_fnl.parquet (473.037 MB)
+- data\raw\simcar_proxy\SIMCAR_P_appd_gt10mf_cs08_net_x_car_atp.parquet (434.654 MB)
+- data\raw\simcar_proxy\SIMCAR_P_appd_gt10mf_cs08_x_car_atp.parquet (975.003 MB)
+- data\raw\simcar_proxy\SIMCAR_P_appd_gt10mf_cs08_x_car_atp_fnl.parquet (527.053 MB)
+- data\raw\simcar_proxy\SIMCAR_P_appd_lte1mf_cs08_net_x_car_atp.parquet (428.434 MB)
+- data\raw\simcar_proxy\SIMCAR_P_appd_lte1mf_cs08_x_car_atp.parquet (983.23 MB)
+- data\raw\simcar_proxy\SIMCAR_P_appd_lte1mf_cs08_x_car_atp_fnl.parquet (418.011 MB)
+- data\raw\simcar_proxy\SIMCAR_P_app_fnl_auas_x_car_atp.parquet (158.667 MB)
+- data\raw\simcar_proxy\SIMCAR_P_app_fnl_auas_x_car_atp_fnl.parquet (137.612 MB)
+- data\raw\simcar_proxy\SIMCAR_P_app_fnl_avn24_x_car_atp.parquet (1535.062 MB)
+- data\raw\simcar_proxy\SIMCAR_P_app_fnl_avn24_x_car_atp_fnl.parquet (1225.196 MB)
+- data\raw\simcar_proxy\SIMCAR_P_app_fnl_cs00_x_car_atp.parquet (741.974 MB)
+- data\raw\simcar_proxy\SIMCAR_P_app_fnl_cs00_x_car_atp_fnl.parquet (412.483 MB)
+- data\raw\simcar_proxy\SIMCAR_P_app_fnl_cs08_net_x_car_atp.parquet (600.028 MB)
+- data\raw\simcar_proxy\SIMCAR_P_app_fnl_cs08_x_car_atp.parquet (1004.322 MB)
+- data\raw\simcar_proxy\SIMCAR_P_app_fnl_cs08_x_car_atp_fnl.parquet (591.184 MB)
+- data\raw\simcar_proxy\SIMCAR_P_app_x_car_atp.parquet (2501.408 MB)
+- data\raw\simcar_proxy\SIMCAR_P_app_x_car_atp_fnl.parquet (2012.056 MB)
+- data\raw\simcar_proxy\SIMCAR_P_auas_post2008_x_car_atp.parquet (282.604 MB)
+- data\raw\simcar_proxy\SIMCAR_P_auas_post2008_x_car_atp_fnl.parquet (243.346 MB)
+- data\raw\simcar_proxy\SIMCAR_P_cons_area_2000_net_max_x_car_atp.parquet (464.232 MB)
+- data\raw\simcar_proxy\SIMCAR_P_cons_area_2000_net_x_car_atp.parquet (464.232 MB)
+- data\raw\simcar_proxy\SIMCAR_P_cons_area_2000_x_car_atp.parquet (212.199 MB)
+- data\raw\simcar_proxy\SIMCAR_P_cons_area_2000_x_car_atp_fnl.parquet (526.98 MB)
+- data\raw\simcar_proxy\SIMCAR_P_cons_area_2008_net_max_x_car_atp.parquet (655.764 MB)
+- data\raw\simcar_proxy\SIMCAR_P_cons_area_2008_net_x_car_atp.parquet (655.764 MB)
+- data\raw\simcar_proxy\SIMCAR_P_cons_area_2008_x_car_atp.parquet (257.929 MB)
+- data\raw\simcar_proxy\SIMCAR_P_cons_area_2008_x_car_atp_fnl.parquet (762.313 MB)
+- data\raw\simcar_proxy\SIMCAR_P_native_veg_2024_max_x_car_atp.parquet (1052.391 MB)
+- data\raw\simcar_proxy\SIMCAR_P_native_veg_2024_max_x_car_atp_fnl.parquet (1683.045 MB)
+- data\raw\simcar_proxy\SIMCAR_P_native_veg_2024_x_car_atp.parquet (1605.212 MB)
+- data\raw\simcar_proxy\SIMCAR_P_native_veg_2024_x_car_atp_fnl.parquet (1781.151 MB)
+- data\raw\simcar_proxy\SIMCAR_P_native_veg_x_radam_max_x_car_atp.parquet (1061.534 MB)
+- data\raw\simcar_proxy\SIMCAR_P_native_veg_x_radam_x_car_atp.parquet (1078.262 MB)
+- data\raw\simcar_proxy\SIMCAR_P_vegetacao_radambrasil_cache.parquet (2376.706 MB)
+- data\raw\simcar_proxy\SIMCAR_P_vegetacao_radambrasil_x_car_atp.parquet (125.963 MB)
+- data\raw\simcar_proxy\SIMCAR_P_vegetacao_radambrasil_x_car_atp_fnl.parquet (511.782 MB)
+- data\raw\simcar_proxy\SIMCAR_P_vegetacao_radambrasil_x_car_atp_nveg24.parquet (1680.183 MB)
+- data\raw\simcar_requerido\CAR_ATP.parquet (139.607 MB)
+- data\raw\simcar_validado\CAR_APPD_x_car_atp.parquet (305.907 MB)
+- data\raw\simcar_validado\CAR_APPRL_x_car_atp.parquet (534.649 MB)
+- data\raw\simcar_validado\CAR_APP_x_car_atp.parquet (766.7 MB)
+- data\raw\simcar_validado\CAR_ARL_x_car_atp.parquet (447.184 MB)
+- data\raw\simcar_validado\CAR_AVN_x_car_atp.parquet (474.387 MB)
+- data\raw\simcar_validado\SIMCAR_CAR_AREA_CONSOLIDADA_x_car_atp.parquet (278.217 MB)
+- out\control\simcar_pdfs\.edge_profile\component_crx_cache\f081de18a604e95a175eaf4dd91b35b7f17ad4de24ee2f20eeb034c979bbcccb (155.472 MB)
+- out\control\simcar_pdfs\.edge_profile\ProvenanceData\2025.10.7.5\vti-b-p32-visual.quant.ort (168.592 MB)
+- out\table\forest_code_mt_priority_consolidated_20260818.parquet (109.668 MB)
+- out\table\forest_code_mt_priority_consolidated_20261005.parquet (111.778 MB)
+- out\table\forest_code_mt_priority_consolidated_20261006.parquet (117.039 MB)
+- out\table\forest_code_mt_priority_consolidated_with_secondary_20260818.csv (280.909 MB)
+- out\table\forest_code_mt_priority_consolidated_with_secondary_20260818.parquet (124.761 MB)
+- out\table\forest_code_mt_priority_consolidated_with_secondary_20260818_zstd.parquet (100.748 MB)
+- out\table\forest_code_mt_priority_consolidated_with_secondary_20261006.csv (284.402 MB)
+- out\table\forest_code_mt_priority_consolidated_with_secondary_20261006.parquet (131.954 MB)
+- outputs\codigo_florestal_mt_inputs_completos.csv (1014.599 MB)
+- outputs\_raw_input_join.sqlite (417.664 MB)

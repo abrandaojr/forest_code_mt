@@ -5,13 +5,13 @@ import sqlite3
 import zlib
 from collections import Counter
 
-BASE = r'out\table\forest_code_mt_priority_consolidated_with_secondary_20260818.csv'
+BASE = r'out\table\forest_code_mt_priority_consolidated_with_secondary_20261006.csv'
 DEST = r'outputs\codigo_florestal_mt_inputs_completos.csv'
 DB = r'outputs\_raw_input_join.sqlite'
 PATHS = {
-    'simcar_validado': r'data\pre\car_validated\car_atp_joined_20260818.csv',
-    'simcar_digital': r'data\pre\car_digital\car_atp_joined_20260818.csv',
-    'simcar_proxy': r'data\pre\car_proxy\car_atp_joined_20260818.csv',
+    'simcar_validado': r'data\pre\car_validated\car_atp_joined_20261006.csv',
+    'simcar_digital': r'data\pre\car_digital\car_atp_joined_20261006.csv',
+    'simcar_proxy': r'data\pre\car_proxy\car_atp_joined_20261006.csv',
 }
 
 with open(BASE, encoding='utf-8-sig', newline='') as f:
@@ -85,5 +85,5 @@ with open(BASE, encoding='utf-8-sig', newline='') as src, open(DEST, 'w', encodi
             print('joined', n, flush=True)
 con.close()
 print('rows', n, 'unique', len(unique), 'columns', len(all_headers), 'coverage', dict(coverage), 'bytes', os.path.getsize(DEST), flush=True)
-if n != 168676 or len(unique) != n:
+if n != 155547 or len(unique) != n:
     raise ValueError('row count or uniqueness mismatch')

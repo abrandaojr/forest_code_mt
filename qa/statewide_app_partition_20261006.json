@@ -1,0 +1,24 @@
+{
+  "rows": 155547,
+  "sources": {
+    "simcar_validado": {
+      "properties": 38107,
+      "with_app_geometry": 34424,
+      "max_abs_closure_error_ha": 2.949862576429041e-13,
+      "properties_with_native_overlap_excess": 5759
+    },
+    "simcar_digital": {
+      "properties": 33706,
+      "with_app_geometry": 21863,
+      "max_abs_closure_error_ha": 2.376709939966304e-13,
+      "properties_with_native_overlap_excess": 3593
+    },
+    "simcar_proxy": {
+      "properties": 83734,
+      "with_app_geometry": 69033,
+      "max_abs_closure_error_ha": 2.2737367544323206e-13,
+      "properties_with_native_overlap_excess": 7800
+    }
+  },
+  "max_abs_closure_error_ha": 2.949862576429041e-13
+}

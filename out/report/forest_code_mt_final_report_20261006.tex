@@ -1,0 +1,3834 @@
+\documentclass[12pt]{article}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{fontspec}
+\usepackage{float}
+\usepackage{pdflscape}
+\setmainfont{Arial}
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=blue}
+\title{Forest Code Compliance in Mato Grosso: Reproducible Property-Level Estimates}
+\author{Forest Code Compliance Study Team}
+\date{2026-10-06}
+
+\begin{document}
+\maketitle
+\clearpage
+\section*{Main Manuscript Tables}
+\begin{enumerate}
+\item Table 1. Data sources and input priority
+\item Table 2. Overall CAR registration status
+\item Table 4. Property-size distribution
+\item Table 6. Vegetation basis used in the calculation
+\item Table 8. Legal Reserve compliance by property size
+\item Table 9. APP liability by property size
+\item Table 10. Combined liability by property size
+\item Table 13. Change attributable to the 2000 Legal Reserve rule
+\item Table 16. Secondary-forest scenario by input source
+\item Table 18. Municipalities with the largest total liability
+\item Table 28. Supplier groups and subgroups
+\item Table 31. 2000-rule change among suppliers
+\item Table 39. Overlap with special areas
+\end{enumerate}
+\clearpage
+\section*{Main Manuscript Figures}
+\begin{enumerate}
+\item Breakdown of the Legal Reserve deficit; values are hectares.
+\item Overall compliance status; values are property counts.
+\item Municipal non-compliance panel. APP and Legal Reserve are shown separately. Count maps report the number of non-compliant properties. Hectares/property maps report non-compliant area divided by affected properties in the same component and scenario. Legal Reserve is shown with and without the 2000 Legal Reserve rule, each with a property-count map and a hectares-per-affected-property map.
+\item Vegetation cover used in the calculation; values are million hectares.
+\item Impact of secondary forest on total liability; values are hectares.
+\item Total variation with and without the 2000 Legal Reserve rule; values are hectares.
+\item Supplier groups and subgroups; left axis is property count and right axis is cattle head.
+\item Supplier liabilities with and without the 2000 Legal Reserve rule; values are hectares.
+\item Number of properties by input source; values are property counts.
+\item Municipal map of total deficit; color scale is hectares.
+\end{enumerate}
+\clearpage
+\section*{Supplementary Tables}
+\begin{enumerate}
+\item Table 3. Active-registration detail
+\item Table 5. Registration status by property size
+\item Table 7. Legal Reserve deficit by property size
+\item Table 11. Mean total deficit per property
+\item Table 12. Scenario with and without the 2000 Legal Reserve rule
+\item Table 14. 2000-rule scenario by property size
+\item Table 15. 2000-rule change by property size
+\item Table 17. Secondary-forest scenario by input source and property size
+\item Table 19 All Size
+\item Table 20 All LR
+\item Table 21 All APP
+\item Table 22 All Combined
+\item Table 23 Active Size
+\item Table 24 Active LR
+\item Table 25 Active APP
+\item Table 26 Active Combined
+\item Table 27. Supplier characterization
+\item Table 29. Combined liability among suppliers
+\item Table 30. Suppliers with and without the 2000 rule
+\item Table 32. Secondary forest among suppliers
+\item Table 33 Cattle LR
+\item Table 34 Cattle Net
+\item Table 35 Cattle Size
+\item Table 36 Cattle LR
+\item Table 37 Cattle APP
+\item Table 38 Cattle Combined
+\item Table 40 Special Size
+\item Table 41 Special LR
+\item Table 42 Special APP
+\item Table 43 Special Combined
+\item Table 44 Mun Restoration
+\end{enumerate}
+\clearpage
+\section*{Supplementary Figures}
+\begin{enumerate}
+\item Study area in Mato Grosso.
+\item Legal Reserve demand and surplus by vegetation formation; values are hectares.
+\item Restoration and compensation liability; values are hectares.
+\item Mean deficit by property-size class; values are hectares per property.
+\item Variation by property size with and without the 2000 Legal Reserve rule; values are hectares.
+\item Spatial inputs used by the analysis; equivalent technical variants are consolidated.
+\item Spatial inputs used by the analysis; equivalent technical variants are consolidated.
+\item Spatial inputs used by the analysis; equivalent technical variants are consolidated.
+\item Spatial inputs used by the analysis; equivalent technical variants are consolidated.
+\item Spatial inputs used by the analysis; equivalent technical variants are consolidated.
+\item Total deficit by input source; values are hectares.
+\item Supplier properties by input source; values are property counts.
+\item Total deficit by property-size class; values are hectares.
+\item Municipal map of adjusted Legal Reserve deficit; color scale is hectares.
+\item Municipal map of gross APP deficit; color scale is hectares.
+\end{enumerate}
+\clearpage
+
+\section*{Article Structure}
+The manuscript is organized as a scientific results paper. It first defines the data, metrics, and validation checks needed to interpret the estimates, and then presents the empirical results from the least model-dependent descriptions to the most interpretive sensitivity and supply-chain analyses.
+
+\section*{Technical Summary}
+The final analytical dataset contains 155,547 property records and applies a fixed source hierarchy throughout the analysis: SIMCAR validated first, SIMCAR digital second, and SIMCAR proxy third. This hierarchy gives precedence to the most precise CAR evidence available for each property while retaining a proxy source for farms without validated or digital CAR geometry. No municipality code equal to 00000 or 0000000 remains in the audited tabular outputs.
+
+Two sensitivity tests required particular attention. The 2000 Legal Reserve scenario now isolates Legal Reserve only, holding APP liability constant so that the comparison has a single interpretation. The secondary-forest scenario was recalculated from the spatial intersection with the prioritized property geometries, avoiding a previous merge/cache artifact that had incorrectly left the secondary-forest column equal to zero.
+
+\section*{Portable Execution}
+The reproducible command is:
+\begin{verbatim}
+conda run -n geo python .\code\_01_orchestrate.py --stage all
+\end{verbatim}
+The procedure preprocesses the three CAR sources, builds the priority table, joins GTA supplier information, and prepares the tabular and spatial outputs used in this report.
+
+\section*{Data Footprint After Cleanup}
+\begin{tabular}{lrr}
+\toprule
+Folder & Files & GB \\
+\midrule
+data/raw & 104 & 47.844 \\
+data/pre & 71 & 4.673 \\
+data/proc & 8 & 0.260 \\
+out & 1,307 & 2.346 \\
+\bottomrule
+\end{tabular}
+
+\section*{Prioritized Inputs}
+\begin{tabular}{lr}
+\toprule
+Input source & Rows after priority \\
+\midrule
+SIMCAR validated & 38,107 \\
+SIMCAR digital & 33,706 \\
+SIMCAR proxy & 83,734 \\
+\bottomrule
+\end{tabular}
+
+\section*{Formula and Data QA}
+\begin{tabular}{lr}
+\toprule
+Check & Result \\
+\midrule
+Net deficit formula max absolute difference & 7.722746 \\
+Gross deficit formula max absolute difference & 47.079019 \\
+Negative cells in core deficit metrics & 0 \\
+Municipality zero-code findings after fix & 0 \\
+Required raw files missing in package & 0 \\
+Required raw files not found in R source copy & 0 \\
+\bottomrule
+\end{tabular}
+
+\section*{Raw and Raw-Converted Source Coverage}
+\begin{tabular}{lrr}
+\toprule
+Inferred source & Files & Size MB \\
+\midrule
+Geoportal/SEMA-MT CAR Digital & 24 & 6,367.6 \\
+Geoportal/SEMA-MT SIMCAR requerido/proxy & 38 & 20,613.1 \\
+Geoportal/SEMA-MT SIMCAR validado & 12 & 3,008.5 \\
+IBGE BC250 reference boundaries & 2 & 92.9 \\
+INPE PRODES / TerraBrasilis native vegetation derivatives & 18 & 14,098.0 \\
+RADAMBrasil / SEMA vegetation typology & 11 & 4,760.3 \\
+Unclassified package data & 12 & 1,120.0 \\
+\bottomrule
+\end{tabular}
+
+\part*{Main Manuscript}
+
+\section*{Data completeness and traceability}
+
+The first question verifies whether the inputs that support the model were retained, whether the priority order among validated CAR, digital CAR, and proxy CAR is explicit, and whether raw data converted to GeoParquet remain traceable.
+
+\begin{table}[H]
+\centering
+\caption{Table 1. Data sources and input priority}
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Input data & Priority & Analytical use & Short path & Processing rule \\
+\midrule
+SIMCAR validated & 1 & Validated CAR property layer & simcar\_\allowbreak{}validado & Priority 1; removes duplicates from digital/proxy. \\
+SIMCAR digital & 2 & Digital CAR property layer & simcar\_\allowbreak{}digital & Priority 2; used where no validated CAR exists. \\
+SIMCAR proxy & 3 & Proxy CAR property layer & fc\_\allowbreak{}summary\_\allowbreak{}mt & Priority 3; remaining farms only. \\
+GTA Mato Grosso &  & Cattle supplier classification & gta/erich\_\allowbreak{}car\_\allowbreak{}gta & Direct if slaughter/export > 0; direct overrides Tier 1. \\
+PRODES 2000 &  & Consolidated area 2000 & cons\_\allowbreak{}area\_\allowbreak{}2000 & MMU 6.25 hectares; fragments < 6.25 hectares removed. \\
+Secondary vegetation &  & Scenario impact on LR compliance and total liabilities & input\_\allowbreak{}secondary\_\allowbreak{}forest\_\allowbreak{}dissolved & Intersected spatially with prioritized validado, digital and proxy CAR geometries; reported as baseline vs including secondary vegetation. \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Table 2. Overall CAR registration status}
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Registration Status & Number of Properties & \% of Properties & Area (million hectares) & \% of Area \\
+\midrule
+Active & 146,570 & 94.229 & 63.755 & 91.672 \\
+Inactive (Canceled / Rejected) & 8,977 & 5.771 & 5.792 & 8.328 \\
+Total & 155,547 & 100 & 69.546 & 100 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{\detokenize{../fig/chart_properties_by_input.png}}
+\caption{Number of properties by input source; values are property counts.}
+\end{figure}
+
+\section*{Analytical universe of properties}
+
+The second question describes the size and structure of the property universe before applying environmental-law calculations.
+
+\begin{table}[H]
+\centering
+\caption{Table 4. Property-size distribution}
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Size Class & Properties & Area (hectares) & \% properties & \% area \\
+\midrule
+Large (>15 MF) & 12,549 & 45,872,919.0 & 8.068 & 65.96 \\
+Medium (>4-15 MF) & 18,794 & 12,999,544.5 & 12.083 & 18.692 \\
+Small (1-4 MF) & 42,627 & 7,496,748.5 & 27.405 & 10.78 \\
+Minifundio (<1 MF) & 81,035 & 3,177,007.5 & 52.097 & 4.568 \\
+Not Classified & 542 & 107.099 & 0.348 & 0 \\
+Total & 155,547 & 69,546,326.7 & 100 & 100 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\section*{Vegetation basis for the calculation}
+
+This question separates the biophysical basis from the legal calculation: forest area, cerrado area, and the vegetation classes used to compute Legal Reserve and APP liabilities.
+
+\begin{table}[H]
+\centering
+\caption{Table 6. Vegetation basis used in the calculation}
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.260\linewidth}p{0.260\linewidth}p{0.260\linewidth}}
+\toprule
+Forest area (hectares) & Cerrado area (hectares) & Total native vegetation basis (hectares) \\
+\midrule
+37,554,542.0 & 25,959,190.0 & 63,513,732.0 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{\detokenize{../fig/Figure_10_vegetation_cover.png}}
+\caption{Vegetation cover used in the calculation; values are million hectares.}
+\end{figure}
+
+\section*{Legal Reserve liability}
+
+The report then moves to the first legal component: required area, gross deficit, adjusted deficit, restoration, compensation, and surplus Legal Reserve.
+
+\begin{table}[H]
+\centering
+\caption{Table 8. Legal Reserve compliance by property size}
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Size Class & Required LR area (hectares) & LR gross affected area (hectares) & LR affected area (hectares) & Restoration area (hectares) & Compensation area (hectares) & LR surplus area (hectares) \\
+\midrule
+Large (>15 MF) & 25,137,112.4 & 6,816,518.5 & 3,143,542.4 & 198,060.9 & 2,945,481.5 & 10,485,890.9 \\
+Medium (>4-15 MF) & 7,295,901.5 & 2,087,044.3 & 1,098,363.2 & 87,297.7 & 1,011,065.5 & 2,737,641.0 \\
+Small (1-4 MF) & 4,563,049.0 & 2,020,609.4 & 371,622.0 & 235,734.2 & 135,887.8 & 654,614.9 \\
+Minifundio (<1 MF) & 2,133,227.2 & 1,109,110.6 & 261,347.3 & 178,891.9 & 82,455.4 & 213,787.7 \\
+Not Classified & 60.09 & 25.231 & 9.422 & 7.291 & 2.131 & 14.315 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{\detokenize{../fig/Figure_04_LR_deficit_breakdown.png}}
+\caption{Breakdown of the Legal Reserve deficit; values are hectares.}
+\end{figure}
+
+\section*{APP liability}
+
+After Legal Reserve, the report presents APP as a separate component and distinguishes gross deficit from the effective restoration liability.
+
+\begin{table}[H]
+\centering
+\caption{Table 9. APP liability by property size}
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Size Class & APP Required (hectares) & APP Preserved (hectares) & APP gross affected area (hectares) & APP affected area (hectares) & Mean APP hectares/APP-affected property & APP-affected properties \\
+\midrule
+Large (>15 MF) & 2,187,083.1 & 1,914,837.4 & 272,245.7 & 214,344.3 & 23.962 & 8,945 \\
+Medium (>4-15 MF) & 723,203.2 & 604,812.8 & 118,390.4 & 97,306.6 & 8.048 & 12,091 \\
+Small (1-4 MF) & 457,657.5 & 325,525.9 & 132,131.7 & 81,491.0 & 3.099 & 26,294 \\
+Minifundio (<1 MF) & 215,649.3 & 124,582.8 & 91,066.5 & 37,393.1 & 0.873 & 42,821 \\
+Not Classified & 22.254 & 16.967 & 5.288 & 0.984 & 0.024 & 41 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\section*{Combined compliance liability}
+
+The combined answer adds adjusted Legal Reserve liability and restorable APP liability, which is the final compliance indicator used in the package.
+
+\begin{table}[H]
+\centering
+\caption{Table 10. Combined liability by property size}
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Size Class & Gross affected area (hectares) & Total affected area (hectares) & Restoration area (hectares) & Compensation area (hectares) \\
+\midrule
+Large (>15 MF) & 7,088,764.1 & 3,357,886.7 & 412,405.2 & 2,945,481.5 \\
+Medium (>4-15 MF) & 2,205,434.8 & 1,195,669.8 & 184,604.3 & 1,011,065.5 \\
+Small (1-4 MF) & 2,152,741.1 & 453,113.0 & 317,225.2 & 135,887.8 \\
+Minifundio (<1 MF) & 1,200,177.1 & 298,740.3 & 216,285.0 & 82,455.4 \\
+Not Classified & 30.519 & 10.405 & 8.274 & 2.131 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{\detokenize{../fig/Figure_06_compliance_status.png}}
+\caption{Overall compliance status; values are property counts.}
+\end{figure}
+
+\section*{Sensitivity to the 2000 Legal Reserve rule}
+
+This scenario isolates the 2000 rule within Legal Reserve. APP liability is held constant between scenarios so that the comparison does not mix two different methodological questions.
+
+\begin{landscape}
+\begin{table}[H]
+\centering
+\caption{Table 13. Change attributable to the 2000 Legal Reserve rule}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Group & Properties & LR with 2000 rule area (hectares) & LR without 2000 rule area (hectares) & LR 2000-rule effect area (hectares) & APP with 2000 rule area (hectares) & APP without 2000 rule area (hectares) \\
+\midrule
+All properties & 146,570 & 4,874,884.2 & 3,652,614.4 & -1,222,269.9 & 430,536.0 & 430,536.0 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}}
+\toprule
+Group & Properties & APP 2000-rule effect area (hectares) & Total with 2000 rule area (hectares) & Total without 2000 rule area (hectares) & Total 2000-rule effect area (hectares) \\
+\midrule
+All properties & 146,570 & 0 & 5,305,420.2 & 4,083,150.3 & -1,222,269.9 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\end{landscape}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{\detokenize{../fig/Figure_12_cons2000_total_scenario.png}}
+\caption{Total variation with and without the 2000 Legal Reserve rule; values are hectares.}
+\end{figure}
+
+\section*{Sensitivity to secondary forest recognition}
+
+This scenario tests the sensitivity of the Legal Reserve deficit when secondary forest is added to the stock of existing vegetation.
+
+\begin{landscape}
+\begin{table}[H]
+\centering
+\caption{Table 16. Secondary-forest scenario by input source}
+\textit{Panel 1 of 4}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Input File Type & Properties & Secondary veg. (hectares) & Secondary veg. n & \% Properties with secondary veg. & Baseline compliant n & Baseline \% compliant \\
+\midrule
+SIMCAR validated & 38,107 & 2,310,800.7 & 33,042 & 86.708 & 10,819 & 28.391 \\
+SIMCAR digital & 30,159 & 954,471.7 & 25,295 & 83.872 & 8,456 & 28.038 \\
+SIMCAR proxy & 78,304 & 2,338,045.3 & 63,490 & 81.081 & 15,529 & 19.832 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 4}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Input File Type & Properties & With secondary compliant n & With secondary \% compliant & Newly compliant n & Compliance gain (p.p.) & Baseline total liab. (hectares) \\
+\midrule
+SIMCAR validated & 38,107 & 12,328 & 32.351 & 1,509 & 3.96 & 1,944,990.7 \\
+SIMCAR digital & 30,159 & 10,219 & 33.884 & 1,763 & 5.846 & 997,407.0 \\
+SIMCAR proxy & 78,304 & 20,027 & 25.576 & 4,498 & 5.744 & 2,363,003.8 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 3 of 4}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Input File Type & Properties & With secondary total liab. (hectares) & Liab. reduction (hectares) & Baseline LR def. (hectares) & With secondary LR def. (hectares) & Baseline restore (hectares) \\
+\midrule
+SIMCAR validated & 38,107 & 1,431,883.8 & 513,107.0 & 1,823,822.0 & 1,310,714.8 & 171,852.3 \\
+SIMCAR digital & 30,159 & 713,735.0 & 283,672.0 & 949,656.1 & 665,984.1 & 116,624.6 \\
+SIMCAR proxy & 78,304 & 1,804,394.7 & 558,609.1 & 2,101,406.2 & 1,542,795.4 & 411,515.1 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 4 of 4}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Input File Type & Properties & With secondary restore (hectares) & Baseline comp. (hectares) & With secondary comp. (hectares) \\
+\midrule
+SIMCAR validated & 38,107 & 108,225.3 & 1,651,969.7 & 1,202,489.6 \\
+SIMCAR digital & 30,159 & 77,283.8 & 833,031.5 & 588,700.3 \\
+SIMCAR proxy & 78,304 & 251,387.7 & 1,689,891.1 & 1,291,407.7 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\end{landscape}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{\detokenize{../fig/Figure_11_secondary_vegetation_impact.png}}
+\caption{Impact of secondary forest on total liability; values are hectares.}
+\end{figure}
+
+\section*{Municipal concentration of liability}
+
+The territorial reading comes after the aggregate results because it depends on property-level indicators and their municipal aggregation.
+
+\begin{table}[H]
+\centering
+\caption{Table 18. Municipalities with the largest total liability}
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}}
+\toprule
+Municipality & Properties & LR surplus area (hectares) & LR affected area (hectares) & APP affected area (hectares) & Total affected area (hectares) \\
+\midrule
+Sorriso & 2,436 & 50,058.6 & 169,601.5 & 1,033.8 & 170,635.3 \\
+Querência & 1,780 & 139,176.8 & 154,322.4 & 1,047.8 & 155,370.2 \\
+Poconé & 1,287 & 417,550.7 & 147,036.7 & 3,077.2 & 150,113.9 \\
+Cáceres & 3,893 & 532,311.1 & 137,262.6 & 7,825.4 & 145,088.1 \\
+Aripuanã & 1,896 & 380,069.0 & 128,080.3 & 6,264.1 & 134,344.4 \\
+Juara & 2,236 & 322,245.1 & 111,127.9 & 13,770.2 & 124,898.1 \\
+Brasnorte & 1,927 & 226,757.3 & 115,249.9 & 2,018.5 & 117,268.5 \\
+Colniza & 2,675 & 394,931.7 & 103,007.4 & 13,852.4 & 116,859.8 \\
+Nova Ubiratã & 1,897 & 193,053.6 & 111,668.1 & 552.761 & 112,220.9 \\
+Vila Bela da Santíssima Trindade & 2,041 & 277,529.2 & 84,811.3 & 8,346.7 & 93,158.1 \\
+Nova Bandeirantes & 2,068 & 114,779.2 & 79,783.1 & 11,396.9 & 91,180.0 \\
+São José do Xingu & 485 & 92,814.8 & 84,170.6 & 4,788.1 & 88,958.7 \\
+Nova Mutum & 1,664 & 99,989.6 & 86,806.2 & 970.719 & 87,776.9 \\
+Peixoto de Azevedo & 2,270 & 128,463.0 & 74,531.6 & 8,594.0 & 83,125.6 \\
+Barão de Melgaço & 361 & 288,435.1 & 81,978.8 & 905.258 & 82,884.1 \\
+Alta Floresta & 2,705 & 102,526.4 & 66,933.1 & 11,202.3 & 78,135.4 \\
+Paranatinga & 1,779 & 542,256.9 & 59,631.0 & 17,109.9 & 76,740.9 \\
+Diamantino & 1,450 & 91,835.4 & 71,519.7 & 1,139.7 & 72,659.4 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 18. Municipalities with the largest total liability (continued)}
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}}
+\toprule
+Municipality & Properties & LR surplus area (hectares) & LR affected area (hectares) & APP affected area (hectares) & Total affected area (hectares) \\
+\midrule
+São Félix do Araguaia & 1,283 & 379,346.2 & 65,636.3 & 3,265.3 & 68,901.7 \\
+Pontes e Lacerda & 1,996 & 183,930.0 & 60,904.9 & 7,089.4 & 67,994.3 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{\detokenize{../fig/Figure_09_municipal_noncompliance_panel.png}}
+\caption{Municipal non-compliance panel. APP and Legal Reserve are shown separately. Count maps report the number of non-compliant properties. Hectares/property maps report non-compliant area divided by affected properties in the same component and scenario. Legal Reserve is shown with and without the 2000 Legal Reserve rule, each with a property-count map and a hectares-per-affected-property map.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{\detokenize{../fig/map_total_deficit_ha.png}}
+\caption{Municipal map of total deficit; color scale is hectares.}
+\end{figure}
+
+\section*{Supplier exposure and cattle-chain segmentation}
+
+This is a more complex layer because it connects environmental compliance with supplier groups and subgroups while keeping cattle volume and legal liability analytically separate.
+
+\begin{table}[H]
+\centering
+\caption{Table 28. Supplier groups and subgroups}
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Macro Class & Subgroup & Properties & Cattle Head & Slaughter Head & Slaughter/Export Head & Direct >50\% Slh (n) \\
+\midrule
+Direct supplier & Direct pure & 2,058 & 1,549,451 & 1,113,950 & 1,113,950 & 1,129 \\
+Direct supplier & Direct also Tier 1 & 18,258 & 38,368,731 & 11,170,069 & 11,170,069 & 2,171 \\
+Indirect supplier - Tier 1 & Tier 1 pure & 19,043 & 7,901,158 & 0 & 0 & 0 \\
+Indirect supplier - Tier 2+ & Tier 2+ & 6,278 & 776,493 & 0 & 0 & 0 \\
+Total & Total & 45,637 & 48,595,833 & 12,284,019 & 12,284,019 & 3,300 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{landscape}
+\begin{table}[H]
+\centering
+\caption{Table 31. 2000-rule change among suppliers}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Supplier Type & Properties & LR with 2000 rule area (hectares) & LR without 2000 rule area (hectares) & LR 2000-rule effect area (hectares) & APP with 2000 rule area (hectares) & APP without 2000 rule area (hectares) \\
+\midrule
+Direct supplier & 20,316 & 1,073,523.7 & 736,747.8 & -336,775.9 & 126,393.6 & 126,393.6 \\
+Indirect supplier - Tier 1 & 19,043 & 302,042.5 & 249,543.9 & -52,498.6 & 43,512.9 & 43,512.9 \\
+Indirect supplier - Tier 2+ & 6,278 & 104,578.7 & 90,800.2 & -13,778.5 & 9,955.8 & 9,955.8 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}}
+\toprule
+Supplier Type & Properties & APP 2000-rule effect area (hectares) & Total with 2000 rule area (hectares) & Total without 2000 rule area (hectares) & Total 2000-rule effect area (hectares) \\
+\midrule
+Direct supplier & 20,316 & 0 & 1,199,917.4 & 863,141.4 & -336,775.9 \\
+Indirect supplier - Tier 1 & 19,043 & 0 & 345,555.4 & 293,056.8 & -52,498.6 \\
+Indirect supplier - Tier 2+ & 6,278 & 0 & 114,534.6 & 100,756.0 & -13,778.5 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\end{landscape}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{\detokenize{../fig/Figure_14_supplier_groups_subgroups.png}}
+\caption{Supplier groups and subgroups; left axis is property count and right axis is cattle head.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{\detokenize{../fig/Figure_15_supplier_cons2000_scenario.png}}
+\caption{Supplier liabilities with and without the 2000 Legal Reserve rule; values are hectares.}
+\end{figure}
+
+\section*{Special-area overlays}
+
+The final question intersects the indicators with sensitive overlaps. It therefore appears after the general results, scenarios, and supplier analysis.
+
+\begin{table}[H]
+\centering
+\caption{Table 39. Overlap with special areas}
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}}
+\toprule
+Special Area & Properties & Overlap area (hectares) & Property area (hectares) \\
+\midrule
+Conserv. Units & 3,337 & 6,707,352.2 & 3,584,565.9 \\
+Quilombola & 105 & 27,826.8 & 32,356.9 \\
+Rural Settl. & 28,178 & 4,122,632.5 & 3,471,035.1 \\
+Indigenous & 458 & 968,690.6 & 1,091,019.4 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\part*{Supplementary Material}
+
+\section*{Supplementary Tables}
+
+\begin{table}[H]
+\centering
+\caption{Table 3. Active-registration detail}
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+SITUACAO & Properties & Area (hectares) & \% properties & \% area \\
+\midrule
+{[}AGUARDANDO\_\allowbreak{}ANALISE{]} & 73,176 & 18,350,798.8 & 49.926 & 28.783 \\
+{[}AGUARDANDO\_\allowbreak{}ENVIO\_\allowbreak{}PRA{]} & 28,960 & 16,525,832.5 & 19.758 & 25.921 \\
+{[}AGUARDANDO\_\allowbreak{}COMPLEMENTACAO{]} & 24,340 & 10,876,736.3 & 16.606 & 17.06 \\
+{[}CAR\_\allowbreak{}VALIDADO{]} & 8,006 & 5,181,916.9 & 5.462 & 8.128 \\
+{[}EM\_\allowbreak{}ANALISE{]} & 7,912 & 5,727,797.2 & 5.398 & 8.984 \\
+{[}CAR\_\allowbreak{}VALIDADO\_\allowbreak{}EM\_\allowbreak{}REGULARIZACAO{]} & 3,801 & 6,565,448.1 & 2.593 & 10.298 \\
+{[}AGUARDANDO\_\allowbreak{}ANALISE\_\allowbreak{}PRA{]} & 375 & 526,151.6 & 0.256 & 0.825 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Table 5. Registration status by property size}
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}}
+\toprule
+Size Class & Properties & Area (hectares) & Status \\
+\midrule
+Large (>15 MF) & 1,040 & 4,203,506.0 & Inactive \\
+Large (>15 MF) & 11,509 & 41,669,413.0 & Active \\
+Medium (>4-15 MF) & 1,264 & 926,932.1 & Inactive \\
+Medium (>4-15 MF) & 17,530 & 12,072,612.5 & Active \\
+Small (1-4 MF) & 2,786 & 499,149.9 & Inactive \\
+Small (1-4 MF) & 39,841 & 6,997,598.6 & Active \\
+Minifundio (<1 MF) & 3,820 & 162,049.6 & Inactive \\
+Minifundio (<1 MF) & 77,215 & 3,014,957.9 & Active \\
+Not Classified & 67 & 7.803 & Inactive \\
+Not Classified & 475 & 99.296 & Active \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Table 7. Legal Reserve deficit by property size}
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}}
+\toprule
+Size Class & Mean LR deficit (hectares) & Median LR deficit (hectares) & Total LR deficit (hectares) \\
+\midrule
+Large (>15 MF) & 1,163.4 & 472.881 & 3,143,542.4 \\
+Medium (>4-15 MF) & 184.196 & 142.306 & 1,098,363.2 \\
+Small (1-4 MF) & 20.181 & 6.393 & 371,622.0 \\
+Minifundio (<1 MF) & 7.085 & 2.186 & 261,347.3 \\
+Not Classified & 0.058 & 0.074 & 9.422 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Table 11. Mean total deficit per property}
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.260\linewidth}p{0.260\linewidth}}
+\toprule
+Size Class & Mean hectares/affected property \\
+\midrule
+Large (>15 MF) & 356.237 \\
+Medium (>4-15 MF) & 86.075 \\
+Small (1-4 MF) & 14.476 \\
+Minifundio (<1 MF) & 5.245 \\
+Not Classified & 0.055 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{landscape}
+\begin{table}[H]
+\centering
+\caption{Table 12. Scenario with and without the 2000 Legal Reserve rule}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Group & Scenario & Properties & Compliant properties & \% Compliant & Affected properties & LR affected area (hectares) \\
+\midrule
+All properties & LR with 2000 rule & 146,570 & 34,804 & 23.746 & 111,766 & 4,874,884.2 \\
+All properties & LR without 2000 rule & 146,570 & 34,805 & 23.746 & 111,765 & 3,652,614.4 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}}
+\toprule
+Group & Scenario & APP affected area (hectares) & Total affected area (hectares) & Restoration area (hectares) & Compensation area (hectares) \\
+\midrule
+All properties & LR with 2000 rule & 430,536.0 & 5,305,420.2 & 699,992.0 & 4,174,892.2 \\
+All properties & LR without 2000 rule & 430,536.0 & 4,083,150.3 & 698,323.2 & 2,954,291.1 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\end{landscape}
+
+\begin{landscape}
+\begin{table}[H]
+\centering
+\caption{Table 14. 2000-rule scenario by property size}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Size Class & Scenario & Properties & Compliant properties & \% Compliant & Affected properties & LR affected area (hectares) \\
+\midrule
+Large (>15 MF) & LR with 2000 rule & 11,509 & 2,083 & 18.099 & 9,426 & 3,143,542.4 \\
+Large (>15 MF) & LR without 2000 rule & 11,509 & 2,083 & 18.099 & 9,426 & 2,362,489.4 \\
+Medium (>4-15 MF) & LR with 2000 rule & 17,530 & 3,639 & 20.759 & 13,891 & 1,098,363.2 \\
+Medium (>4-15 MF) & LR without 2000 rule & 17,530 & 3,640 & 20.764 & 13,890 & 657,146.3 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}}
+\toprule
+Size Class & Scenario & APP affected area (hectares) & Total affected area (hectares) & Restoration area (hectares) & Compensation area (hectares) \\
+\midrule
+Large (>15 MF) & LR with 2000 rule & 214,344.3 & 3,357,886.7 & 198,060.9 & 2,945,481.5 \\
+Large (>15 MF) & LR without 2000 rule & 214,344.3 & 2,576,833.7 & 197,444.8 & 2,165,044.6 \\
+Medium (>4-15 MF) & LR with 2000 rule & 97,306.6 & 1,195,669.8 & 87,297.7 & 1,011,065.5 \\
+Medium (>4-15 MF) & LR without 2000 rule & 97,306.6 & 754,452.9 & 86,245.0 & 570,901.3 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 14. 2000-rule scenario by property size (continued)}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Size Class & Scenario & Properties & Compliant properties & \% Compliant & Affected properties & LR affected area (hectares) \\
+\midrule
+Small (1-4 MF) & LR with 2000 rule & 39,841 & 8,539 & 21.433 & 31,302 & 371,622.0 \\
+Small (1-4 MF) & LR without 2000 rule & 39,841 & 8,539 & 21.433 & 31,302 & 371,622.0 \\
+Minifundio (<1 MF) & LR with 2000 rule & 77,215 & 20,257 & 26.235 & 56,958 & 261,347.3 \\
+Minifundio (<1 MF) & LR without 2000 rule & 77,215 & 20,257 & 26.235 & 56,958 & 261,347.3 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}}
+\toprule
+Size Class & Scenario & APP affected area (hectares) & Total affected area (hectares) & Restoration area (hectares) & Compensation area (hectares) \\
+\midrule
+Small (1-4 MF) & LR with 2000 rule & 81,491.0 & 453,113.0 & 235,734.2 & 135,887.8 \\
+Small (1-4 MF) & LR without 2000 rule & 81,491.0 & 453,113.0 & 235,734.2 & 135,887.8 \\
+Minifundio (<1 MF) & LR with 2000 rule & 37,393.1 & 298,740.3 & 178,891.9 & 82,455.4 \\
+Minifundio (<1 MF) & LR without 2000 rule & 37,393.1 & 298,740.3 & 178,891.9 & 82,455.4 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 14. 2000-rule scenario by property size (continued)}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Size Class & Scenario & Properties & Compliant properties & \% Compliant & Affected properties & LR affected area (hectares) \\
+\midrule
+Not Classified & LR with 2000 rule & 475 & 286 & 60.211 & 189 & 9.422 \\
+Not Classified & LR without 2000 rule & 475 & 286 & 60.211 & 189 & 9.422 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}}
+\toprule
+Size Class & Scenario & APP affected area (hectares) & Total affected area (hectares) & Restoration area (hectares) & Compensation area (hectares) \\
+\midrule
+Not Classified & LR with 2000 rule & 0.984 & 10.405 & 7.291 & 2.131 \\
+Not Classified & LR without 2000 rule & 0.984 & 10.405 & 7.291 & 2.131 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\end{landscape}
+
+\begin{landscape}
+\begin{table}[H]
+\centering
+\caption{Table 15. 2000-rule change by property size}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Size Class & Properties & LR with 2000 rule area (hectares) & LR without 2000 rule area (hectares) & LR 2000-rule effect area (hectares) & APP with 2000 rule area (hectares) & APP without 2000 rule area (hectares) \\
+\midrule
+Large (>15 MF) & 11,509 & 3,143,542.4 & 2,362,489.4 & -781,053.0 & 214,344.3 & 214,344.3 \\
+Medium (>4-15 MF) & 17,530 & 1,098,363.2 & 657,146.3 & -441,216.9 & 97,306.6 & 97,306.6 \\
+Small (1-4 MF) & 39,841 & 371,622.0 & 371,622.0 & 0 & 81,491.0 & 81,491.0 \\
+Minifundio (<1 MF) & 77,215 & 261,347.3 & 261,347.3 & 0 & 37,393.1 & 37,393.1 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}}
+\toprule
+Size Class & Properties & APP 2000-rule effect area (hectares) & Total with 2000 rule area (hectares) & Total without 2000 rule area (hectares) & Total 2000-rule effect area (hectares) \\
+\midrule
+Large (>15 MF) & 11,509 & 0 & 3,357,886.7 & 2,576,833.7 & -781,053.0 \\
+Medium (>4-15 MF) & 17,530 & 0 & 1,195,669.8 & 754,452.9 & -441,216.9 \\
+Small (1-4 MF) & 39,841 & 0 & 453,113.0 & 453,113.0 & 0 \\
+Minifundio (<1 MF) & 77,215 & 0 & 298,740.3 & 298,740.3 & 0 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 15. 2000-rule change by property size (continued)}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Size Class & Properties & LR with 2000 rule area (hectares) & LR without 2000 rule area (hectares) & LR 2000-rule effect area (hectares) & APP with 2000 rule area (hectares) & APP without 2000 rule area (hectares) \\
+\midrule
+Not Classified & 475 & 9.422 & 9.422 & 0 & 0.984 & 0.984 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}}
+\toprule
+Size Class & Properties & APP 2000-rule effect area (hectares) & Total with 2000 rule area (hectares) & Total without 2000 rule area (hectares) & Total 2000-rule effect area (hectares) \\
+\midrule
+Not Classified & 475 & 0 & 10.405 & 10.405 & 0 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\end{landscape}
+
+\begin{landscape}
+\begin{table}[H]
+\centering
+\caption{Table 17. Secondary-forest scenario by input source and property size}
+\textit{Panel 1 of 4}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Input File Type & Size Class & Properties & Secondary veg. (hectares) & Secondary veg. n & \% Properties with secondary veg. & Baseline compliant n \\
+\midrule
+SIMCAR validated & Large (>15 MF) & 5,411 & 1,479,926.7 & 5,078 & 93.846 & 1,099 \\
+SIMCAR validated & Medium (>4-15 MF) & 8,141 & 493,088.6 & 7,254 & 89.105 & 1,744 \\
+SIMCAR validated & Minifundio (<1 MF) & 12,246 & 66,774.1 & 9,965 & 81.374 & 4,154 \\
+SIMCAR validated & Not Classified & 15 & 0.309 & 4 & 26.667 & 11 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 4}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Input File Type & Size Class & Baseline \% compliant & With secondary compliant n & With secondary \% compliant & Newly compliant n & Compliance gain (p.p.) \\
+\midrule
+SIMCAR validated & Large (>15 MF) & 20.31 & 1,153 & 21.308 & 54 & 0.998 \\
+SIMCAR validated & Medium (>4-15 MF) & 21.422 & 1,904 & 23.388 & 160 & 1.965 \\
+SIMCAR validated & Minifundio (<1 MF) & 33.921 & 4,717 & 38.519 & 563 & 4.597 \\
+SIMCAR validated & Not Classified & 73.333 & 11 & 73.333 & 0 & 0 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 3 of 4}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Input File Type & Size Class & Baseline total liab. (hectares) & With secondary total liab. (hectares) & Liab. reduction (hectares) & Baseline LR def. (hectares) & With secondary LR def. (hectares) \\
+\midrule
+SIMCAR validated & Large (>15 MF) & 1,143,940.3 & 827,178.6 & 316,761.7 & 1,074,257.4 & 757,495.6 \\
+SIMCAR validated & Medium (>4-15 MF) & 681,572.2 & 522,963.1 & 158,609.2 & 651,037.6 & 492,428.4 \\
+SIMCAR validated & Minifundio (<1 MF) & 25,199.3 & 18,015.3 & 7,184.0 & 20,410.6 & 13,226.4 \\
+SIMCAR validated & Not Classified & 0.37 & 0.37 & 0 & 0.338 & 0.338 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 4 of 4}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}}
+\toprule
+Input File Type & Size Class & Baseline restore (hectares) & With secondary restore (hectares) & Baseline comp. (hectares) & With secondary comp. (hectares) \\
+\midrule
+SIMCAR validated & Large (>15 MF) & 61,175.3 & 38,173.0 & 1,013,082.1 & 719,322.7 \\
+SIMCAR validated & Medium (>4-15 MF) & 41,311.2 & 25,867.7 & 609,726.4 & 466,560.7 \\
+SIMCAR validated & Minifundio (<1 MF) & 16,301.2 & 10,710.3 & 4,109.4 & 2,516.2 \\
+SIMCAR validated & Not Classified & 0.136 & 0.136 & 0.202 & 0.202 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 17. Secondary-forest scenario by input source and property size (continued)}
+\textit{Panel 1 of 4}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Input File Type & Size Class & Properties & Secondary veg. (hectares) & Secondary veg. n & \% Properties with secondary veg. & Baseline compliant n \\
+\midrule
+SIMCAR validated & Small (1-4 MF) & 12,294 & 271,011.0 & 10,741 & 87.368 & 3,811 \\
+SIMCAR digital & Large (>15 MF) & 1,689 & 561,171.1 & 1,633 & 96.684 & 431 \\
+SIMCAR digital & Medium (>4-15 MF) & 2,359 & 152,798.4 & 2,150 & 91.14 & 692 \\
+SIMCAR digital & Minifundio (<1 MF) & 19,019 & 107,858.4 & 15,428 & 81.119 & 5,571 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 4}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Input File Type & Size Class & Baseline \% compliant & With secondary compliant n & With secondary \% compliant & Newly compliant n & Compliance gain (p.p.) \\
+\midrule
+SIMCAR validated & Small (1-4 MF) & 30.999 & 4,543 & 36.953 & 732 & 5.954 \\
+SIMCAR digital & Large (>15 MF) & 25.518 & 482 & 28.538 & 51 & 3.02 \\
+SIMCAR digital & Medium (>4-15 MF) & 29.334 & 783 & 33.192 & 91 & 3.858 \\
+SIMCAR digital & Minifundio (<1 MF) & 29.292 & 6,811 & 35.812 & 1,240 & 6.52 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 3 of 4}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Input File Type & Size Class & Baseline total liab. (hectares) & With secondary total liab. (hectares) & Liab. reduction (hectares) & Baseline LR def. (hectares) & With secondary LR def. (hectares) \\
+\midrule
+SIMCAR validated & Small (1-4 MF) & 94,278.5 & 63,726.4 & 30,552.1 & 78,116.1 & 47,564.0 \\
+SIMCAR digital & Large (>15 MF) & 578,932.5 & 410,029.7 & 168,902.8 & 554,882.3 & 385,979.5 \\
+SIMCAR digital & Medium (>4-15 MF) & 154,574.7 & 108,343.7 & 46,230.9 & 145,935.9 & 99,705.0 \\
+SIMCAR digital & Minifundio (<1 MF) & 126,241.9 & 93,630.5 & 32,611.4 & 119,875.3 & 87,263.9 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 4 of 4}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}}
+\toprule
+Input File Type & Size Class & Baseline restore (hectares) & With secondary restore (hectares) & Baseline comp. (hectares) & With secondary comp. (hectares) \\
+\midrule
+SIMCAR validated & Small (1-4 MF) & 53,064.5 & 33,474.2 & 25,051.6 & 14,089.8 \\
+SIMCAR digital & Large (>15 MF) & 25,923.8 & 16,144.8 & 528,958.5 & 369,834.7 \\
+SIMCAR digital & Medium (>4-15 MF) & 10,039.6 & 6,767.5 & 135,896.3 & 92,937.5 \\
+SIMCAR digital & Minifundio (<1 MF) & 47,629.3 & 32,047.9 & 72,245.9 & 55,216.0 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 17. Secondary-forest scenario by input source and property size (continued)}
+\textit{Panel 1 of 4}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Input File Type & Size Class & Properties & Secondary veg. (hectares) & Secondary veg. n & \% Properties with secondary veg. & Baseline compliant n \\
+\midrule
+SIMCAR digital & Not Classified & 58 & 0.541 & 22 & 37.931 & 34 \\
+SIMCAR digital & Small (1-4 MF) & 7,034 & 132,643.1 & 6,062 & 86.181 & 1,728 \\
+SIMCAR proxy & Large (>15 MF) & 4,409 & 1,199,045.2 & 3,984 & 90.361 & 553 \\
+SIMCAR proxy & Medium (>4-15 MF) & 7,030 & 467,289.7 & 6,114 & 86.97 & 1,203 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 4}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Input File Type & Size Class & Baseline \% compliant & With secondary compliant n & With secondary \% compliant & Newly compliant n & Compliance gain (p.p.) \\
+\midrule
+SIMCAR digital & Not Classified & 58.621 & 36 & 62.069 & 2 & 3.448 \\
+SIMCAR digital & Small (1-4 MF) & 24.566 & 2,107 & 29.955 & 379 & 5.388 \\
+SIMCAR proxy & Large (>15 MF) & 12.543 & 570 & 12.928 & 17 & 0.386 \\
+SIMCAR proxy & Medium (>4-15 MF) & 17.112 & 1,257 & 17.881 & 54 & 0.768 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 3 of 4}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Input File Type & Size Class & Baseline total liab. (hectares) & With secondary total liab. (hectares) & Liab. reduction (hectares) & Baseline LR def. (hectares) & With secondary LR def. (hectares) \\
+\midrule
+SIMCAR digital & Not Classified & 2.308 & 2.19 & 0.117 & 1.863 & 1.746 \\
+SIMCAR digital & Small (1-4 MF) & 137,655.6 & 101,728.8 & 35,926.7 & 128,960.8 & 93,034.0 \\
+SIMCAR proxy & Large (>15 MF) & 1,635,013.8 & 1,308,783.2 & 326,230.7 & 1,514,402.7 & 1,188,172.1 \\
+SIMCAR proxy & Medium (>4-15 MF) & 359,522.9 & 262,005.4 & 97,517.5 & 301,389.7 & 203,872.2 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 4 of 4}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}}
+\toprule
+Input File Type & Size Class & Baseline restore (hectares) & With secondary restore (hectares) & Baseline comp. (hectares) & With secondary comp. (hectares) \\
+\midrule
+SIMCAR digital & Not Classified & 0.399 & 0.399 & 1.464 & 1.347 \\
+SIMCAR digital & Small (1-4 MF) & 33,031.4 & 22,323.3 & 95,929.3 & 70,710.8 \\
+SIMCAR proxy & Large (>15 MF) & 110,961.8 & 82,777.1 & 1,403,441.0 & 1,105,395.0 \\
+SIMCAR proxy & Medium (>4-15 MF) & 35,946.9 & 24,084.0 & 265,442.9 & 179,788.2 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 17. Secondary-forest scenario by input source and property size (continued)}
+\textit{Panel 1 of 4}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Input File Type & Size Class & Properties & Secondary veg. (hectares) & Secondary veg. n & \% Properties with secondary veg. & Baseline compliant n \\
+\midrule
+SIMCAR proxy & Minifundio (<1 MF) & 45,950 & 227,664.3 & 35,297 & 76.816 & 10,532 \\
+SIMCAR proxy & Not Classified & 402 & 2.713 & 62 & 15.423 & 241 \\
+SIMCAR proxy & Small (1-4 MF) & 20,513 & 444,043.3 & 18,033 & 87.91 & 3,000 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 4}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Input File Type & Size Class & Baseline \% compliant & With secondary compliant n & With secondary \% compliant & Newly compliant n & Compliance gain (p.p.) \\
+\midrule
+SIMCAR proxy & Minifundio (<1 MF) & 22.921 & 13,845 & 30.131 & 3,313 & 7.21 \\
+SIMCAR proxy & Not Classified & 59.95 & 249 & 61.94 & 8 & 1.99 \\
+SIMCAR proxy & Small (1-4 MF) & 14.625 & 4,106 & 20.017 & 1,106 & 5.392 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 3 of 4}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Input File Type & Size Class & Baseline total liab. (hectares) & With secondary total liab. (hectares) & Liab. reduction (hectares) & Baseline LR def. (hectares) & With secondary LR def. (hectares) \\
+\midrule
+SIMCAR proxy & Minifundio (<1 MF) & 147,280.5 & 92,061.8 & 55,218.7 & 121,061.4 & 65,841.1 \\
+SIMCAR proxy & Not Classified & 7.718 & 7.554 & 0.165 & 7.22 & 7.046 \\
+SIMCAR proxy & Small (1-4 MF) & 221,178.9 & 141,536.8 & 79,642.1 & 164,545.1 & 84,903.0 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 4 of 4}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}}
+\toprule
+Input File Type & Size Class & Baseline restore (hectares) & With secondary restore (hectares) & Baseline comp. (hectares) & With secondary comp. (hectares) \\
+\midrule
+SIMCAR proxy & Minifundio (<1 MF) & 114,961.4 & 63,695.6 & 6,100.0 & 2,145.5 \\
+SIMCAR proxy & Not Classified & 6.755 & 6.668 & 0.465 & 0.378 \\
+SIMCAR proxy & Small (1-4 MF) & 149,638.3 & 80,824.3 & 14,906.8 & 4,078.7 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\end{landscape}
+
+\begin{table}[H]
+\centering
+\caption{Table 19 All Size}
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}}
+\toprule
+Category & Size Class & Properties & Area (hectares) & \% properties & \% area \\
+\midrule
+All Properties & Large (>15 MF) & 12,549 & 45,872,919.0 & 8.068 & 65.96 \\
+All Properties & Medium (>4-15 MF) & 18,794 & 12,999,544.5 & 12.083 & 18.692 \\
+All Properties & Small (1-4 MF) & 42,627 & 7,496,748.5 & 27.405 & 10.78 \\
+All Properties & Minifundio (<1 MF) & 81,035 & 3,177,007.5 & 52.097 & 4.568 \\
+All Properties & Not Classified & 542 & 107.099 & 0.348 & 0 \\
+Total & Total & 155,547 & 69,546,326.7 & 100 & 100 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{landscape}
+\begin{table}[H]
+\centering
+\caption{Table 20 All LR}
+\textit{Panel 1 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & LR Req & \% Req & Grs Def & \% Grs & Adj Def \\
+\midrule
+All Properties & Large (>15 MF) & 27,649,803.1 & 64.855 & 7,681,314.4 & 58.167 & 3,566,881.7 \\
+All Properties & Medium (>4-15 MF) & 7,857,186.3 & 18.43 & 2,216,887.3 & 16.788 & 1,159,302.5 \\
+All Properties & Small (1-4 MF) & 4,881,602.8 & 11.45 & 2,145,981.8 & 16.251 & 417,150.3 \\
+All Properties & Minifundio (<1 MF) & 2,244,316.6 & 5.264 & 1,161,354.1 & 8.794 & 278,641.5 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & \% Adj & Rest. & \% Rest & Comp. & \% Comp \\
+\midrule
+All Properties & Large (>15 MF) & 65.786 & 269,034.7 & 32.984 & 3,297,847.0 & 71.594 \\
+All Properties & Medium (>4-15 MF) & 21.382 & 95,529.6 & 11.712 & 1,063,772.8 & 23.094 \\
+All Properties & Small (1-4 MF) & 7.694 & 260,092.4 & 31.887 & 157,057.9 & 3.41 \\
+All Properties & Minifundio (<1 MF) & 5.139 & 190,992.5 & 23.416 & 87,649.0 & 1.903 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 3 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}}
+\toprule
+Category & Size Class & Surplus & \% Sur \\
+\midrule
+All Properties & Large (>15 MF) & 11,548,974.0 & 74.602 \\
+All Properties & Medium (>4-15 MF) & 2,993,343.7 & 19.336 \\
+All Properties & Small (1-4 MF) & 710,741.9 & 4.591 \\
+All Properties & Minifundio (<1 MF) & 227,775.9 & 1.471 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 20 All LR (continued)}
+\textit{Panel 1 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & LR Req & \% Req & Grs Def & \% Grs & Adj Def \\
+\midrule
+All Properties & Not Classified & 64.688 & 0 & 28.317 & 0 & 10.409 \\
+Total & Total & 42,632,973.4 & 100 & 13,205,565.9 & 100 & 5,421,986.2 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & \% Adj & Rest. & \% Rest & Comp. & \% Comp \\
+\midrule
+All Properties & Not Classified & 0 & 8.072 & 0.001 & 2.337 & 0 \\
+Total & Total & 100 & 815,657.2 & 100 & 4,606,329.0 & 100 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 3 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}}
+\toprule
+Category & Size Class & Surplus & \% Sur \\
+\midrule
+All Properties & Not Classified & 15.038 & 0 \\
+Total & Total & 15,480,850.6 & 100 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\end{landscape}
+
+\begin{landscape}
+\begin{table}[H]
+\centering
+\caption{Table 21 All APP}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & APP Req & \% Req & APP Pres. & \% Pres & Grs Def \\
+\midrule
+All Properties & Large (>15 MF) & 2,378,044.0 & 61.566 & 2,083,682.5 & 64.987 & 294,361.5 \\
+All Properties & Medium (>4-15 MF) & 771,775.6 & 19.981 & 645,316.2 & 20.126 & 126,459.4 \\
+All Properties & Small (1-4 MF) & 486,340.7 & 12.591 & 346,182.1 & 10.797 & 140,158.6 \\
+All Properties & Minifundio (<1 MF) & 226,411.0 & 5.862 & 131,106.8 & 4.089 & 95,304.2 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Grs & Net Def & \% Net \\
+\midrule
+All Properties & Large (>15 MF) & 44.852 & 233,665.7 & 50.432 \\
+All Properties & Medium (>4-15 MF) & 19.269 & 104,048.3 & 22.457 \\
+All Properties & Small (1-4 MF) & 21.356 & 86,289.5 & 18.624 \\
+All Properties & Minifundio (<1 MF) & 14.522 & 39,321.7 & 8.487 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 21 All APP (continued)}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & APP Req & \% Req & APP Pres. & \% Pres & Grs Def \\
+\midrule
+All Properties & Not Classified & 22.797 & 0.001 & 17.396 & 0.001 & 5.402 \\
+Total & Total & 3,862,594.1 & 100 & 3,206,305.0 & 100 & 656,289.1 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Grs & Net Def & \% Net \\
+\midrule
+All Properties & Not Classified & 0.001 & 0.997 & 0 \\
+Total & Total & 100 & 463,326.2 & 100 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\end{landscape}
+
+\begin{landscape}
+\begin{table}[H]
+\centering
+\caption{Table 22 All Combined}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & Grs Def & \% Grs & Adj Def & \% Adj & Rest. \\
+\midrule
+All Properties & Large (>15 MF) & 7,975,675.9 & 57.537 & 3,800,547.4 & 64.577 & 502,700.4 \\
+All Properties & Medium (>4-15 MF) & 2,343,346.7 & 16.905 & 1,263,350.8 & 21.466 & 199,577.9 \\
+All Properties & Small (1-4 MF) & 2,286,140.4 & 16.492 & 503,439.7 & 8.554 & 346,381.9 \\
+All Properties & Minifundio (<1 MF) & 1,256,658.3 & 9.066 & 317,963.1 & 5.403 & 230,314.1 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Rest & Comp. & \% Comp \\
+\midrule
+All Properties & Large (>15 MF) & 39.305 & 3,297,847.0 & 71.594 \\
+All Properties & Medium (>4-15 MF) & 15.604 & 1,063,772.8 & 23.094 \\
+All Properties & Small (1-4 MF) & 27.083 & 157,057.9 & 3.41 \\
+All Properties & Minifundio (<1 MF) & 18.008 & 87,649.0 & 1.903 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 22 All Combined (continued)}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & Grs Def & \% Grs & Adj Def & \% Adj & Rest. \\
+\midrule
+All Properties & Not Classified & 33.718 & 0 & 11.406 & 0 & 9.069 \\
+Total & Total & 13,861,855.0 & 100 & 5,885,312.4 & 100 & 1,278,983.4 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Rest & Comp. & \% Comp \\
+\midrule
+All Properties & Not Classified & 0.001 & 2.337 & 0 \\
+Total & Total & 100 & 4,606,329.0 & 100 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\end{landscape}
+
+\begin{table}[H]
+\centering
+\caption{Table 23 Active Size}
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}}
+\toprule
+Category & Size Class & Properties & Area (hectares) & \% properties & \% area \\
+\midrule
+Active Properties & Large (>15 MF) & 11,509 & 41,669,413.0 & 7.852 & 65.359 \\
+Active Properties & Medium (>4-15 MF) & 17,530 & 12,072,612.5 & 11.96 & 18.936 \\
+Active Properties & Small (1-4 MF) & 39,841 & 6,997,598.6 & 27.182 & 10.976 \\
+Active Properties & Minifundio (<1 MF) & 77,215 & 3,014,957.9 & 52.681 & 4.729 \\
+Active Properties & Not Classified & 475 & 99.296 & 0.324 & 0 \\
+Total & Total & 146,570 & 63,754,681.4 & 100 & 100 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{landscape}
+\begin{table}[H]
+\centering
+\caption{Table 24 Active LR}
+\textit{Panel 1 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & LR Req & \% Req & Grs Def & \% Grs & Adj Def \\
+\midrule
+Active Properties & Large (>15 MF) & 25,137,112.4 & 64.241 & 6,816,518.5 & 56.647 & 3,143,542.4 \\
+Active Properties & Medium (>4-15 MF) & 7,295,901.5 & 18.646 & 2,087,044.3 & 17.344 & 1,098,363.2 \\
+Active Properties & Small (1-4 MF) & 4,563,049.0 & 11.661 & 2,020,609.4 & 16.792 & 371,622.0 \\
+Active Properties & Minifundio (<1 MF) & 2,133,227.2 & 5.452 & 1,109,110.6 & 9.217 & 261,347.3 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & \% Adj & Rest. & \% Rest & Comp. & \% Comp \\
+\midrule
+Active Properties & Large (>15 MF) & 64.484 & 198,060.9 & 28.295 & 2,945,481.5 & 70.552 \\
+Active Properties & Medium (>4-15 MF) & 22.531 & 87,297.7 & 12.471 & 1,011,065.5 & 24.218 \\
+Active Properties & Small (1-4 MF) & 7.623 & 235,734.2 & 33.677 & 135,887.8 & 3.255 \\
+Active Properties & Minifundio (<1 MF) & 5.361 & 178,891.9 & 25.556 & 82,455.4 & 1.975 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 3 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}}
+\toprule
+Category & Size Class & Surplus & \% Sur \\
+\midrule
+Active Properties & Large (>15 MF) & 10,485,890.9 & 74.411 \\
+Active Properties & Medium (>4-15 MF) & 2,737,641.0 & 19.427 \\
+Active Properties & Small (1-4 MF) & 654,614.9 & 4.645 \\
+Active Properties & Minifundio (<1 MF) & 213,787.7 & 1.517 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 24 Active LR (continued)}
+\textit{Panel 1 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & LR Req & \% Req & Grs Def & \% Grs & Adj Def \\
+\midrule
+Active Properties & Not Classified & 60.09 & 0 & 25.231 & 0 & 9.422 \\
+Total & Total & 39,129,350.1 & 100 & 12,033,308.1 & 100 & 4,874,884.2 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & \% Adj & Rest. & \% Rest & Comp. & \% Comp \\
+\midrule
+Active Properties & Not Classified & 0 & 7.291 & 0.001 & 2.131 & 0 \\
+Total & Total & 100 & 699,992.0 & 100 & 4,174,892.2 & 100 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 3 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}}
+\toprule
+Category & Size Class & Surplus & \% Sur \\
+\midrule
+Active Properties & Not Classified & 14.315 & 0 \\
+Total & Total & 14,091,948.8 & 100 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\end{landscape}
+
+\begin{landscape}
+\begin{table}[H]
+\centering
+\caption{Table 25 Active APP}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & APP Req & \% Req & APP Pres. & \% Pres & Grs Def \\
+\midrule
+Active Properties & Large (>15 MF) & 2,187,083.1 & 61.03 & 1,914,837.4 & 64.478 & 272,245.7 \\
+Active Properties & Medium (>4-15 MF) & 723,203.2 & 20.181 & 604,812.8 & 20.366 & 118,390.4 \\
+Active Properties & Small (1-4 MF) & 457,657.5 & 12.771 & 325,525.9 & 10.961 & 132,131.7 \\
+Active Properties & Minifundio (<1 MF) & 215,649.3 & 6.018 & 124,582.8 & 4.195 & 91,066.5 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Grs & Net Def & \% Net \\
+\midrule
+Active Properties & Large (>15 MF) & 44.351 & 214,344.3 & 49.785 \\
+Active Properties & Medium (>4-15 MF) & 19.287 & 97,306.6 & 22.601 \\
+Active Properties & Small (1-4 MF) & 21.525 & 81,491.0 & 18.928 \\
+Active Properties & Minifundio (<1 MF) & 14.836 & 37,393.1 & 8.685 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 25 Active APP (continued)}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & APP Req & \% Req & APP Pres. & \% Pres & Grs Def \\
+\midrule
+Active Properties & Not Classified & 22.254 & 0.001 & 16.967 & 0.001 & 5.288 \\
+Total & Total & 3,583,615.4 & 100 & 2,969,775.8 & 100 & 613,839.6 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Grs & Net Def & \% Net \\
+\midrule
+Active Properties & Not Classified & 0.001 & 0.984 & 0 \\
+Total & Total & 100 & 430,536.0 & 100 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\end{landscape}
+
+\begin{landscape}
+\begin{table}[H]
+\centering
+\caption{Table 26 Active Combined}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & Grs Def & \% Grs & Adj Def & \% Adj & Rest. \\
+\midrule
+Active Properties & Large (>15 MF) & 7,088,764.1 & 56.05 & 3,357,886.7 & 63.292 & 412,405.2 \\
+Active Properties & Medium (>4-15 MF) & 2,205,434.8 & 17.438 & 1,195,669.8 & 22.537 & 184,604.3 \\
+Active Properties & Small (1-4 MF) & 2,152,741.1 & 17.022 & 453,113.0 & 8.541 & 317,225.2 \\
+Active Properties & Minifundio (<1 MF) & 1,200,177.1 & 9.49 & 298,740.3 & 5.631 & 216,285.0 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Rest & Comp. & \% Comp \\
+\midrule
+Active Properties & Large (>15 MF) & 36.479 & 2,945,481.5 & 70.552 \\
+Active Properties & Medium (>4-15 MF) & 16.329 & 1,011,065.5 & 24.218 \\
+Active Properties & Small (1-4 MF) & 28.06 & 135,887.8 & 3.255 \\
+Active Properties & Minifundio (<1 MF) & 19.131 & 82,455.4 & 1.975 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 26 Active Combined (continued)}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & Grs Def & \% Grs & Adj Def & \% Adj & Rest. \\
+\midrule
+Active Properties & Not Classified & 30.519 & 0 & 10.405 & 0 & 8.274 \\
+Total & Total & 12,647,147.7 & 100 & 5,305,420.2 & 100 & 1,130,528.0 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Rest & Comp. & \% Comp \\
+\midrule
+Active Properties & Not Classified & 0.001 & 2.131 & 0 \\
+Total & Total & 100 & 4,174,892.2 & 100 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\end{landscape}
+
+\begin{table}[H]
+\centering
+\caption{Table 27. Supplier characterization}
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & Properties & Area (hectares) & Cattle head & \% properties & \% area \\
+\midrule
+Direct supplier & Large (>15 MF) & 2,080 & 7,426,321.8 & 13,255,268 & 4.558 & 44.757 \\
+Direct supplier & Medium (>4-15 MF) & 2,973 & 2,034,750.9 & 8,622,372 & 6.514 & 12.263 \\
+Direct supplier & Small (1-4 MF) & 6,434 & 1,163,658.7 & 10,485,021 & 14.098 & 7.013 \\
+Direct supplier & Minifundio (<1 MF) & 8,822 & 394,866.1 & 7,525,792 & 19.331 & 2.38 \\
+Direct supplier & Not Classified & 7 & 0.64 & 29,729 & 0.015 & 0 \\
+Indirect supplier - Tier 1 & Large (>15 MF) & 606 & 2,211,563.8 & 1,317,277 & 1.328 & 13.329 \\
+Indirect supplier - Tier 1 & Medium (>4-15 MF) & 1,116 & 730,092.0 & 1,251,861 & 2.445 & 4.4 \\
+Indirect supplier - Tier 1 & Small (1-4 MF) & 4,239 & 674,414.3 & 2,197,596 & 9.289 & 4.065 \\
+Indirect supplier - Tier 1 & Minifundio (<1 MF) & 13,073 & 536,403.1 & 3,132,196 & 28.646 & 3.233 \\
+Indirect supplier - Tier 1 & Not Classified & 9 & 1.214 & 2,228 & 0.02 & 0 \\
+Indirect supplier - Tier 2+ & Large (>15 MF) & 222 & 792,927.0 & 178,622 & 0.486 & 4.779 \\
+Indirect supplier - Tier 2+ & Medium (>4-15 MF) & 401 & 263,981.3 & 99,750 & 0.879 & 1.591 \\
+Indirect supplier - Tier 2+ & Small (1-4 MF) & 1,353 & 209,526.3 & 190,114 & 2.965 & 1.263 \\
+Indirect supplier - Tier 2+ & Minifundio (<1 MF) & 4,294 & 154,044.5 & 306,831 & 9.409 & 0.928 \\
+Indirect supplier - Tier 2+ & Not Classified & 8 & 1.275 & 1,176 & 0.018 & 0 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Table 29. Combined liability among suppliers}
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}}
+\toprule
+Category & Size Class & Gross affected area (hectares) & Total affected area (hectares) & Restoration area (hectares) & Compensation area (hectares) \\
+\midrule
+Direct supplier & Large (>15 MF) & 1,619,576.8 & 814,212.4 & 118,244.1 & 695,968.3 \\
+Direct supplier & Medium (>4-15 MF) & 481,562.6 & 272,171.2 & 45,203.9 & 226,967.3 \\
+Direct supplier & Small (1-4 MF) & 457,785.0 & 78,954.1 & 54,998.1 & 23,955.9 \\
+Direct supplier & Minifundio (<1 MF) & 197,149.4 & 34,579.7 & 25,270.6 & 9,309.2 \\
+Direct supplier & Not Classified & 0.284 & 0.018 & 0 & 0.018 \\
+Indirect supplier - Tier 1 & Large (>15 MF) & 346,420.1 & 166,826.2 & 30,177.5 & 136,648.7 \\
+Indirect supplier - Tier 1 & Medium (>4-15 MF) & 121,922.8 & 59,439.6 & 17,611.8 & 41,827.7 \\
+Indirect supplier - Tier 1 & Small (1-4 MF) & 202,782.6 & 55,323.8 & 44,033.9 & 11,289.9 \\
+Indirect supplier - Tier 1 & Minifundio (<1 MF) & 230,272.6 & 63,965.9 & 52,201.9 & 11,764.0 \\
+Indirect supplier - Tier 1 & Not Classified & 0.529 & 0 & 0 & 0 \\
+Indirect supplier - Tier 2+ & Large (>15 MF) & 135,810.8 & 61,050.2 & 10,275.7 & 50,774.5 \\
+Indirect supplier - Tier 2+ & Medium (>4-15 MF) & 40,689.4 & 22,703.7 & 5,017.6 & 17,686.1 \\
+Indirect supplier - Tier 2+ & Small (1-4 MF) & 46,683.5 & 15,377.0 & 12,079.1 & 3,297.9 \\
+Indirect supplier - Tier 2+ & Minifundio (<1 MF) & 50,339.8 & 15,403.6 & 12,101.1 & 3,302.5 \\
+Indirect supplier - Tier 2+ & Not Classified & 0.501 & 0 & 0 & 0 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{landscape}
+\begin{table}[H]
+\centering
+\caption{Table 30. Suppliers with and without the 2000 rule}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Supplier Type & Scenario & Properties & Compliant properties & \% Compliant & Affected properties & LR affected area (hectares) \\
+\midrule
+Direct supplier & LR with 2000 rule & 20,316 & 2,227 & 10.962 & 18,089 & 1,073,523.7 \\
+Direct supplier & LR without 2000 rule & 20,316 & 2,228 & 10.967 & 18,088 & 736,747.8 \\
+Indirect supplier - Tier 1 & LR with 2000 rule & 19,043 & 2,759 & 14.488 & 16,284 & 302,042.5 \\
+Indirect supplier - Tier 1 & LR without 2000 rule & 19,043 & 2,759 & 14.488 & 16,284 & 249,543.9 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}}
+\toprule
+Supplier Type & Scenario & APP affected area (hectares) & Total affected area (hectares) & Restoration area (hectares) & Compensation area (hectares) \\
+\midrule
+Direct supplier & LR with 2000 rule & 126,393.6 & 1,199,917.4 & 117,323.0 & 956,200.7 \\
+Direct supplier & LR without 2000 rule & 126,393.6 & 863,141.4 & 117,143.4 & 619,604.4 \\
+Indirect supplier - Tier 1 & LR with 2000 rule & 43,512.9 & 345,555.4 & 100,512.2 & 201,530.3 \\
+Indirect supplier - Tier 1 & LR without 2000 rule & 43,512.9 & 293,056.8 & 100,232.2 & 149,311.7 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 30. Suppliers with and without the 2000 rule (continued)}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Supplier Type & Scenario & Properties & Compliant properties & \% Compliant & Affected properties & LR affected area (hectares) \\
+\midrule
+Indirect supplier - Tier 2+ & LR with 2000 rule & 6,278 & 1,472 & 23.447 & 4,806 & 104,578.7 \\
+Indirect supplier - Tier 2+ & LR without 2000 rule & 6,278 & 1,472 & 23.447 & 4,806 & 90,800.2 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}}
+\toprule
+Supplier Type & Scenario & APP affected area (hectares) & Total affected area (hectares) & Restoration area (hectares) & Compensation area (hectares) \\
+\midrule
+Indirect supplier - Tier 2+ & LR with 2000 rule & 9,955.8 & 114,534.6 & 29,517.6 & 75,061.1 \\
+Indirect supplier - Tier 2+ & LR without 2000 rule & 9,955.8 & 100,756.0 & 29,352.0 & 61,448.2 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\end{landscape}
+
+\begin{landscape}
+\begin{table}[H]
+\centering
+\caption{Table 32. Secondary forest among suppliers}
+\textit{Panel 1 of 4}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Supplier Type & Properties & Secondary veg. (hectares) & Secondary veg. n & \% Properties with secondary veg. & Baseline compliant n & Baseline \% compliant \\
+\midrule
+Direct supplier & 20,316 & 1,239,423.6 & 18,747 & 92.277 & 2,227 & 10.962 \\
+Indirect supplier - Tier 1 & 19,043 & 422,448.9 & 16,812 & 88.284 & 2,759 & 14.488 \\
+Indirect supplier - Tier 2+ & 6,278 & 126,050.4 & 5,057 & 80.551 & 1,472 & 23.447 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 4}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Supplier Type & Properties & With secondary compliant n & With secondary \% compliant & Newly compliant n & Compliance gain (p.p.) & Baseline total liab. (hectares) \\
+\midrule
+Direct supplier & 20,316 & 3,076 & 15.141 & 849 & 4.179 & 1,199,916.1 \\
+Indirect supplier - Tier 1 & 19,043 & 3,777 & 19.834 & 1,018 & 5.346 & 345,554.5 \\
+Indirect supplier - Tier 2+ & 6,278 & 1,836 & 29.245 & 364 & 5.798 & 114,533.2 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 3 of 4}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Supplier Type & Properties & With secondary total liab. (hectares) & Liab. reduction (hectares) & Baseline LR def. (hectares) & With secondary LR def. (hectares) & Baseline restore (hectares) \\
+\midrule
+Direct supplier & 20,316 & 834,757.3 & 365,158.8 & 1,073,523.7 & 708,364.9 & 117,323.0 \\
+Indirect supplier - Tier 1 & 19,043 & 256,414.9 & 89,139.6 & 302,042.5 & 212,902.8 & 100,512.2 \\
+Indirect supplier - Tier 2+ & 6,278 & 89,208.8 & 25,324.4 & 104,578.7 & 79,253.0 & 29,517.6 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 4 of 4}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Supplier Type & Properties & With secondary restore (hectares) & Baseline comp. (hectares) & With secondary comp. (hectares) \\
+\midrule
+Direct supplier & 20,316 & 75,431.2 & 956,200.7 & 632,933.7 \\
+Indirect supplier - Tier 1 & 19,043 & 58,845.7 & 201,530.3 & 154,057.0 \\
+Indirect supplier - Tier 2+ & 6,278 & 20,503.8 & 75,061.1 & 58,749.2 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\end{landscape}
+
+\begin{table}[H]
+\centering
+\caption{Table 33 Cattle LR}
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.102\linewidth}p{0.102\linewidth}p{0.102\linewidth}p{0.102\linewidth}p{0.102\linewidth}p{0.102\linewidth}p{0.102\linewidth}p{0.102\linewidth}}
+\toprule
+Category & Size Class & Required LR area (hectares) & LR gross affected area (hectares) & LR affected area (hectares) & Restoration area (hectares) & Compensation area (hectares) & LR surplus area (hectares) \\
+\midrule
+Direct supplier & Large (>15 MF) & 4,559,571.9 & 1,542,963.4 & 745,924.7 & 49,956.4 & 695,968.3 & 1,370,129.5 \\
+Direct supplier & Medium (>4-15 MF) & 1,274,955.7 & 446,376.9 & 242,304.9 & 15,337.6 & 226,967.3 & 317,465.0 \\
+Direct supplier & Small (1-4 MF) & 823,313.2 & 421,409.4 & 57,014.7 & 33,058.8 & 23,955.9 & 71,401.9 \\
+Direct supplier & Minifundio (<1 MF) & 300,129.2 & 179,756.3 & 28,279.5 & 18,970.3 & 9,309.2 & 20,768.4 \\
+Direct supplier & Not Classified & 0.459 & 0.284 & 0.018 & 0 & 0.018 & 0.016 \\
+Indirect supplier - Tier 1 & Large (>15 MF) & 1,262,704.3 & 329,292.7 & 153,252.0 & 16,603.3 & 136,648.7 & 620,008.7 \\
+Indirect supplier - Tier 1 & Medium (>4-15 MF) & 426,903.2 & 110,920.8 & 50,159.9 & 8,332.2 & 41,827.7 & 165,109.3 \\
+Indirect supplier - Tier 1 & Small (1-4 MF) & 442,483.3 & 185,009.9 & 44,257.5 & 32,967.6 & 11,289.9 & 54,601.6 \\
+Indirect supplier - Tier 1 & Minifundio (<1 MF) & 394,146.7 & 207,888.0 & 54,373.0 & 42,609.1 & 11,764.0 & 28,845.2 \\
+Indirect supplier - Tier 1 & Not Classified & 0.838 & 0.529 & 0 & 0 & 0 & 0.244 \\
+Indirect supplier - Tier 2+ & Large (>15 MF) & 427,966.9 & 131,566.5 & 58,344.6 & 7,570.1 & 50,774.5 & 202,765.8 \\
+Indirect supplier - Tier 2+ & Medium (>4-15 MF) & 147,513.9 & 37,376.1 & 19,895.6 & 2,209.5 & 17,686.1 & 75,603.1 \\
+Indirect supplier - Tier 2+ & Small (1-4 MF) & 123,357.6 & 42,871.5 & 12,951.6 & 9,653.7 & 3,297.9 & 27,502.9 \\
+Indirect supplier - Tier 2+ & Minifundio (<1 MF) & 101,443.5 & 45,738.8 & 13,386.9 & 10,084.4 & 3,302.5 & 13,795.7 \\
+Indirect supplier - Tier 2+ & Not Classified & 0.977 & 0.501 & 0 & 0 & 0 & 0.14 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Table 34 Cattle Net}
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}}
+\toprule
+Category & Restoration area (hectares) & APP affected area (hectares) & Compensation area (hectares) \\
+\midrule
+Direct supplier & 117,323.0 & 126,393.6 & 956,200.7 \\
+Indirect supplier - Tier 1 & 100,512.2 & 43,512.9 & 201,530.3 \\
+Indirect supplier - Tier 2+ & 29,517.6 & 9,955.8 & 75,061.1 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Table 35 Cattle Size}
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}}
+\toprule
+Category & Size Class & Properties & Area (hectares) & \% properties & \% area \\
+\midrule
+Direct Supplier & Large (>15 MF) & 2,080 & 7,426,321.8 & 44.757 & 44.757 \\
+Direct Supplier & Medium (>4-15 MF) & 2,973 & 2,034,750.9 & 12.263 & 12.263 \\
+Direct Supplier & Small (1-4 MF) & 6,434 & 1,163,658.7 & 7.013 & 7.013 \\
+Direct Supplier & Minifundio (<1 MF) & 8,822 & 394,866.1 & 2.38 & 2.38 \\
+Direct Supplier & Not Classified & 7 & 0.64 & 0 & 0 \\
+Subtotal & Total & 20,316 & 11,019,598.1 & 66.413 & 66.413 \\
+Indirect T1 & Large (>15 MF) & 606 & 2,211,563.8 & 13.329 & 13.329 \\
+Indirect T1 & Medium (>4-15 MF) & 1,116 & 730,092.0 & 4.4 & 4.4 \\
+Indirect T1 & Small (1-4 MF) & 4,239 & 674,414.3 & 4.065 & 4.065 \\
+Indirect T1 & Minifundio (<1 MF) & 13,073 & 536,403.1 & 3.233 & 3.233 \\
+Indirect T1 & Not Classified & 9 & 1.214 & 0 & 0 \\
+Subtotal & Total & 19,043 & 4,152,474.5 & 25.026 & 25.026 \\
+Indirect T2+ & Large (>15 MF) & 222 & 792,927.0 & 4.779 & 4.779 \\
+Indirect T2+ & Medium (>4-15 MF) & 401 & 263,981.3 & 1.591 & 1.591 \\
+Indirect T2+ & Small (1-4 MF) & 1,353 & 209,526.3 & 1.263 & 1.263 \\
+Indirect T2+ & Minifundio (<1 MF) & 4,294 & 154,044.5 & 0.928 & 0.928 \\
+Indirect T2+ & Not Classified & 8 & 1.275 & 0 & 0 \\
+Subtotal & Total & 6,278 & 1,420,480.5 & 8.561 & 8.561 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 35 Cattle Size (continued)}
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}}
+\toprule
+Category & Size Class & Properties & Area (hectares) & \% properties & \% area \\
+\midrule
+Total & Total & 45,637 & 16,592,553.1 & 100 & 100 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{landscape}
+\begin{table}[H]
+\centering
+\caption{Table 36 Cattle LR}
+\textit{Panel 1 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & LR Req & \% Req & Grs Def & \% Grs & Adj Def \\
+\midrule
+Direct Supp. & Large (>15 MF) & 4,559,571.9 & 44.334 & 1,542,963.4 & 41.915 & 745,924.7 \\
+Direct Supp. & Medium (>4-15 MF) & 1,274,955.7 & 12.397 & 446,376.9 & 12.126 & 242,304.9 \\
+Direct Supp. & Small (1-4 MF) & 823,313.2 & 8.005 & 421,409.4 & 11.448 & 57,014.7 \\
+Direct Supp. & Minifundio (<1 MF) & 300,129.2 & 2.918 & 179,756.3 & 4.883 & 28,279.5 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & \% Adj & Rest. & \% Rest & Comp. & \% Comp \\
+\midrule
+Direct Supp. & Large (>15 MF) & 50.395 & 49,956.4 & 20.196 & 695,968.3 & 56.455 \\
+Direct Supp. & Medium (>4-15 MF) & 16.37 & 15,337.6 & 6.201 & 226,967.3 & 18.411 \\
+Direct Supp. & Small (1-4 MF) & 3.852 & 33,058.8 & 13.365 & 23,955.9 & 1.943 \\
+Direct Supp. & Minifundio (<1 MF) & 1.911 & 18,970.3 & 7.669 & 9,309.2 & 0.755 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 3 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}}
+\toprule
+Category & Size Class & Surplus & \% Sur \\
+\midrule
+Direct Supp. & Large (>15 MF) & 1,370,129.5 & 46.163 \\
+Direct Supp. & Medium (>4-15 MF) & 317,465.0 & 10.696 \\
+Direct Supp. & Small (1-4 MF) & 71,401.9 & 2.406 \\
+Direct Supp. & Minifundio (<1 MF) & 20,768.4 & 0.7 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 36 Cattle LR (continued)}
+\textit{Panel 1 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & LR Req & \% Req & Grs Def & \% Grs & Adj Def \\
+\midrule
+Direct Supp. & Not Classified & 0.459 & 0 & 0.284 & 0 & 0.018 \\
+Subtotal & Total & 6,957,970.5 & 67.655 & 2,590,506.3 & 70.372 & 1,073,523.7 \\
+Ind. T1 & Large (>15 MF) & 1,262,704.3 & 12.278 & 329,292.7 & 8.945 & 153,252.0 \\
+Ind. T1 & Medium (>4-15 MF) & 426,903.2 & 4.151 & 110,920.8 & 3.013 & 50,159.9 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & \% Adj & Rest. & \% Rest & Comp. & \% Comp \\
+\midrule
+Direct Supp. & Not Classified & 0 & 0 & 0 & 0.018 & 0 \\
+Subtotal & Total & 72.528 & 117,323.0 & 47.431 & 956,200.7 & 77.564 \\
+Ind. T1 & Large (>15 MF) & 10.354 & 16,603.3 & 6.712 & 136,648.7 & 11.084 \\
+Ind. T1 & Medium (>4-15 MF) & 3.389 & 8,332.2 & 3.369 & 41,827.7 & 3.393 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 3 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}}
+\toprule
+Category & Size Class & Surplus & \% Sur \\
+\midrule
+Direct Supp. & Not Classified & 0.016 & 0 \\
+Subtotal & Total & 1,779,764.8 & 59.965 \\
+Ind. T1 & Large (>15 MF) & 620,008.7 & 20.89 \\
+Ind. T1 & Medium (>4-15 MF) & 165,109.3 & 5.563 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 36 Cattle LR (continued)}
+\textit{Panel 1 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & LR Req & \% Req & Grs Def & \% Grs & Adj Def \\
+\midrule
+Ind. T1 & Small (1-4 MF) & 442,483.3 & 4.302 & 185,009.9 & 5.026 & 44,257.5 \\
+Ind. T1 & Minifundio (<1 MF) & 394,146.7 & 3.832 & 207,888.0 & 5.647 & 54,373.0 \\
+Ind. T1 & Not Classified & 0.838 & 0 & 0.529 & 0 & 0 \\
+Subtotal & Total & 2,526,238.4 & 24.564 & 833,111.8 & 22.632 & 302,042.5 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & \% Adj & Rest. & \% Rest & Comp. & \% Comp \\
+\midrule
+Ind. T1 & Small (1-4 MF) & 2.99 & 32,967.6 & 13.328 & 11,289.9 & 0.916 \\
+Ind. T1 & Minifundio (<1 MF) & 3.673 & 42,609.1 & 17.226 & 11,764.0 & 0.954 \\
+Ind. T1 & Not Classified & 0 & 0 & 0 & 0 & 0 \\
+Subtotal & Total & 20.406 & 100,512.2 & 40.635 & 201,530.3 & 16.347 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 3 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}}
+\toprule
+Category & Size Class & Surplus & \% Sur \\
+\midrule
+Ind. T1 & Small (1-4 MF) & 54,601.6 & 1.84 \\
+Ind. T1 & Minifundio (<1 MF) & 28,845.2 & 0.972 \\
+Ind. T1 & Not Classified & 0.244 & 0 \\
+Subtotal & Total & 868,565.0 & 29.264 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 36 Cattle LR (continued)}
+\textit{Panel 1 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & LR Req & \% Req & Grs Def & \% Grs & Adj Def \\
+\midrule
+Ind. T2+ & Large (>15 MF) & 427,966.9 & 4.161 & 131,566.5 & 3.574 & 58,344.6 \\
+Ind. T2+ & Medium (>4-15 MF) & 147,513.9 & 1.434 & 37,376.1 & 1.015 & 19,895.6 \\
+Ind. T2+ & Small (1-4 MF) & 123,357.6 & 1.199 & 42,871.5 & 1.165 & 12,951.6 \\
+Ind. T2+ & Minifundio (<1 MF) & 101,443.5 & 0.986 & 45,738.8 & 1.243 & 13,386.9 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & \% Adj & Rest. & \% Rest & Comp. & \% Comp \\
+\midrule
+Ind. T2+ & Large (>15 MF) & 3.942 & 7,570.1 & 3.06 & 50,774.5 & 4.119 \\
+Ind. T2+ & Medium (>4-15 MF) & 1.344 & 2,209.5 & 0.893 & 17,686.1 & 1.435 \\
+Ind. T2+ & Small (1-4 MF) & 0.875 & 9,653.7 & 3.903 & 3,297.9 & 0.268 \\
+Ind. T2+ & Minifundio (<1 MF) & 0.904 & 10,084.4 & 4.077 & 3,302.5 & 0.268 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 3 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}}
+\toprule
+Category & Size Class & Surplus & \% Sur \\
+\midrule
+Ind. T2+ & Large (>15 MF) & 202,765.8 & 6.832 \\
+Ind. T2+ & Medium (>4-15 MF) & 75,603.1 & 2.547 \\
+Ind. T2+ & Small (1-4 MF) & 27,502.9 & 0.927 \\
+Ind. T2+ & Minifundio (<1 MF) & 13,795.7 & 0.465 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 36 Cattle LR (continued)}
+\textit{Panel 1 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & LR Req & \% Req & Grs Def & \% Grs & Adj Def \\
+\midrule
+Ind. T2+ & Not Classified & 0.977 & 0 & 0.501 & 0 & 0 \\
+Subtotal & Total & 800,283.0 & 7.781 & 257,553.3 & 6.997 & 104,578.7 \\
+Total & Total & 10,284,491.8 & 100 & 3,681,171.5 & 100 & 1,480,145.0 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & \% Adj & Rest. & \% Rest & Comp. & \% Comp \\
+\midrule
+Ind. T2+ & Not Classified & 0 & 0 & 0 & 0 & 0 \\
+Subtotal & Total & 7.065 & 29,517.6 & 11.933 & 75,061.1 & 6.089 \\
+Total & Total & 100 & 247,352.9 & 100 & 1,232,792.1 & 100 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 3 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}}
+\toprule
+Category & Size Class & Surplus & \% Sur \\
+\midrule
+Ind. T2+ & Not Classified & 0.14 & 0 \\
+Subtotal & Total & 319,667.6 & 10.77 \\
+Total & Total & 2,967,997.4 & 100 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\end{landscape}
+
+\begin{landscape}
+\begin{table}[H]
+\centering
+\caption{Table 37 Cattle APP}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & APP Req & \% Req & APP Pres. & \% Pres & Grs Def \\
+\midrule
+Direct Supp. & Large (>15 MF) & 444,109.9 & 41.412 & 367,496.5 & 44.675 & 76,613.4 \\
+Direct Supp. & Medium (>4-15 MF) & 148,395.9 & 13.837 & 113,210.3 & 13.762 & 35,185.6 \\
+Direct Supp. & Small (1-4 MF) & 96,122.8 & 8.963 & 59,747.2 & 7.263 & 36,375.6 \\
+Direct Supp. & Minifundio (<1 MF) & 34,433.4 & 3.211 & 17,040.3 & 2.072 & 17,393.1 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Grs & Net Def & \% Net \\
+\midrule
+Direct Supp. & Large (>15 MF) & 30.667 & 68,287.7 & 37.967 \\
+Direct Supp. & Medium (>4-15 MF) & 14.084 & 29,866.3 & 16.605 \\
+Direct Supp. & Small (1-4 MF) & 14.56 & 21,939.4 & 12.198 \\
+Direct Supp. & Minifundio (<1 MF) & 6.962 & 6,300.2 & 3.503 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 37 Cattle APP (continued)}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & APP Req & \% Req & APP Pres. & \% Pres & Grs Def \\
+\midrule
+Direct Supp. & Not Classified & 0 & 0 & 0 & 0 & 0 \\
+Subtotal & Total & 723,062.1 & 67.423 & 557,494.4 & 67.772 & 165,567.7 \\
+Ind. T1 & Large (>15 MF) & 114,682.0 & 10.694 & 97,554.7 & 11.859 & 17,127.4 \\
+Ind. T1 & Medium (>4-15 MF) & 53,347.4 & 4.974 & 42,345.4 & 5.148 & 11,002.0 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Grs & Net Def & \% Net \\
+\midrule
+Direct Supp. & Not Classified & 0 & 0 & 0 \\
+Subtotal & Total & 66.273 & 126,393.6 & 70.272 \\
+Ind. T1 & Large (>15 MF) & 6.856 & 13,574.2 & 7.547 \\
+Ind. T1 & Medium (>4-15 MF) & 4.404 & 9,279.6 & 5.159 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 37 Cattle APP (continued)}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & APP Req & \% Req & APP Pres. & \% Pres & Grs Def \\
+\midrule
+Ind. T1 & Small (1-4 MF) & 52,686.0 & 4.913 & 34,913.3 & 4.244 & 17,772.7 \\
+Ind. T1 & Minifundio (<1 MF) & 45,767.2 & 4.268 & 23,382.5 & 2.843 & 22,384.7 \\
+Ind. T1 & Not Classified & 0 & 0 & 0 & 0 & 0 \\
+Subtotal & Total & 266,482.7 & 24.849 & 198,195.9 & 24.094 & 68,286.8 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Grs & Net Def & \% Net \\
+\midrule
+Ind. T1 & Small (1-4 MF) & 7.114 & 11,066.3 & 6.153 \\
+Ind. T1 & Minifundio (<1 MF) & 8.96 & 9,592.8 & 5.333 \\
+Ind. T1 & Not Classified & 0 & 0 & 0 \\
+Subtotal & Total & 27.334 & 43,512.9 & 24.192 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 37 Cattle APP (continued)}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & APP Req & \% Req & APP Pres. & \% Pres & Grs Def \\
+\midrule
+Ind. T2+ & Large (>15 MF) & 38,521.9 & 3.592 & 34,277.6 & 4.167 & 4,244.3 \\
+Ind. T2+ & Medium (>4-15 MF) & 18,238.6 & 1.701 & 14,925.3 & 1.814 & 3,313.3 \\
+Ind. T2+ & Small (1-4 MF) & 14,348.2 & 1.338 & 10,536.2 & 1.281 & 3,812.0 \\
+Ind. T2+ & Minifundio (<1 MF) & 11,772.3 & 1.098 & 7,171.3 & 0.872 & 4,601.0 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Grs & Net Def & \% Net \\
+\midrule
+Ind. T2+ & Large (>15 MF) & 1.699 & 2,705.6 & 1.504 \\
+Ind. T2+ & Medium (>4-15 MF) & 1.326 & 2,808.2 & 1.561 \\
+Ind. T2+ & Small (1-4 MF) & 1.526 & 2,425.4 & 1.348 \\
+Ind. T2+ & Minifundio (<1 MF) & 1.842 & 2,016.7 & 1.121 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 37 Cattle APP (continued)}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & APP Req & \% Req & APP Pres. & \% Pres & Grs Def \\
+\midrule
+Ind. T2+ & Not Classified & 0.394 & 0 & 0.394 & 0 & 0 \\
+Subtotal & Total & 82,881.4 & 7.728 & 66,910.7 & 8.134 & 15,970.7 \\
+Total & Total & 1,072,426.2 & 100 & 822,601.0 & 100 & 249,825.2 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Grs & Net Def & \% Net \\
+\midrule
+Ind. T2+ & Not Classified & 0 & 0 & 0 \\
+Subtotal & Total & 6.393 & 9,955.8 & 5.535 \\
+Total & Total & 100 & 179,862.4 & 100 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\end{landscape}
+
+\begin{landscape}
+\begin{table}[H]
+\centering
+\caption{Table 38 Cattle Combined}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & Grs Def & \% Grs & Adj Def & \% Adj & Rest. \\
+\midrule
+Direct Supp. & Large (>15 MF) & 1,619,576.8 & 41.2 & 814,212.4 & 49.049 & 118,244.1 \\
+Direct Supp. & Medium (>4-15 MF) & 481,562.6 & 12.25 & 272,171.2 & 16.396 & 45,203.9 \\
+Direct Supp. & Small (1-4 MF) & 457,785.0 & 11.646 & 78,954.1 & 4.756 & 54,998.1 \\
+Direct Supp. & Minifundio (<1 MF) & 197,149.4 & 5.015 & 34,579.7 & 2.083 & 25,270.6 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Rest & Comp. & \% Comp \\
+\midrule
+Direct Supp. & Large (>15 MF) & 27.678 & 695,968.3 & 56.455 \\
+Direct Supp. & Medium (>4-15 MF) & 10.581 & 226,967.3 & 18.411 \\
+Direct Supp. & Small (1-4 MF) & 12.874 & 23,955.9 & 1.943 \\
+Direct Supp. & Minifundio (<1 MF) & 5.915 & 9,309.2 & 0.755 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 38 Cattle Combined (continued)}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & Grs Def & \% Grs & Adj Def & \% Adj & Rest. \\
+\midrule
+Direct Supp. & Not Classified & 0.284 & 0 & 0.018 & 0 & 0 \\
+Subtotal & Total & 2,756,074.0 & 70.111 & 1,199,917.4 & 72.284 & 243,716.7 \\
+Ind. T1 & Large (>15 MF) & 346,420.1 & 8.813 & 166,826.2 & 10.05 & 30,177.5 \\
+Ind. T1 & Medium (>4-15 MF) & 121,922.8 & 3.102 & 59,439.6 & 3.581 & 17,611.8 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Rest & Comp. & \% Comp \\
+\midrule
+Direct Supp. & Not Classified & 0 & 0.018 & 0 \\
+Subtotal & Total & 57.048 & 956,200.7 & 77.564 \\
+Ind. T1 & Large (>15 MF) & 7.064 & 136,648.7 & 11.084 \\
+Ind. T1 & Medium (>4-15 MF) & 4.122 & 41,827.7 & 3.393 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 38 Cattle Combined (continued)}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & Grs Def & \% Grs & Adj Def & \% Adj & Rest. \\
+\midrule
+Ind. T1 & Small (1-4 MF) & 202,782.6 & 5.159 & 55,323.8 & 3.333 & 44,033.9 \\
+Ind. T1 & Minifundio (<1 MF) & 230,272.6 & 5.858 & 63,965.9 & 3.853 & 52,201.9 \\
+Ind. T1 & Not Classified & 0.529 & 0 & 0 & 0 & 0 \\
+Subtotal & Total & 901,398.6 & 22.931 & 345,555.4 & 20.817 & 144,025.1 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Rest & Comp. & \% Comp \\
+\midrule
+Ind. T1 & Small (1-4 MF) & 10.307 & 11,289.9 & 0.916 \\
+Ind. T1 & Minifundio (<1 MF) & 12.219 & 11,764.0 & 0.954 \\
+Ind. T1 & Not Classified & 0 & 0 & 0 \\
+Subtotal & Total & 33.713 & 201,530.3 & 16.347 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 38 Cattle Combined (continued)}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & Grs Def & \% Grs & Adj Def & \% Adj & Rest. \\
+\midrule
+Ind. T2+ & Large (>15 MF) & 135,810.8 & 3.455 & 61,050.2 & 3.678 & 10,275.7 \\
+Ind. T2+ & Medium (>4-15 MF) & 40,689.4 & 1.035 & 22,703.7 & 1.368 & 5,017.6 \\
+Ind. T2+ & Small (1-4 MF) & 46,683.5 & 1.188 & 15,377.0 & 0.926 & 12,079.1 \\
+Ind. T2+ & Minifundio (<1 MF) & 50,339.8 & 1.281 & 15,403.6 & 0.928 & 12,101.1 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Rest & Comp. & \% Comp \\
+\midrule
+Ind. T2+ & Large (>15 MF) & 2.405 & 50,774.5 & 4.119 \\
+Ind. T2+ & Medium (>4-15 MF) & 1.174 & 17,686.1 & 1.435 \\
+Ind. T2+ & Small (1-4 MF) & 2.827 & 3,297.9 & 0.268 \\
+Ind. T2+ & Minifundio (<1 MF) & 2.833 & 3,302.5 & 0.268 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 38 Cattle Combined (continued)}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & Grs Def & \% Grs & Adj Def & \% Adj & Rest. \\
+\midrule
+Ind. T2+ & Not Classified & 0.501 & 0 & 0 & 0 & 0 \\
+Subtotal & Total & 273,524.0 & 6.958 & 114,534.6 & 6.9 & 39,473.5 \\
+Total & Total & 3,930,996.6 & 100 & 1,660,007.4 & 100 & 427,215.3 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Rest & Comp. & \% Comp \\
+\midrule
+Ind. T2+ & Not Classified & 0 & 0 & 0 \\
+Subtotal & Total & 9.24 & 75,061.1 & 6.089 \\
+Total & Total & 100 & 1,232,792.1 & 100 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\end{landscape}
+
+\begin{table}[H]
+\centering
+\caption{Table 40 Special Size}
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}}
+\toprule
+Category & Size Class & Properties & Area (hectares) & \% properties & \% area \\
+\midrule
+Conserv. Units & Large (>15 MF) & 521 & 2,990,423.8 & 36.562 & 36.562 \\
+Conserv. Units & Medium (>4-15 MF) & 635 & 414,120.4 & 5.063 & 5.063 \\
+Conserv. Units & Small (1-4 MF) & 912 & 153,573.0 & 1.878 & 1.878 \\
+Conserv. Units & Minifundio (<1 MF) & 1,155 & 26,421.6 & 0.323 & 0.323 \\
+Conserv. Units & Not Classified & 114 & 27.215 & 0 & 0 \\
+Subtotal & Total & 3,337 & 3,584,565.9 & 43.827 & 43.827 \\
+Quilombola & Large (>15 MF) & 7 & 17,006.1 & 0.208 & 0.208 \\
+Quilombola & Medium (>4-15 MF) & 15 & 10,339.7 & 0.126 & 0.126 \\
+Quilombola & Small (1-4 MF) & 19 & 3,377.4 & 0.041 & 0.041 \\
+Quilombola & Minifundio (<1 MF) & 64 & 1,633.8 & 0.02 & 0.02 \\
+Quilombola & Not Classified & 0 & 0 & 0 & 0 \\
+Subtotal & Total & 105 & 32,356.9 & 0.396 & 0.396 \\
+Rural Settl. & Large (>15 MF) & 348 & 1,335,888.7 & 16.333 & 16.333 \\
+Rural Settl. & Medium (>4-15 MF) & 617 & 438,542.9 & 5.362 & 5.362 \\
+Rural Settl. & Small (1-4 MF) & 5,972 & 804,868.6 & 9.841 & 9.841 \\
+Rural Settl. & Minifundio (<1 MF) & 21,144 & 891,720.7 & 10.903 & 10.903 \\
+Rural Settl. & Not Classified & 97 & 14.143 & 0 & 0 \\
+Subtotal & Total & 28,178 & 3,471,035.1 & 42.438 & 42.438 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 40 Special Size (continued)}
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}}
+\toprule
+Category & Size Class & Properties & Area (hectares) & \% properties & \% area \\
+\midrule
+Indigenous & Large (>15 MF) & 172 & 961,847.9 & 11.76 & 11.76 \\
+Indigenous & Medium (>4-15 MF) & 120 & 101,990.1 & 1.247 & 1.247 \\
+Indigenous & Small (1-4 MF) & 106 & 24,071.8 & 0.294 & 0.294 \\
+Indigenous & Minifundio (<1 MF) & 60 & 3,109.6 & 0.038 & 0.038 \\
+Indigenous & Not Classified & 0 & 0 & 0 & 0 \\
+Subtotal & Total & 458 & 1,091,019.4 & 13.339 & 13.339 \\
+Total & Total & 32,078 & 8,178,977.4 & 100 & 100 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{landscape}
+\begin{table}[H]
+\centering
+\caption{Table 41 Special LR}
+\textit{Panel 1 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & LR Req & \% Req & Grs Def & \% Grs & Adj Def \\
+\midrule
+Conserv. Units & Large (>15 MF) & 1,554,213.9 & 32.882 & 735,176.1 & 40.883 & 403,047.2 \\
+Conserv. Units & Medium (>4-15 MF) & 226,541.4 & 4.793 & 18,141.5 & 1.009 & 7,880.6 \\
+Conserv. Units & Small (1-4 MF) & 83,375.6 & 1.764 & 10,465.9 & 0.582 & 2,685.6 \\
+Conserv. Units & Minifundio (<1 MF) & 13,155.1 & 0.278 & 2,799.6 & 0.156 & 659.326 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & \% Adj & Rest. & \% Rest & Comp. & \% Comp \\
+\midrule
+Conserv. Units & Large (>15 MF) & 48.586 & 12,896.8 & 8.655 & 390,150.4 & 57.329 \\
+Conserv. Units & Medium (>4-15 MF) & 0.95 & 2,898.9 & 1.945 & 4,981.7 & 0.732 \\
+Conserv. Units & Small (1-4 MF) & 0.324 & 2,276.5 & 1.528 & 409.067 & 0.06 \\
+Conserv. Units & Minifundio (<1 MF) & 0.079 & 553.619 & 0.372 & 105.706 & 0.016 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 3 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}}
+\toprule
+Category & Size Class & Surplus & \% Sur \\
+\midrule
+Conserv. Units & Large (>15 MF) & 748,461.4 & 39.49 \\
+Conserv. Units & Medium (>4-15 MF) & 190,268.2 & 10.039 \\
+Conserv. Units & Small (1-4 MF) & 40,415.8 & 2.132 \\
+Conserv. Units & Minifundio (<1 MF) & 6,463.8 & 0.341 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 41 Special LR (continued)}
+\textit{Panel 1 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & LR Req & \% Req & Grs Def & \% Grs & Adj Def \\
+\midrule
+Conserv. Units & Not Classified & 9.68 & 0 & 6.436 & 0 & 6.301 \\
+Subtotal & Total & 1,877,295.7 & 39.717 & 766,589.6 & 42.63 & 414,279.0 \\
+Quilombola & Large (>15 MF) & 6,064.4 & 0.128 & 683.683 & 0.038 & 0 \\
+Quilombola & Medium (>4-15 MF) & 3,839.8 & 0.081 & 431.553 & 0.024 & 260.717 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & \% Adj & Rest. & \% Rest & Comp. & \% Comp \\
+\midrule
+Conserv. Units & Not Classified & 0.001 & 6.292 & 0.004 & 0.009 & 0 \\
+Subtotal & Total & 49.94 & 18,632.1 & 12.504 & 395,646.8 & 58.137 \\
+Quilombola & Large (>15 MF) & 0 & 0 & 0 & 0 & 0 \\
+Quilombola & Medium (>4-15 MF) & 0.031 & 37.453 & 0.025 & 223.264 & 0.033 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 3 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}}
+\toprule
+Category & Size Class & Surplus & \% Sur \\
+\midrule
+Conserv. Units & Not Classified & 3.256 & 0 \\
+Subtotal & Total & 985,612.4 & 52.002 \\
+Quilombola & Large (>15 MF) & 3,928.7 & 0.207 \\
+Quilombola & Medium (>4-15 MF) & 2,504.9 & 0.132 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 41 Special LR (continued)}
+\textit{Panel 1 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & LR Req & \% Req & Grs Def & \% Grs & Adj Def \\
+\midrule
+Quilombola & Small (1-4 MF) & 1,357.6 & 0.029 & 215.359 & 0.012 & 56.231 \\
+Quilombola & Minifundio (<1 MF) & 586.9 & 0.012 & 91.354 & 0.005 & 52.616 \\
+Quilombola & Not Classified & 0 & 0 & 0 & 0 & 0 \\
+Subtotal & Total & 11,848.7 & 0.251 & 1,421.9 & 0.079 & 369.564 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & \% Adj & Rest. & \% Rest & Comp. & \% Comp \\
+\midrule
+Quilombola & Small (1-4 MF) & 0.007 & 54.071 & 0.036 & 2.16 & 0 \\
+Quilombola & Minifundio (<1 MF) & 0.006 & 39.103 & 0.026 & 13.513 & 0.002 \\
+Quilombola & Not Classified & 0 & 0 & 0 & 0 & 0 \\
+Subtotal & Total & 0.045 & 130.627 & 0.088 & 238.937 & 0.035 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 3 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}}
+\toprule
+Category & Size Class & Surplus & \% Sur \\
+\midrule
+Quilombola & Small (1-4 MF) & 412.821 & 0.022 \\
+Quilombola & Minifundio (<1 MF) & 315.898 & 0.017 \\
+Quilombola & Not Classified & 0 & 0 \\
+Subtotal & Total & 7,162.3 & 0.378 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 41 Special LR (continued)}
+\textit{Panel 1 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & LR Req & \% Req & Grs Def & \% Grs & Adj Def \\
+\midrule
+Rural Settl. & Large (>15 MF) & 805,282.5 & 17.037 & 278,387.9 & 15.481 & 144,626.4 \\
+Rural Settl. & Medium (>4-15 MF) & 272,156.5 & 5.758 & 58,599.4 & 3.259 & 28,018.0 \\
+Rural Settl. & Small (1-4 MF) & 485,775.2 & 10.277 & 184,082.8 & 10.237 & 45,226.5 \\
+Rural Settl. & Minifundio (<1 MF) & 620,669.8 & 13.131 & 287,092.2 & 15.965 & 69,956.2 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & \% Adj & Rest. & \% Rest & Comp. & \% Comp \\
+\midrule
+Rural Settl. & Large (>15 MF) & 17.434 & 6,149.4 & 4.127 & 138,477.0 & 20.348 \\
+Rural Settl. & Medium (>4-15 MF) & 3.377 & 5,881.3 & 3.947 & 22,136.7 & 3.253 \\
+Rural Settl. & Small (1-4 MF) & 5.452 & 42,082.9 & 28.241 & 3,143.6 & 0.462 \\
+Rural Settl. & Minifundio (<1 MF) & 8.433 & 67,134.5 & 45.053 & 2,821.7 & 0.415 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 3 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}}
+\toprule
+Category & Size Class & Surplus & \% Sur \\
+\midrule
+Rural Settl. & Large (>15 MF) & 329,124.9 & 17.365 \\
+Rural Settl. & Medium (>4-15 MF) & 122,968.5 & 6.488 \\
+Rural Settl. & Small (1-4 MF) & 71,776.7 & 3.787 \\
+Rural Settl. & Minifundio (<1 MF) & 47,149.3 & 2.488 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 41 Special LR (continued)}
+\textit{Panel 1 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & LR Req & \% Req & Grs Def & \% Grs & Adj Def \\
+\midrule
+Rural Settl. & Not Classified & 9.998 & 0 & 3.842 & 0 & 0.339 \\
+Subtotal & Total & 2,183,894.0 & 46.204 & 808,166.1 & 44.942 & 287,827.4 \\
+Indigenous & Large (>15 MF) & 567,357.3 & 12.003 & 211,977.8 & 11.788 & 123,218.6 \\
+Indigenous & Medium (>4-15 MF) & 67,687.1 & 1.432 & 6,492.9 & 0.361 & 2,528.0 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & \% Adj & Rest. & \% Rest & Comp. & \% Comp \\
+\midrule
+Rural Settl. & Not Classified & 0 & 0.076 & 0 & 0.262 & 0 \\
+Subtotal & Total & 34.697 & 121,248.1 & 81.367 & 166,579.3 & 24.477 \\
+Indigenous & Large (>15 MF) & 14.854 & 7,473.8 & 5.016 & 115,744.8 & 17.008 \\
+Indigenous & Medium (>4-15 MF) & 0.305 & 235.073 & 0.158 & 2,292.9 & 0.337 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 3 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}}
+\toprule
+Category & Size Class & Surplus & \% Sur \\
+\midrule
+Rural Settl. & Not Classified & 1.283 & 0 \\
+Subtotal & Total & 571,020.8 & 30.128 \\
+Indigenous & Large (>15 MF) & 282,721.0 & 14.917 \\
+Indigenous & Medium (>4-15 MF) & 43,391.3 & 2.289 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 41 Special LR (continued)}
+\textit{Panel 1 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & LR Req & \% Req & Grs Def & \% Grs & Adj Def \\
+\midrule
+Indigenous & Small (1-4 MF) & 16,188.7 & 0.342 & 2,596.5 & 0.144 & 1,262.9 \\
+Indigenous & Minifundio (<1 MF) & 2,387.8 & 0.051 & 993.668 & 0.055 & 70.999 \\
+Indigenous & Not Classified & 0 & 0 & 0 & 0 & 0 \\
+Subtotal & Total & 653,620.9 & 13.828 & 222,060.9 & 12.349 & 127,080.5 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & \% Adj & Rest. & \% Rest & Comp. & \% Comp \\
+\midrule
+Indigenous & Small (1-4 MF) & 0.152 & 1,229.2 & 0.825 & 33.712 & 0.005 \\
+Indigenous & Minifundio (<1 MF) & 0.009 & 64.215 & 0.043 & 6.784 & 0.001 \\
+Indigenous & Not Classified & 0 & 0 & 0 & 0 & 0 \\
+Subtotal & Total & 15.319 & 9,002.3 & 6.041 & 118,078.2 & 17.351 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 3 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}}
+\toprule
+Category & Size Class & Surplus & \% Sur \\
+\midrule
+Indigenous & Small (1-4 MF) & 5,233.1 & 0.276 \\
+Indigenous & Minifundio (<1 MF) & 198.548 & 0.01 \\
+Indigenous & Not Classified & 0 & 0 \\
+Subtotal & Total & 331,544.0 & 17.493 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 41 Special LR (continued)}
+\textit{Panel 1 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & LR Req & \% Req & Grs Def & \% Grs & Adj Def \\
+\midrule
+Total & Total & 4,726,659.3 & 100 & 1,798,238.6 & 100 & 829,556.4 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & \% Adj & Rest. & \% Rest & Comp. & \% Comp \\
+\midrule
+Total & Total & 100 & 149,013.2 & 100 & 680,543.2 & 100 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 3 of 3}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}p{0.205\linewidth}}
+\toprule
+Category & Size Class & Surplus & \% Sur \\
+\midrule
+Total & Total & 1,895,339.5 & 100 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\end{landscape}
+
+\begin{landscape}
+\begin{table}[H]
+\centering
+\caption{Table 42 Special APP}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & APP Req & \% Req & APP Pres. & \% Pres & Grs Def \\
+\midrule
+Conserv. Units & Large (>15 MF) & 204,467.7 & 35.966 & 180,345.0 & 39.084 & 24,122.7 \\
+Conserv. Units & Medium (>4-15 MF) & 33,653.9 & 5.92 & 30,355.3 & 6.579 & 3,298.6 \\
+Conserv. Units & Small (1-4 MF) & 12,042.2 & 2.118 & 10,632.8 & 2.304 & 1,409.4 \\
+Conserv. Units & Minifundio (<1 MF) & 2,292.3 & 0.403 & 1,960.6 & 0.425 & 331.704 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Grs & Net Def & \% Net \\
+\midrule
+Conserv. Units & Large (>15 MF) & 22.53 & 7,968.3 & 13.39 \\
+Conserv. Units & Medium (>4-15 MF) & 3.081 & 2,296.4 & 3.859 \\
+Conserv. Units & Small (1-4 MF) & 1.316 & 723.924 & 1.217 \\
+Conserv. Units & Minifundio (<1 MF) & 0.31 & 110.423 & 0.186 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 42 Special APP (continued)}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & APP Req & \% Req & APP Pres. & \% Pres & Grs Def \\
+\midrule
+Conserv. Units & Not Classified & 0.144 & 0 & 0.124 & 0 & 0.02 \\
+Subtotal & Total & 252,456.3 & 44.408 & 223,293.8 & 48.392 & 29,162.4 \\
+Quilombola & Large (>15 MF) & 1,053.1 & 0.185 & 889.923 & 0.193 & 163.166 \\
+Quilombola & Medium (>4-15 MF) & 874.631 & 0.154 & 748.045 & 0.162 & 126.586 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Grs & Net Def & \% Net \\
+\midrule
+Conserv. Units & Not Classified & 0 & 0.02 & 0 \\
+Subtotal & Total & 27.237 & 11,099.0 & 18.651 \\
+Quilombola & Large (>15 MF) & 0.152 & 155.584 & 0.261 \\
+Quilombola & Medium (>4-15 MF) & 0.118 & 109.574 & 0.184 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 42 Special APP (continued)}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & APP Req & \% Req & APP Pres. & \% Pres & Grs Def \\
+\midrule
+Quilombola & Small (1-4 MF) & 309.923 & 0.055 & 263.817 & 0.057 & 46.106 \\
+Quilombola & Minifundio (<1 MF) & 128.129 & 0.023 & 94.882 & 0.021 & 33.247 \\
+Quilombola & Not Classified & 0 & 0 & 0 & 0 & 0 \\
+Subtotal & Total & 2,365.8 & 0.416 & 1,996.7 & 0.433 & 369.105 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Grs & Net Def & \% Net \\
+\midrule
+Quilombola & Small (1-4 MF) & 0.043 & 28.552 & 0.048 \\
+Quilombola & Minifundio (<1 MF) & 0.031 & 17.042 & 0.029 \\
+Quilombola & Not Classified & 0 & 0 & 0 \\
+Subtotal & Total & 0.345 & 310.752 & 0.522 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 42 Special APP (continued)}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & APP Req & \% Req & APP Pres. & \% Pres & Grs Def \\
+\midrule
+Rural Settl. & Large (>15 MF) & 92,093.6 & 16.199 & 79,135.1 & 17.15 & 12,958.5 \\
+Rural Settl. & Medium (>4-15 MF) & 32,978.4 & 5.801 & 25,465.3 & 5.519 & 7,513.1 \\
+Rural Settl. & Small (1-4 MF) & 54,154.6 & 9.526 & 33,125.7 & 7.179 & 21,028.9 \\
+Rural Settl. & Minifundio (<1 MF) & 66,534.4 & 11.704 & 35,832.7 & 7.766 & 30,701.7 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Grs & Net Def & \% Net \\
+\midrule
+Rural Settl. & Large (>15 MF) & 12.103 & 12,172.8 & 20.456 \\
+Rural Settl. & Medium (>4-15 MF) & 7.017 & 6,867.2 & 11.54 \\
+Rural Settl. & Small (1-4 MF) & 19.641 & 12,179.9 & 20.468 \\
+Rural Settl. & Minifundio (<1 MF) & 28.675 & 12,991.3 & 21.831 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 42 Special APP (continued)}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & APP Req & \% Req & APP Pres. & \% Pres & Grs Def \\
+\midrule
+Rural Settl. & Not Classified & 3.763 & 0.001 & 2.923 & 0.001 & 0.84 \\
+Subtotal & Total & 245,764.8 & 43.231 & 173,561.7 & 37.614 & 72,203.1 \\
+Indigenous & Large (>15 MF) & 58,112.0 & 10.222 & 54,113.3 & 11.727 & 3,998.7 \\
+Indigenous & Medium (>4-15 MF) & 7,477.8 & 1.315 & 6,615.0 & 1.434 & 862.799 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Grs & Net Def & \% Net \\
+\midrule
+Rural Settl. & Not Classified & 0.001 & 0.057 & 0 \\
+Subtotal & Total & 67.436 & 44,211.3 & 74.295 \\
+Indigenous & Large (>15 MF) & 3.735 & 2,848.9 & 4.787 \\
+Indigenous & Medium (>4-15 MF) & 0.806 & 747.931 & 1.257 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 42 Special APP (continued)}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & APP Req & \% Req & APP Pres. & \% Pres & Grs Def \\
+\midrule
+Indigenous & Small (1-4 MF) & 1,931.5 & 0.34 & 1,606.9 & 0.348 & 324.621 \\
+Indigenous & Minifundio (<1 MF) & 389.018 & 0.068 & 241.388 & 0.052 & 147.63 \\
+Indigenous & Not Classified & 0 & 0 & 0 & 0 & 0 \\
+Subtotal & Total & 67,910.3 & 11.946 & 62,576.6 & 13.561 & 5,333.7 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Grs & Net Def & \% Net \\
+\midrule
+Indigenous & Small (1-4 MF) & 0.303 & 237.651 & 0.399 \\
+Indigenous & Minifundio (<1 MF) & 0.138 & 52.297 & 0.088 \\
+Indigenous & Not Classified & 0 & 0 & 0 \\
+Subtotal & Total & 4.982 & 3,886.8 & 6.532 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 42 Special APP (continued)}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & APP Req & \% Req & APP Pres. & \% Pres & Grs Def \\
+\midrule
+Total & Total & 568,497.1 & 100 & 461,428.8 & 100 & 107,068.3 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Grs & Net Def & \% Net \\
+\midrule
+Total & Total & 100 & 59,507.9 & 100 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\end{landscape}
+
+\begin{landscape}
+\begin{table}[H]
+\centering
+\caption{Table 43 Special Combined}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & Grs Def & \% Grs & Adj Def & \% Adj & Rest. \\
+\midrule
+Conserv. Units & Large (>15 MF) & 759,298.8 & 39.852 & 411,015.5 & 46.23 & 20,865.1 \\
+Conserv. Units & Medium (>4-15 MF) & 21,440.1 & 1.125 & 10,177.0 & 1.145 & 5,195.3 \\
+Conserv. Units & Small (1-4 MF) & 11,875.3 & 0.623 & 3,409.5 & 0.383 & 3,000.4 \\
+Conserv. Units & Minifundio (<1 MF) & 3,131.3 & 0.164 & 769.748 & 0.087 & 664.042 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Rest & Comp. & \% Comp \\
+\midrule
+Conserv. Units & Large (>15 MF) & 10.006 & 390,150.4 & 57.329 \\
+Conserv. Units & Medium (>4-15 MF) & 2.491 & 4,981.7 & 0.732 \\
+Conserv. Units & Small (1-4 MF) & 1.439 & 409.067 & 0.06 \\
+Conserv. Units & Minifundio (<1 MF) & 0.318 & 105.706 & 0.016 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 43 Special Combined (continued)}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & Grs Def & \% Grs & Adj Def & \% Adj & Rest. \\
+\midrule
+Conserv. Units & Not Classified & 6.456 & 0 & 6.32 & 0.001 & 6.311 \\
+Subtotal & Total & 795,752.0 & 41.765 & 425,378.0 & 47.846 & 29,731.2 \\
+Quilombola & Large (>15 MF) & 846.85 & 0.044 & 155.584 & 0.017 & 155.584 \\
+Quilombola & Medium (>4-15 MF) & 558.139 & 0.029 & 370.291 & 0.042 & 147.027 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Rest & Comp. & \% Comp \\
+\midrule
+Conserv. Units & Not Classified & 0.003 & 0.009 & 0 \\
+Subtotal & Total & 14.258 & 395,646.8 & 58.137 \\
+Quilombola & Large (>15 MF) & 0.075 & 0 & 0 \\
+Quilombola & Medium (>4-15 MF) & 0.071 & 223.264 & 0.033 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 43 Special Combined (continued)}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & Grs Def & \% Grs & Adj Def & \% Adj & Rest. \\
+\midrule
+Quilombola & Small (1-4 MF) & 261.465 & 0.014 & 84.783 & 0.01 & 82.623 \\
+Quilombola & Minifundio (<1 MF) & 124.601 & 0.007 & 69.658 & 0.008 & 56.145 \\
+Quilombola & Not Classified & 0 & 0 & 0 & 0 & 0 \\
+Subtotal & Total & 1,791.1 & 0.094 & 680.316 & 0.077 & 441.379 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Rest & Comp. & \% Comp \\
+\midrule
+Quilombola & Small (1-4 MF) & 0.04 & 2.16 & 0 \\
+Quilombola & Minifundio (<1 MF) & 0.027 & 13.513 & 0.002 \\
+Quilombola & Not Classified & 0 & 0 & 0 \\
+Subtotal & Total & 0.212 & 238.937 & 0.035 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 43 Special Combined (continued)}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & Grs Def & \% Grs & Adj Def & \% Adj & Rest. \\
+\midrule
+Rural Settl. & Large (>15 MF) & 291,346.4 & 15.291 & 156,799.2 & 17.636 & 18,322.2 \\
+Rural Settl. & Medium (>4-15 MF) & 66,112.5 & 3.47 & 34,885.2 & 3.924 & 12,748.5 \\
+Rural Settl. & Small (1-4 MF) & 205,111.7 & 10.765 & 57,406.4 & 6.457 & 54,262.8 \\
+Rural Settl. & Minifundio (<1 MF) & 317,793.9 & 16.679 & 82,947.5 & 9.33 & 80,125.8 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Rest & Comp. & \% Comp \\
+\midrule
+Rural Settl. & Large (>15 MF) & 8.787 & 138,477.0 & 20.348 \\
+Rural Settl. & Medium (>4-15 MF) & 6.114 & 22,136.7 & 3.253 \\
+Rural Settl. & Small (1-4 MF) & 26.023 & 3,143.6 & 0.462 \\
+Rural Settl. & Minifundio (<1 MF) & 38.426 & 2,821.7 & 0.415 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 43 Special Combined (continued)}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & Grs Def & \% Grs & Adj Def & \% Adj & Rest. \\
+\midrule
+Rural Settl. & Not Classified & 4.682 & 0 & 0.396 & 0 & 0.134 \\
+Subtotal & Total & 880,369.2 & 46.206 & 332,038.7 & 37.347 & 165,459.5 \\
+Indigenous & Large (>15 MF) & 215,976.5 & 11.336 & 126,067.5 & 14.18 & 10,322.7 \\
+Indigenous & Medium (>4-15 MF) & 7,355.7 & 0.386 & 3,275.9 & 0.368 & 983.004 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Rest & Comp. & \% Comp \\
+\midrule
+Rural Settl. & Not Classified & 0 & 0.262 & 0 \\
+Subtotal & Total & 79.349 & 166,579.3 & 24.477 \\
+Indigenous & Large (>15 MF) & 4.95 & 115,744.8 & 17.008 \\
+Indigenous & Medium (>4-15 MF) & 0.471 & 2,292.9 & 0.337 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 43 Special Combined (continued)}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & Grs Def & \% Grs & Adj Def & \% Adj & Rest. \\
+\midrule
+Indigenous & Small (1-4 MF) & 2,921.1 & 0.153 & 1,500.6 & 0.169 & 1,466.8 \\
+Indigenous & Minifundio (<1 MF) & 1,141.3 & 0.06 & 123.296 & 0.014 & 116.512 \\
+Indigenous & Not Classified & 0 & 0 & 0 & 0 & 0 \\
+Subtotal & Total & 227,394.6 & 11.935 & 130,967.2 & 14.731 & 12,889.1 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Rest & Comp. & \% Comp \\
+\midrule
+Indigenous & Small (1-4 MF) & 0.703 & 33.712 & 0.005 \\
+Indigenous & Minifundio (<1 MF) & 0.056 & 6.784 & 0.001 \\
+Indigenous & Not Classified & 0 & 0 & 0 \\
+Subtotal & Total & 6.181 & 118,078.2 & 17.351 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 43 Special Combined (continued)}
+\textit{Panel 1 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}p{0.117\linewidth}}
+\toprule
+Category & Size Class & Grs Def & \% Grs & Adj Def & \% Adj & Rest. \\
+\midrule
+Total & Total & 1,905,306.9 & 100 & 889,064.3 & 100 & 208,521.1 \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{0.6em}
+
+\textit{Panel 2 of 2}\\[2pt]
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}p{0.164\linewidth}}
+\toprule
+Category & Size Class & \% Rest & Comp. & \% Comp \\
+\midrule
+Total & Total & 100 & 680,543.2 & 100 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\end{landscape}
+
+\begin{table}[H]
+\centering
+\caption{Table 44 Mun Restoration}
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}}
+\toprule
+Municipality & Properties & LR surplus area (hectares) & LR affected area (hectares) & APP affected area (hectares) & Total affected area (hectares) \\
+\midrule
+Sorriso & 2,436 & 50,058.6 & 169,601.5 & 0 & 169,601.5 \\
+Querência & 1,780 & 139,176.8 & 154,322.4 & 0 & 154,322.4 \\
+Poconé & 1,287 & 417,550.7 & 147,036.7 & 0 & 147,036.7 \\
+Cáceres & 3,893 & 532,311.1 & 137,262.6 & 0 & 137,262.6 \\
+Aripuanã & 1,896 & 380,069.0 & 128,080.3 & 0 & 128,080.3 \\
+Brasnorte & 1,927 & 226,757.3 & 115,249.9 & 0 & 115,249.9 \\
+Nova Ubiratã & 1,897 & 193,053.6 & 111,668.1 & 0 & 111,668.1 \\
+Juara & 2,236 & 322,245.1 & 111,127.9 & 0 & 111,127.9 \\
+Colniza & 2,675 & 394,931.7 & 103,007.4 & 0 & 103,007.4 \\
+Nova Mutum & 1,664 & 99,989.6 & 86,806.2 & 0 & 86,806.2 \\
+Vila Bela da Santíssima Trindade & 2,041 & 277,529.2 & 84,811.3 & 0 & 84,811.3 \\
+São José do Xingu & 485 & 92,814.8 & 84,170.6 & 0 & 84,170.6 \\
+Barão de Melgaço & 361 & 288,435.1 & 81,978.8 & 0 & 81,978.8 \\
+Nova Bandeirantes & 2,068 & 114,779.2 & 79,783.1 & 0 & 79,783.1 \\
+Peixoto de Azevedo & 2,270 & 128,463.0 & 74,531.6 & 0 & 74,531.6 \\
+Diamantino & 1,450 & 91,835.4 & 71,519.7 & 0 & 71,519.7 \\
+Alta Floresta & 2,705 & 102,526.4 & 66,933.1 & 0 & 66,933.1 \\
+São Félix do Araguaia & 1,283 & 379,346.2 & 65,636.3 & 0 & 65,636.3 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+\begin{table}[H]
+\centering
+\caption{Table 44 Mun Restoration (continued)}
+{\fontsize{12}{14}\selectfont
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}p{0.137\linewidth}}
+\toprule
+Municipality & Properties & LR surplus area (hectares) & LR affected area (hectares) & APP affected area (hectares) & Total affected area (hectares) \\
+\midrule
+Gaúcha do Norte & 1,123 & 143,266.0 & 63,948.0 & 0 & 63,948.0 \\
+Pontes e Lacerda & 1,996 & 183,930.0 & 60,904.9 & 0 & 60,904.9 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\clearpage
+
+\section*{Supplementary Figures}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{\detokenize{../fig/Figure_03_study_area_mato_grosso.png}}
+\caption{Study area in Mato Grosso.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{\detokenize{../fig/Figure_05_LR_biome_supply_demand.png}}
+\caption{Legal Reserve demand and surplus by vegetation formation; values are hectares.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{\detokenize{../fig/Figure_07_restoration_compensation.png}}
+\caption{Restoration and compensation liability; values are hectares.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{\detokenize{../fig/Figure_08_mean_deficit_size.png}}
+\caption{Mean deficit by property-size class; values are hectares per property.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{\detokenize{../fig/Figure_13_cons2000_size_scenario.png}}
+\caption{Variation by property size with and without the 2000 Legal Reserve rule; values are hectares.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{\detokenize{../fig/Figure_16A_APP_and_degraded_APP_spatial_inputs.png}}
+\caption{Spatial inputs used by the analysis; equivalent technical variants are consolidated.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{\detokenize{../fig/Figure_16B_environmental_constraints_and_legal_reserve_inputs.png}}
+\caption{Spatial inputs used by the analysis; equivalent technical variants are consolidated.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{\detokenize{../fig/Figure_16C_land_tenure_land_use_and_consolidated_area_inputs.png}}
+\caption{Spatial inputs used by the analysis; equivalent technical variants are consolidated.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{\detokenize{../fig/Figure_16D_native_vegetation_RADAM_and_environmental_feature_inputs.png}}
+\caption{Spatial inputs used by the analysis; equivalent technical variants are consolidated.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{\detokenize{../fig/Figure_16E_water_protected_territory_and_public_utility_inputs.png}}
+\caption{Spatial inputs used by the analysis; equivalent technical variants are consolidated.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{\detokenize{../fig/chart_deficit_by_input.png}}
+\caption{Total deficit by input source; values are hectares.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{\detokenize{../fig/chart_supplier_by_input.png}}
+\caption{Supplier properties by input source; values are property counts.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{\detokenize{../fig/chart_deficit_by_size.png}}
+\caption{Total deficit by property-size class; values are hectares.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{\detokenize{../fig/map_rl_adjusted_deficit_ha.png}}
+\caption{Municipal map of adjusted Legal Reserve deficit; color scale is hectares.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{\detokenize{../fig/map_app_gross_deficit_ha.png}}
+\caption{Municipal map of gross APP deficit; color scale is hectares.}
+\end{figure}
+
+\section*{Spatial Processing Rule}
+Property boundaries remain the master geometries. All non-property environmental layers used upstream should be processed as 25 x 25 km tiles before intersection. This rule preserves the legal unit of analysis while keeping the spatial operations tractable.
+
+\section*{Conclusion}
+The final products are internally consistent, traceable to the retained raw inputs, free of zero municipality codes in the audited outputs, and structured as a publication-oriented results manuscript. The evidence supports direct comparison across property source classes, legal components, sensitivity scenarios, municipalities, and supplier groups while keeping the methodological assumptions explicit.
+
+\end{document}

@@ -13,12 +13,12 @@ env/
 *.env
 .env
 
-# Local data, generated outputs, and delivery artifacts
-data/
-out/
-qa/
-deliverables/
-archive/
+# Temporary outputs
+out/_tmp*/
+out/*.aux
+out/*.log
+out/*.out
+out/*.toc
 
 # Browser automation scratch (SIMCAR PDF downloader)
 **/.edge_profile/
@@ -30,4 +30,9 @@ Thumbs.db
 desktop.ini
 ~$*
 *.docx
+archive/
+deliverables/
+data/
+out/
+qa/
 scientific_presentation/node_modules/

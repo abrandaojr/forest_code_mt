@@ -1,0 +1,41 @@
+{
+  "generated_at_utc": "2026-10-06T12:44:45.157313+00:00",
+  "dataset": "out/table/forest_code_mt_priority_consolidated_20261006.parquet",
+  "rows": 155547,
+  "input_rows": {
+    "simcar_proxy": 83734,
+    "simcar_validado": 38107,
+    "simcar_digital": 33706
+  },
+  "proxy_2000_source_counts": {
+    "proxy_net_max": 155546,
+    "proxy_missing_conservative": 1
+  },
+  "proxy_2000_missing_rows": 1,
+  "checks": {
+    "cons_area_2000_not_above_property": 0,
+    "cons_area_2008_not_above_property": 0,
+    "negative_historical_area_cells": 0,
+    "veg_2000_identity_max_diff": 0.0,
+    "veg_2008_identity_max_diff": 0.0,
+    "art67_requirement_max_diff": 0.0,
+    "art68_requirement_max_diff": 0.0,
+    "base_requirement_max_diff": 0.0,
+    "rl_deficit_max_diff": 0.0,
+    "rl_restore_max_diff": 0.0,
+    "rl_compensate_max_diff": 0.0,
+    "app_consolidated_above_cap": 0,
+    "app_restore_post_cap_max_diff": 0.0,
+    "current_vegetation_above_property": 0,
+    "final_total_above_property": 0,
+    "gross_total_above_property": 0,
+    "final_total_formula_max_diff": 0.0,
+    "gross_total_formula_max_diff": 0.0,
+    "secondary_deficit_max_diff": 0.0,
+    "secondary_total_vegetation_above_property": 0,
+    "secondary_effective_above_available_space": 0,
+    "secondary_final_total_above_property": 0
+  },
+  "passed": true,
+  "failures": {}
+}

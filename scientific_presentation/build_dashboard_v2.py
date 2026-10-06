@@ -6,10 +6,11 @@ from pptx.util import Inches
 ROOT=Path(__file__).resolve().parents[1]
 FIG=ROOT/'out'/'fig'; HW=ROOT/'qa'/'presentation'/'scratch'/'assets'
 PRE=ROOT/'qa'/'presentation'/'dashboard_v2'; PRE.mkdir(parents=True,exist_ok=True)
-OUT=ROOT/'deliverables'/'04_presentation'/'forest_code_mt_paper_dashboard_final.pptx'
+OUT=ROOT/'deliverables'/'04_presentation'/'02_FOREST_CODE_MT_RESULTS_20261006.pptx'
 W,H=1600,900
-BG='#F4F1E8'; INK='#123B35'; GREEN='#1F7F53'; ORANGE='#E86C2D'; BLUE='#176581'; MUTED='#697770'; LINE='#D8DED7'; WHITE='#FFFFFF'; DARK='#102F2B'
-SERIF='C:/Windows/Fonts/georgia.ttf'; SERIFB='C:/Windows/Fonts/georgiab.ttf'; SANS='C:/Windows/Fonts/segoeui.ttf'; SANSB='C:/Windows/Fonts/segoeuib.ttf'
+BG='#F3F2F0'; INK='#35247B'; GREEN='#1F7F53'; ORANGE='#EC4F6D'; BLUE='#08AAA8'; GOLD='#F6D65B'; MUTED='#65716D'; LINE='#D8DED7'; WHITE='#FFFFFF'; DARK='#102F2B'
+WEB=ROOT/'deliverables'/'04_presentation'/'assets'/'template_inspiration'
+SERIF='C:/Windows/Fonts/arial.ttf'; SERIFB='C:/Windows/Fonts/arialbd.ttf'; SANS='C:/Windows/Fonts/arial.ttf'; SANSB='C:/Windows/Fonts/arialbd.ttf'
 def font(path,size): return ImageFont.truetype(path,size)
 def cover(im, path, box, contain=True, pad=0):
     x,y,w,h=box; src=Image.open(path).convert('RGBA')
@@ -19,14 +20,40 @@ def cover(im, path, box, contain=True, pad=0):
         l=max(0,(src.width-w)//2); t=max(0,(src.height-h)//2); src=src.crop((l,t,l+w,t+h))
     im.alpha_composite(src,(int(x+(w-src.width)/2),int(y+(h-src.height)/2)))
 def txt(d,xy,text,size,color=INK,bold=False,serif=False,anchor='la',spacing=4):
+    size=max(20,min(40,size))
     f=font(SERIFB if serif and bold else SERIF if serif else SANSB if bold else SANS,size)
     d.multiline_text(xy,text,font=f,fill=color,anchor=anchor,spacing=spacing)
 def rounded(d,box,fill=WHITE,outline=LINE,r=18,width=2): d.rounded_rectangle(box,radius=r,fill=fill,outline=outline,width=width)
+def fluid_bg(im, variant=0, strong=False):
+    """Organic edge fields inspired by the supplied fluid-shapes template."""
+    d=ImageDraw.Draw(im)
+    if strong:
+        d.ellipse((-170,-210,560,315),fill=ORANGE)
+        d.ellipse((1320,-190,1770,260),fill=GOLD)
+        d.ellipse((-190,690,330,1110),fill=BLUE)
+    elif variant%3==0:
+        d.ellipse((-145,730,240,1040),fill=ORANGE)
+        d.ellipse((1450,-150,1730,150),fill=GOLD)
+    elif variant%3==1:
+        d.ellipse((-160,-160,190,175),fill=BLUE)
+        d.ellipse((1450,740,1760,1050),fill=ORANGE)
+    else:
+        d.ellipse((-135,760,175,1030),fill=GOLD)
+        d.ellipse((1470,-135,1760,160),fill=BLUE)
+def silver_canvas():
+    im=Image.new('RGBA',(W,H),BG)
+    px=im.load()
+    for y in range(H):
+        for x in range(W):
+            glow=int(10*(1-abs((x/W)-.42)))+int(5*(1-y/H))
+            v=max(225,min(249,236+glow))
+            px[x,y]=(v,v,v+1,255)
+    return im
 def base(section,page,title,subtitle):
-    im=Image.new('RGBA',(W,H),BG); d=ImageDraw.Draw(im)
+    im=silver_canvas(); fluid_bg(im,page); d=ImageDraw.Draw(im)
     d.rectangle((0,0,16,H),fill=ORANGE)
     txt(d,(54,35),section.upper(),18,ORANGE,True)
-    txt(d,(1545,35),f'{page:02d} / 14',17,MUTED,True,anchor='ra')
+    txt(d,(1545,35),f'{page:02d} / 16',20,MUTED,True,anchor='ra')
     txt(d,(54,72),title,38,INK,True,True)
     txt(d,(54,125),subtitle,18,MUTED)
     d.line((54,160,1546,160),fill=LINE,width=2)
@@ -43,20 +70,23 @@ def save(im,i):
 
 slides=[]
 # 1 — cover
-im=Image.new('RGBA',(W,H),DARK); d=ImageDraw.Draw(im); d.rectangle((0,0,18,H),fill=ORANGE)
-cover(im,FIG/'Figure_03_study_area_mato_grosso.png',(875,70,650,700),True)
+im=silver_canvas(); fluid_bg(im,1,True); d=ImageDraw.Draw(im)
+cover(im,WEB/'nasa_cerrado_land_use_2000.jpg',(805,0,795,900),False)
+d.rounded_rectangle((-80,-50,920,950),radius=150,fill=ORANGE)
+d.ellipse((720,-120,1100,260),fill=ORANGE); d.ellipse((740,650,1080,1010),fill=BLUE)
 txt(d,(70,70),'MATO GROSSO • PROPERTY-LEVEL EVIDENCE',18,'#9FD3B3',True)
 txt(d,(70,145),'Forest Code\ncompliance,\nmade visible',64,WHITE,True,True,spacing=8)
 txt(d,(74,430),'An auditable model of Legal Reserve, APP,\nregularization pathways and sensitivity.',25,'#D9E7DF')
 d.line((74,550,620,550),fill=ORANGE,width=5)
-txt(d,(74,590),'168,676',42,'#A9E0BE',True,True); txt(d,(270,603),'distinct rural-property records',18,WHITE)
-txt(d,(74,660),'7.64 Mha',34,'#A9E0BE',True,True); txt(d,(245,672),'registered property area',18,WHITE)
-txt(d,(74,805),'Scientific dashboard • methods, results, uncertainty and use',16,'#9BB0A8')
+txt(d,(74,590),'155,547',42,'#A9E0BE',True,True); txt(d,(270,603),'distinct rural-property records',18,WHITE)
+txt(d,(74,660),'69.55 Mha',34,'#A9E0BE',True,True); txt(d,(260,672),'registered property area',18,WHITE)
+txt(d,(74,805),'Scientific dashboard • methods, results, uncertainty and use',16,'#D3DCCE')
+txt(d,(1515,865),'Satellite image: NASA Earth Observatory / Landsat',13,WHITE,True,anchor='ra')
 slides.append(save(im,1))
 
 # 2 — executive dashboard
 im,d=base('Executive read',2,'The statewide result in one view','Four numbers summarize scale, exposure and the modeled response.')
-metric(d,55,195,'168,676','distinct properties',GREEN,330); metric(d,405,195,'50.3%','active properties compliant',BLUE,330); metric(d,755,195,'4.36 Mha','total affected area',ORANGE,330); metric(d,1105,195,'3.35 Mha','assigned to compensation',INK,380)
+metric(d,55,195,'155,547','distinct properties',GREEN,330); metric(d,405,195,'23.7%','active properties compliant',BLUE,330); metric(d,755,195,'5.31 Mha','total liability',ORANGE,330); metric(d,1105,195,'4.17 Mha','assigned to compensation',INK,380)
 panel(im,d,(55,335,720,490),FIG/'Figure_06_compliance_status.png','Property status')
 panel(im,d,(805,335,680,490),FIG/'Figure_07_restoration_compensation.png','Regularization pathway')
 slides.append(save(im,2))
@@ -92,17 +122,17 @@ txt(d,(75,805),'51.9% of records are minifundia',20,GREEN,True); txt(d,(825,805)
 slides.append(save(im,6))
 
 # 7 — vegetation basis
-im,d=base('Biophysical basis',7,'Native vegetation accounting spans 65.89 million hectares','Forest and Cerrado formations create distinct Legal Reserve baselines.')
+im,d=base('Biophysical basis',7,'Vegetation-formation accounting spans 69.29 million hectares','Forest and Cerrado formations create distinct Legal Reserve baselines.')
 panel(im,d,(55,190,900,635),FIG/'Figure_10_vegetation_cover.png','Vegetation cover used by the model')
-metric(d,995,205,'38.99 Mha','forest formation',GREEN,490); metric(d,995,350,'26.90 Mha','Cerrado formation',ORANGE,490)
+metric(d,995,205,'40.85 Mha','forest formation',GREEN,490); metric(d,995,350,'28.44 Mha','Cerrado formation',ORANGE,490)
 rounded(d,(995,500,1485,805),'#EAF1EE','#BFD0C8',18,2); txt(d,(1020,528),'READ THE DENOMINATOR',15,GREEN,True); txt(d,(1020,570),'Legal Reserve percentages\ndiffer by vegetation formation.\nThe map comes before the rule.',27,INK,True,True,spacing=8)
 slides.append(save(im,7))
 
 # 8 — compliance and response
-im,d=base('Main result',8,'Half of active properties are compliant; hectares tell a different story','Status measures breadth. Affected area measures the burden that must be resolved.')
+im,d=base('Main result',8,'About one quarter of active properties are compliant','Status measures breadth. Liability area measures the burden that must be resolved.')
 panel(im,d,(55,195,690,590),FIG/'Figure_06_compliance_status.png','How many properties?')
 panel(im,d,(775,195,710,590),FIG/'Figure_07_restoration_compensation.png','How many hectares?')
-txt(d,(75,805),'75,554 affected properties',22,ORANGE,True); txt(d,(795,805),'0.48 Mha restoration  •  3.35 Mha compensation',22,GREEN,True)
+txt(d,(75,805),'111,766 affected properties',22,ORANGE,True); txt(d,(795,805),'1.13 Mha restoration  •  4.17 Mha compensation',22,GREEN,True)
 slides.append(save(im,8))
 
 # 9 — regularization flow
@@ -115,7 +145,7 @@ slides.append(save(im,9))
 im,d=base('Sensitivity',10,'Legal history changes the estimate more than vegetation recovery','Two scenarios expose where the statewide result is most assumption-sensitive.')
 panel(im,d,(55,195,690,470),FIG/'Figure_12_cons2000_total_scenario.png','Historical 2000 rule')
 panel(im,d,(775,195,710,470),FIG/'Figure_11_secondary_vegetation_impact.png','Secondary vegetation')
-metric(d,55,700,'−3.62 Mha','liability with the 2000 rule',GREEN,690); metric(d,775,700,'−0.85 Mha','liability when secondary vegetation counts',ORANGE,710)
+metric(d,55,700,'+1.22 Mha','effect of the 2000 rule',GREEN,690); metric(d,775,700,'−1.36 Mha','effect of secondary vegetation',ORANGE,710)
 slides.append(save(im,10))
 
 # 11 — spatial dashboard
@@ -138,15 +168,51 @@ panel(im,d,(785,195,700,585),FIG/'Figure_15_supplier_cons2000_scenario.png','Eff
 txt(d,(75,805),'Direct suppliers: 20,316 properties',21,GREEN,True); txt(d,(805,805),'0.84 Mha with rule  •  1.73 Mha without',21,ORANGE,True)
 slides.append(save(im,13))
 
-# 14 — landing
-im=Image.new('RGBA',(W,H),DARK); d=ImageDraw.Draw(im); d.rectangle((0,0,18,H),fill=ORANGE)
+# 14 — external benchmark
+im,d=base('External validation',14,'Published benchmarks differ materially from the project','Population, date, overlap treatment and legal assumptions prevent direct equality tests.')
+headers=['Source','Population / area','RL deficit','APP metric','Surplus']
+rows=[
+    ['Current project','155,547 · 69.55 Mha','modeled in total','included in 5.31 Mha','14.09 Mha'],
+    ['OCF 2019','116,390 · 64.50 Mha','2.30 Mha','0.505 Mha deficit','8.90 Mha'],
+    ['OCF 2024','176,629 · 62.49 Mha','In 4.74 Mha total','In 4.74 Mha total','5.54 Mha'],
+]
+xs=[55,280,690,945,1225,1535]
+d.rectangle((55,195,1535,265),fill=INK)
+for i,h in enumerate(headers): txt(d,(xs[i]+12,215),h,20,WHITE,True)
+for j,rowv in enumerate(rows):
+    y=265+j*130; d.rectangle((55,y,1535,y+125),fill=WHITE if j%2 else '#E9E6F2')
+    for i,v in enumerate(rowv): txt(d,(xs[i]+12,y+24),v,20,INK,bold=(i==0))
+txt(d,(55,685),'Interpretation',22,ORANGE,True)
+txt(d,(55,730),'The project estimates more RL deficit and surplus, but less APP liability than OCF benchmarks.',25,INK,True)
+txt(d,(55,785),'Status: final model run dated 06 October 2026; denominators remain non-comparable across sources.',22,ORANGE,True)
+slides.append(save(im,14))
+
+# 15 — comparison protocol
+im,d=base('External validation',15,'External comparison requires a harmonized denominator','Benchmarking is valid only after the project and reference sources use compatible populations and metrics.')
+items=[
+    ('01','Recompute','Correct APP partitions and temporal containment.'),
+    ('02','Harmonize','Match CAR status, property type, overlap policy and date.'),
+    ('03','Disaggregate','Separate RL, APP gross deficit, APP restoration and surplus.'),
+    ('04','Validate','Compare size classes and municipalities; inspect spatial outliers.'),
+]
+for i,(n,t,b) in enumerate(items):
+    y=205+i*140; txt(d,(65,y),n,36,ORANGE,True,True); txt(d,(155,y),t,28,INK,True,True); txt(d,(430,y+4),b,23,MUTED)
+    d.line((155,y+70,1490,y+70),fill=LINE,width=2)
+txt(d,(65,800),'Sources: OCF Mato Grosso diagnostic (2019); OCF Forest Code Thermometer (2024); SFB/SICAR panel.',20,MUTED)
+slides.append(save(im,15))
+
+# 16 — landing
+im=Image.new('RGBA',(W,H),INK); d=ImageDraw.Draw(im)
+cover(im,WEB/'un_page_mato_grosso_cattle.jpg',(870,0,730,900),False)
+d.rectangle((0,0,1010,900),fill=INK)
+d.ellipse((790,-150,1110,210),fill=GOLD); d.ellipse((790,690,1130,1030),fill=ORANGE)
 txt(d,(65,55),'CONCLUSION',18,'#A9E0BE',True)
 txt(d,(65,115),'Property-level transparency\nturns a statewide total\ninto an operating system.',48,WHITE,True,True,spacing=9)
-cover(im,HW/'handwritten_reproducibility.png',(845,55,680,430),True)
 for i,(n,l,c) in enumerate([('01','Screen every record','Breadth'),('02','Prioritize hectare burden','Scale'),('03','Test legal assumptions','Uncertainty'),('04','Connect properties to markets','Action')]):
-    y=520+i*74; d.line((70,y+60,1500,y+60),fill='#31534D',width=2); txt(d,(75,y),n,25,ORANGE,True,True); txt(d,(145,y+2),l,23,WHITE,True); txt(d,(1470,y+5),c.upper(),15,'#9FD3B3',True,anchor='ra')
+    y=500+i*74; d.line((70,y+60,790,y+60),fill='#5E4DA0',width=2); txt(d,(75,y),n,25,ORANGE,True,True); txt(d,(145,y+2),l,23,WHITE,True); txt(d,(770,y+5),c.upper(),15,'#A9E0BE',True,anchor='ra')
 txt(d,(75,840),'Mato Grosso Forest Code model • reproducible Python + property-level Excel formulas',15,'#8EA49D')
-slides.append(save(im,14))
+txt(d,(1510,865),'Photo: UN PAGE • Mato Grosso Goes Green',13,WHITE,True,anchor='ra')
+slides.append(save(im,16))
 
 # Build a PowerPoint with pixel-perfect full-slide compositions.
 prs=Presentation(); prs.slide_width=Inches(13.333333); prs.slide_height=Inches(7.5)

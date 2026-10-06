@@ -16,6 +16,7 @@ ROOT = paths.ROOT
 PREPROCESSED_DIR = paths.PRE
 OUT_DIR = paths.TABLES
 OUT_DIR.mkdir(parents=True, exist_ok=True)
+APP_PARTITION = PREPROCESSED_DIR / f"statewide_app_partition_{paths.RUN_DATE}.parquet"
 
 
 def latest_car_atp(folder: str) -> Path:
@@ -40,11 +41,13 @@ ID_COLS = [
     "NUMEROESTA", "NOMESPROPR", "NOMEPROPRI", "PROTOCOLO", "SITUACAO",
     "SITUACAO_C", "MUNICIPIO_", "mun_geocodigo", "MODULOS_FI", "AREA_HA",
     "area_ha_car", "car_valid", "status_rank", "size_class",
+    "cons_area_2000_source",
 ]
 
 METRIC_COLS = [
     "radam_forest_ha", "radam_cerrado_ha", "radam_total_ha",
     "radam_FLORESTA_ha", "radam_CERRADO_ha",
+    "radam_forest_nveg24_ha", "radam_cerrado_nveg24_ha",
     "rl_req_forest_ha", "rl_req_cerrado_ha", "rl_req_total_ha",
     "rl_exist_forest_ha", "rl_exist_cerrado_ha", "rl_exist_total_ha",
     "rl_gross_deficit_forest_ha", "rl_gross_deficit_cerrado_ha",
@@ -55,7 +58,13 @@ METRIC_COLS = [
     "app", "app_req_ha", "app_preserved_ha", "app_gross_deficit_ha",
     "app_restore_ha", "app_replant_raw_ha", "app_consolidated_ha",
     "app_consol_restore_ha", "app_restore_auas_ha", "cons_area_2000",
-    "app_fnl_cs08", "app_fnl_auas", "auas_post2008", "app_cap_ha",
+    "cons_area_2000_raw_proxy_ha", "cons_area_2000_temporal_clip_ha",
+    "cons_area_2008", "cons_area_2000_proxy", "cons_area_2000_proxy_missing",
+    "veg_2000_ha", "veg_2008_ha", "req_teto_art12_ha", "req_piso_art68_ha",
+    "rl_req_art67_ha", "rl_req_art68_ha", "rl_req_base_ha", "art68_legal_2000",
+    "app_fnl_cs08", "app_fnl_auas", "app_fnl_avn24", "auas_post2008", "app_cap_ha",
+    "appd_lte1mf_cs08", "appd_1a2mf_cs08", "appd_2a4mf_cs08",
+    "appd_4a10mf_cs08", "appd_gt10mf_cs08",
     "rl_req_uncapped_forest_ha", "rl_req_uncapped_cerrado_ha",
     "rl_req_uncapped_total_ha", "rl_req_pre2000_forest_ha",
     "rl_req_pre2000_cerrado_ha", "rl_req_mt_forest_ha",
@@ -80,7 +89,9 @@ CANONICAL_NUMERIC = [
     "rl_gross_deficit_ha", "rl_surplus_total_ha", "rl_adj_deficit_ha",
     "rl_post2008_ha", "rl_restore_ha", "rl_compensate_ha", "app_req_ha",
     "app_preserved_ha", "app_gross_deficit_ha", "app_restore_ha",
-    "cons_area_2000", "app_consolidated_ha", "app_consol_restore_ha",
+    "cons_area_2000", "cons_area_2008", "cons_area_2000_proxy", "veg_2000_ha", "veg_2008_ha",
+    "req_teto_art12_ha", "req_piso_art68_ha", "rl_req_art67_ha", "rl_req_art68_ha", "rl_req_base_ha",
+    "app_consolidated_ha", "app_consol_restore_ha",
     "app_restore_auas_ha", "app_cap_ha",
     "calc_gross_deficit_total_ha",
     "calc_deficit_total_ha",
@@ -190,8 +201,15 @@ def normalize_source(df: pd.DataFrame, source: str, path: Path) -> pd.DataFrame:
 
     df["mun_geocodigo"] = derive_municipality_code(df)
     df["car_valid"] = boolish(df, "car_valid", default=True)
-    df["calc_gross_deficit_total_ha"] = num(df, "rl_gross_deficit_ha") + num(df, "app_gross_deficit_ha")
-    df["calc_deficit_total_ha"] = num(df, "rl_adj_deficit_ha") + num(df, "app_restore_ha")
+    property_area = num(df, "area_ha_car").clip(lower=0)
+    # Aggregate compliance results are union-style property liabilities and
+    # therefore cannot exceed the physical property area.
+    df["calc_gross_deficit_total_ha"] = np.minimum(
+        num(df, "rl_gross_deficit_ha") + num(df, "app_gross_deficit_ha"), property_area
+    )
+    df["calc_deficit_total_ha"] = np.minimum(
+        num(df, "rl_adj_deficit_ha") + num(df, "app_restore_ha"), property_area
+    )
     return df
 
 
@@ -205,30 +223,36 @@ def load_all_sources() -> tuple[pd.DataFrame, pd.DataFrame]:
         if not path.exists():
             raise FileNotFoundError(f"Missing input for {source}: {path}")
         df = normalize_source(read_existing_columns(path, wanted), source, path)
+        # Validated and digital SIMCAR expose the official AREA_CONSOLIDADA
+        # layer, historically retained here under the legacy name
+        # cons_area_2000. Export it explicitly as the semantically correct
+        # 2008 field as well, without changing the legacy 2000-rule scenario.
+        if source in {"simcar_validado", "simcar_digital"} and "cons_area_2008" not in df.columns:
+            df["cons_area_2008"] = num(df, "cons_area_2000")
+        # Source membership is established by the source CAR table itself.
+        # Compliance measures must never be used as row-selection criteria:
+        # doing so makes the population change when a formula is corrected.
         if source == "simcar_digital":
-            digital_cols = [
-                "app", "app_fnl_auas", "cons_area_2000", "arl_declared_ha",
-                "auas_post2008", "avn_declared_ha", "area_declividade",
-                "area_inundada", "area_topo_morro", "area_umida",
-                "borda_chapada", "interesse_social", "lagoa_natural",
-                "manguezal", "nascente", "reservatorio_artificial",
-                "restinga", "rio_10_a_50",
+            source_cols = [
+                "app", "app_fnl_auas", "arl_declared_ha", "auas_post2008",
+                "avn_declared_ha", "area_declividade", "area_inundada",
+                "area_topo_morro", "area_umida", "borda_chapada",
+                "interesse_social", "lagoa_natural", "manguezal", "nascente",
+                "reservatorio_artificial", "restinga", "rio_10_a_50",
             ]
-            present = [c for c in digital_cols if c in df.columns]
-            if present:
-                has_digital_data = df[present].apply(pd.to_numeric, errors="coerce").fillna(0).sum(axis=1) > 0
-                df = df.loc[has_digital_data].copy()
+            present = [c for c in source_cols if c in df.columns]
+            has_source_data = df[present].apply(pd.to_numeric, errors="coerce").fillna(0).sum(axis=1) > 0
+            df = df.loc[has_source_data].copy()
         elif source == "simcar_validado":
-            validado_cols = [
+            source_cols = [
                 "app", "appd_declared_ha", "apprl_declared_ha",
                 "arl_declared_ha", "au_declared_ha", "auas_post2008",
                 "avn_declared_ha", "nascente", "arld_declared_ha",
-                "cons_area_2000", "utilidade_publica",
+                "utilidade_publica",
             ]
-            present = [c for c in validado_cols if c in df.columns]
-            if present:
-                has_validado_data = df[present].apply(pd.to_numeric, errors="coerce").fillna(0).sum(axis=1) > 0
-                df = df.loc[has_validado_data].copy()
+            present = [c for c in source_cols if c in df.columns]
+            has_source_data = df[present].apply(pd.to_numeric, errors="coerce").fillna(0).sum(axis=1) > 0
+            df = df.loc[has_source_data].copy()
         frames.append(df)
         audit_rows.append({
             "input_file_type": source,
@@ -241,6 +265,57 @@ def load_all_sources() -> tuple[pd.DataFrame, pd.DataFrame]:
     raw = pd.concat(frames, ignore_index=True, sort=False)
     raw = raw.sort_values(["input_priority", "priority_key"], kind="mergesort")
     consolidated = raw.drop_duplicates(subset=["priority_key"], keep="first").reset_index(drop=True)
+
+    if not APP_PARTITION.exists():
+        if os.environ.get("FCM_ALLOW_STALE_APP_PARTITION") == "1":
+            print("WARNING: APP partition absent during bootstrap rebuild")
+            selected_counts = ordered_input_counts(consolidated["input_file_type"]).to_dict()
+            for row in audit_rows:
+                row["selected_rows_after_priority"] = int(selected_counts.get(row["input_file_type"], 0))
+                row["removed_by_higher_priority"] = int(row["raw_rows"] - row["selected_rows_after_priority"])
+            return consolidated, pd.DataFrame(audit_rows)
+        raise FileNotFoundError(f"Statewide APP partition missing: {APP_PARTITION}")
+    app = pd.read_parquet(APP_PARTITION)
+    if len(app) != len(consolidated) or not app["priority_key"].is_unique:
+        if os.environ.get("FCM_ALLOW_STALE_APP_PARTITION") == "1":
+            print("WARNING: skipping stale APP partition for bootstrap rebuild")
+            selected_counts = ordered_input_counts(consolidated["input_file_type"]).to_dict()
+            for row in audit_rows:
+                row["selected_rows_after_priority"] = int(selected_counts.get(row["input_file_type"], 0))
+                row["removed_by_higher_priority"] = int(row["raw_rows"] - row["selected_rows_after_priority"])
+            return consolidated, pd.DataFrame(audit_rows)
+        raise ValueError("Statewide APP partition does not match the consolidated property grain")
+    consolidated = consolidated.merge(
+        app.drop(columns=["input_file_type"], errors="ignore"),
+        on="priority_key", how="left", validate="one_to_one",
+    )
+    partition_cols = [
+        "app_partition_total_ha", "app_partition_native_ha",
+        "app_partition_pre2008_ha", "app_partition_post2008_ha",
+    ]
+    for col in partition_cols:
+        consolidated[col] = pd.to_numeric(consolidated[col], errors="coerce").fillna(0).clip(lower=0)
+    consolidated["app_req_ha"] = np.minimum(consolidated["app_partition_total_ha"], num(consolidated, "area_ha_car"))
+    consolidated["app_preserved_ha"] = np.minimum(consolidated["app_partition_native_ha"], consolidated["app_req_ha"])
+    consolidated["app_consolidated_ha"] = np.minimum(consolidated["app_partition_pre2008_ha"], consolidated["app_req_ha"])
+    consolidated["app_restore_auas_ha"] = np.minimum(consolidated["app_partition_post2008_ha"], consolidated["app_req_ha"])
+    consolidated["app_gross_deficit_ha"] = (consolidated["app_req_ha"] - consolidated["app_preserved_ha"]).clip(lower=0)
+    cap = pd.to_numeric(consolidated["app_cap_ha"], errors="coerce").fillna(np.inf)
+    consolidated["app_consol_restore_ha"] = np.minimum.reduce([
+        num(consolidated, "app_replant_raw_ha"), consolidated["app_consolidated_ha"],
+        consolidated["app_gross_deficit_ha"], cap,
+    ])
+    consolidated["app_restore_ha"] = np.minimum(
+        consolidated["app_consol_restore_ha"] + consolidated["app_restore_auas_ha"],
+        consolidated["app_gross_deficit_ha"],
+    )
+    property_area = num(consolidated, "area_ha_car")
+    consolidated["calc_gross_deficit_total_ha"] = np.minimum(
+        num(consolidated, "rl_gross_deficit_ha") + consolidated["app_gross_deficit_ha"], property_area
+    )
+    consolidated["calc_deficit_total_ha"] = np.minimum(
+        num(consolidated, "rl_adj_deficit_ha") + consolidated["app_restore_ha"], property_area
+    )
 
     selected_counts = ordered_input_counts(consolidated["input_file_type"]).to_dict()
     for row in audit_rows:

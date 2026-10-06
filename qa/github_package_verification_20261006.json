@@ -1,0 +1,456 @@
+{
+  "checked_at": "2026-10-06",
+  "root": "E:\\Amintas\\forest_code_model\\00_FINAL_PACKAGE_MT_FOREST_CODE_20260817",
+  "missing_dirs": [],
+  "missing_files": [],
+  "cache_dirs": [
+    "archive\\delivery_2026-09-03\\07_code\\__pycache__",
+    "archive\\delivery_2026-09-03\\07_code\\preprocess\\__pycache__",
+    "code\\__pycache__",
+    "code\\excel_property_level\\__pycache__",
+    "code\\make_a_map\\__pycache__",
+    "code\\make_a_map\\components\\__pycache__",
+    "code\\preprocess\\__pycache__",
+    "scientific_presentation\\__pycache__",
+    "tools\\data_audit\\__pycache__"
+  ],
+  "empty_dirs": [
+    ".claude",
+    "archive\\empty_outputs_legacy",
+    "out\\control\\simcar_pdfs\\.edge_profile\\EdgeOnDeviceSpeechModel",
+    "out\\control\\simcar_pdfs\\.edge_profile\\MEIPreload",
+    "out\\control\\simcar_pdfs\\.edge_profile\\OnDeviceHeadSuggestModel",
+    "out\\control\\simcar_pdfs\\.edge_profile\\RecoveryImproved",
+    "out\\control\\simcar_pdfs\\.edge_profile\\Safe Browsing",
+    "out\\control\\simcar_pdfs\\.edge_profile\\Trust Protection Lists",
+    "out\\control\\simcar_pdfs\\.edge_profile\\WidevineCdm",
+    "out\\control\\simcar_pdfs\\.edge_profile\\Crashpad\\attachments",
+    "out\\control\\simcar_pdfs\\.edge_profile\\Crashpad\\reports",
+    "out\\control\\simcar_pdfs\\.edge_profile\\Default\\EdgeWallet",
+    "out\\control\\simcar_pdfs\\.edge_profile\\Default\\blob_storage\\ed7ad879-ba42-4335-891e-00f3d80161d4",
+    "ppt_workspace\\output",
+    "ppt_workspace\\scratch",
+    "ppt_workspace\\src",
+    "scientific_presentation\\src"
+  ],
+  "large_files_over_100mb": [
+    {
+      "path": "archive\\delivery_2026-09-03\\01_excel\\forest_code_gta.xlsx",
+      "mb": 135.3
+    },
+    {
+      "path": "archive\\delivery_2026-09-03\\02_data\\car_priority_secondary.csv",
+      "mb": 222.626
+    },
+    {
+      "path": "data\\pre\\car_digital\\car_atp_joined_20260818.csv",
+      "mb": 256.568
+    },
+    {
+      "path": "data\\pre\\car_digital\\car_atp_joined_20260818.parquet",
+      "mb": 113.591
+    },
+    {
+      "path": "data\\pre\\car_digital\\car_atp_joined_20261005.csv",
+      "mb": 257.749
+    },
+    {
+      "path": "data\\pre\\car_digital\\car_atp_joined_20261005.parquet",
+      "mb": 114.422
+    },
+    {
+      "path": "data\\pre\\car_digital\\car_atp_joined_20261006.csv",
+      "mb": 257.749
+    },
+    {
+      "path": "data\\pre\\car_digital\\car_atp_joined_20261006.parquet",
+      "mb": 114.422
+    },
+    {
+      "path": "data\\pre\\car_digital\\fc_summary_mt_20260818.xlsx",
+      "mb": 148.284
+    },
+    {
+      "path": "data\\pre\\car_digital\\fc_summary_mt_20261005.xlsx",
+      "mb": 148.54
+    },
+    {
+      "path": "data\\pre\\car_digital\\fc_summary_mt_20261006.xlsx",
+      "mb": 148.54
+    },
+    {
+      "path": "data\\pre\\car_proxy\\car_atp_joined_20260818.csv",
+      "mb": 453.51
+    },
+    {
+      "path": "data\\pre\\car_proxy\\car_atp_joined_20260818.parquet",
+      "mb": 214.059
+    },
+    {
+      "path": "data\\pre\\car_proxy\\car_atp_joined_20261005.csv",
+      "mb": 456.338
+    },
+    {
+      "path": "data\\pre\\car_proxy\\car_atp_joined_20261005.parquet",
+      "mb": 217.657
+    },
+    {
+      "path": "data\\pre\\car_proxy\\car_atp_joined_20261006.csv",
+      "mb": 456.338
+    },
+    {
+      "path": "data\\pre\\car_proxy\\car_atp_joined_20261006.parquet",
+      "mb": 217.657
+    },
+    {
+      "path": "data\\pre\\car_proxy\\fc_summary_mt_20260818.xlsx",
+      "mb": 259.344
+    },
+    {
+      "path": "data\\pre\\car_proxy\\fc_summary_mt_20261005.xlsx",
+      "mb": 260.395
+    },
+    {
+      "path": "data\\pre\\car_proxy\\fc_summary_mt_20261006.xlsx",
+      "mb": 260.395
+    },
+    {
+      "path": "data\\proc\\simcar_proxy\\simcar_p_march2026_geo_master.parquet",
+      "mb": 157.944
+    },
+    {
+      "path": "data\\raw\\simcar_digital\\SIMCAR_D_APPD_1A2MF_AC_x_car_atp.parquet",
+      "mb": 475.329
+    },
+    {
+      "path": "data\\raw\\simcar_digital\\SIMCAR_D_APPD_2A4MF_AC_x_car_atp.parquet",
+      "mb": 501.749
+    },
+    {
+      "path": "data\\raw\\simcar_digital\\SIMCAR_D_APPD_4A10MF_AC_x_car_atp.parquet",
+      "mb": 521.401
+    },
+    {
+      "path": "data\\raw\\simcar_digital\\SIMCAR_D_APPD_ATE1MF_AC_x_car_atp.parquet",
+      "mb": 466.735
+    },
+    {
+      "path": "data\\raw\\simcar_digital\\SIMCAR_D_APPD_MAIOR_10MF_AC_x_car_atp.parquet",
+      "mb": 543.307
+    },
+    {
+      "path": "data\\raw\\simcar_digital\\SIMCAR_D_APP_x_car_atp.parquet",
+      "mb": 1080.591
+    },
+    {
+      "path": "data\\raw\\simcar_digital\\SIMCAR_D_AREA_CONSOLIDADA_x_car_atp.parquet",
+      "mb": 375.535
+    },
+    {
+      "path": "data\\raw\\simcar_digital\\SIMCAR_D_AREA_INUNDADA_x_car_atp.parquet",
+      "mb": 372.247
+    },
+    {
+      "path": "data\\raw\\simcar_digital\\SIMCAR_D_AREA_UMIDA_x_car_atp.parquet",
+      "mb": 119.353
+    },
+    {
+      "path": "data\\raw\\simcar_digital\\SIMCAR_D_ARL_x_car_atp.parquet",
+      "mb": 645.445
+    },
+    {
+      "path": "data\\raw\\simcar_digital\\SIMCAR_D_AUAS_x_car_atp.parquet",
+      "mb": 163.658
+    },
+    {
+      "path": "data\\raw\\simcar_digital\\SIMCAR_D_AVN_x_car_atp.parquet",
+      "mb": 774.382
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\input_prodes_native_vegetation_2024_plus_sv.dbf",
+      "mb": 234.649
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\input_prodes_native_vegetation_2024_plus_sv.shp",
+      "mb": 1308.792
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_appd_1a2mf_cs08_net_x_car_atp.parquet",
+      "mb": 429.045
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_appd_1a2mf_cs08_x_car_atp.parquet",
+      "mb": 977.611
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_appd_1a2mf_cs08_x_car_atp_fnl.parquet",
+      "mb": 424.543
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_appd_2a4mf_cs08_net_x_car_atp.parquet",
+      "mb": 432.13
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_appd_2a4mf_cs08_x_car_atp.parquet",
+      "mb": 974.691
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_appd_2a4mf_cs08_x_car_atp_fnl.parquet",
+      "mb": 449.799
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_appd_4a10mf_cs08_net_x_car_atp.parquet",
+      "mb": 432.45
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_appd_4a10mf_cs08_x_car_atp.parquet",
+      "mb": 972.168
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_appd_4a10mf_cs08_x_car_atp_fnl.parquet",
+      "mb": 473.037
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_appd_gt10mf_cs08_net_x_car_atp.parquet",
+      "mb": 434.654
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_appd_gt10mf_cs08_x_car_atp.parquet",
+      "mb": 975.003
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_appd_gt10mf_cs08_x_car_atp_fnl.parquet",
+      "mb": 527.053
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_appd_lte1mf_cs08_net_x_car_atp.parquet",
+      "mb": 428.434
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_appd_lte1mf_cs08_x_car_atp.parquet",
+      "mb": 983.23
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_appd_lte1mf_cs08_x_car_atp_fnl.parquet",
+      "mb": 418.011
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_app_fnl_auas_x_car_atp.parquet",
+      "mb": 158.667
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_app_fnl_auas_x_car_atp_fnl.parquet",
+      "mb": 137.612
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_app_fnl_avn24_x_car_atp.parquet",
+      "mb": 1535.062
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_app_fnl_avn24_x_car_atp_fnl.parquet",
+      "mb": 1225.196
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_app_fnl_cs00_x_car_atp.parquet",
+      "mb": 741.974
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_app_fnl_cs00_x_car_atp_fnl.parquet",
+      "mb": 412.483
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_app_fnl_cs08_net_x_car_atp.parquet",
+      "mb": 600.028
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_app_fnl_cs08_x_car_atp.parquet",
+      "mb": 1004.322
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_app_fnl_cs08_x_car_atp_fnl.parquet",
+      "mb": 591.184
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_app_x_car_atp.parquet",
+      "mb": 2501.408
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_app_x_car_atp_fnl.parquet",
+      "mb": 2012.056
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_auas_post2008_x_car_atp.parquet",
+      "mb": 282.604
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_auas_post2008_x_car_atp_fnl.parquet",
+      "mb": 243.346
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_cons_area_2000_net_max_x_car_atp.parquet",
+      "mb": 464.232
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_cons_area_2000_net_x_car_atp.parquet",
+      "mb": 464.232
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_cons_area_2000_x_car_atp.parquet",
+      "mb": 212.199
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_cons_area_2000_x_car_atp_fnl.parquet",
+      "mb": 526.98
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_cons_area_2008_net_max_x_car_atp.parquet",
+      "mb": 655.764
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_cons_area_2008_net_x_car_atp.parquet",
+      "mb": 655.764
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_cons_area_2008_x_car_atp.parquet",
+      "mb": 257.929
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_cons_area_2008_x_car_atp_fnl.parquet",
+      "mb": 762.313
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_native_veg_2024_max_x_car_atp.parquet",
+      "mb": 1052.391
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_native_veg_2024_max_x_car_atp_fnl.parquet",
+      "mb": 1683.045
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_native_veg_2024_x_car_atp.parquet",
+      "mb": 1605.212
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_native_veg_2024_x_car_atp_fnl.parquet",
+      "mb": 1781.151
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_native_veg_x_radam_max_x_car_atp.parquet",
+      "mb": 1061.534
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_native_veg_x_radam_x_car_atp.parquet",
+      "mb": 1078.262
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_vegetacao_radambrasil_cache.parquet",
+      "mb": 2376.706
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_vegetacao_radambrasil_x_car_atp.parquet",
+      "mb": 125.963
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_vegetacao_radambrasil_x_car_atp_fnl.parquet",
+      "mb": 511.782
+    },
+    {
+      "path": "data\\raw\\simcar_proxy\\SIMCAR_P_vegetacao_radambrasil_x_car_atp_nveg24.parquet",
+      "mb": 1680.183
+    },
+    {
+      "path": "data\\raw\\simcar_requerido\\CAR_ATP.parquet",
+      "mb": 139.607
+    },
+    {
+      "path": "data\\raw\\simcar_validado\\CAR_APPD_x_car_atp.parquet",
+      "mb": 305.907
+    },
+    {
+      "path": "data\\raw\\simcar_validado\\CAR_APPRL_x_car_atp.parquet",
+      "mb": 534.649
+    },
+    {
+      "path": "data\\raw\\simcar_validado\\CAR_APP_x_car_atp.parquet",
+      "mb": 766.7
+    },
+    {
+      "path": "data\\raw\\simcar_validado\\CAR_ARL_x_car_atp.parquet",
+      "mb": 447.184
+    },
+    {
+      "path": "data\\raw\\simcar_validado\\CAR_AVN_x_car_atp.parquet",
+      "mb": 474.387
+    },
+    {
+      "path": "data\\raw\\simcar_validado\\SIMCAR_CAR_AREA_CONSOLIDADA_x_car_atp.parquet",
+      "mb": 278.217
+    },
+    {
+      "path": "out\\control\\simcar_pdfs\\.edge_profile\\component_crx_cache\\f081de18a604e95a175eaf4dd91b35b7f17ad4de24ee2f20eeb034c979bbcccb",
+      "mb": 155.472
+    },
+    {
+      "path": "out\\control\\simcar_pdfs\\.edge_profile\\ProvenanceData\\2025.10.7.5\\vti-b-p32-visual.quant.ort",
+      "mb": 168.592
+    },
+    {
+      "path": "out\\table\\forest_code_mt_priority_consolidated_20260818.parquet",
+      "mb": 109.668
+    },
+    {
+      "path": "out\\table\\forest_code_mt_priority_consolidated_20261005.parquet",
+      "mb": 111.778
+    },
+    {
+      "path": "out\\table\\forest_code_mt_priority_consolidated_20261006.parquet",
+      "mb": 117.039
+    },
+    {
+      "path": "out\\table\\forest_code_mt_priority_consolidated_with_secondary_20260818.csv",
+      "mb": 280.909
+    },
+    {
+      "path": "out\\table\\forest_code_mt_priority_consolidated_with_secondary_20260818.parquet",
+      "mb": 124.761
+    },
+    {
+      "path": "out\\table\\forest_code_mt_priority_consolidated_with_secondary_20260818_zstd.parquet",
+      "mb": 100.748
+    },
+    {
+      "path": "out\\table\\forest_code_mt_priority_consolidated_with_secondary_20261006.csv",
+      "mb": 284.402
+    },
+    {
+      "path": "out\\table\\forest_code_mt_priority_consolidated_with_secondary_20261006.parquet",
+      "mb": 131.954
+    },
+    {
+      "path": "outputs\\codigo_florestal_mt_inputs_completos.csv",
+      "mb": 1014.599
+    },
+    {
+      "path": "outputs\\_raw_input_join.sqlite",
+      "mb": 417.664
+    }
+  ],
+  "zero_municipality_count": 0,
+  "invalid_municipality_count": 0,
+  "radam_zero_coverage_count": 28,
+  "formula_checks": {
+    "priority_order": [
+      "simcar_validado",
+      "simcar_digital",
+      "simcar_proxy"
+    ],
+    "net_formula_max_diff": 0.0,
+    "gross_formula_max_diff": 0.0,
+    "rl_split_max_diff": 0.0,
+    "rl_pathway_max_diff": 0.0,
+    "negative_core_cells": 0,
+    "secondary_formula_max_diff": 0.0
+  },
+  "method_checks_pass": true,
+  "ready_for_github": false
+}

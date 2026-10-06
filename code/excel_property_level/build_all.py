@@ -14,7 +14,7 @@ def run(name, env=None):
 
 if __name__ == "__main__":
     run("build_inputs.py")
-    for part in range(1, 12):
+    for part in range(1, 11):
         env = os.environ.copy()
         env["FC_PART"] = str(part)
         env["FC_PART_SIZE"] = "16000"
