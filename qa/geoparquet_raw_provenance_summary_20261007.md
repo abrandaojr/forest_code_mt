@@ -1,4 +1,4 @@
-# GeoParquet raw provenance summary - 20261006
+# GeoParquet raw provenance summary - 20261007
 
 This manifest treats converted GeoParquets as raw-converted data when they preserve source-layer content or serve as the direct geospatial inputs for final Forest Code calculations.
 

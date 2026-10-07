@@ -14,9 +14,9 @@ from shapely.strtree import STRtree
 
 ROOT = Path(__file__).resolve().parents[2]
 RAW = ROOT / "data/raw"
-TABLE = ROOT / "out/table/forest_code_mt_priority_consolidated_20261006.parquet"
-OUT = ROOT / "data/pre/statewide_app_partition_20261006.parquet"
-QA = ROOT / "qa/statewide_app_partition_20261006.json"
+TABLE = ROOT / "out/table/forest_code_mt_priority_consolidated_20261007.parquet"
+OUT = ROOT / "data/pre/statewide_app_partition_20261007.parquet"
+QA = ROOT / "qa/statewide_app_partition_20261007.json"
 
 SOURCES = {
     "simcar_validado": (RAW / "simcar_validado/CAR_APP_x_car_atp.parquet", RAW / "simcar_validado/CAR_AUAS_x_car_atp.parquet", "prop_id_unique"),

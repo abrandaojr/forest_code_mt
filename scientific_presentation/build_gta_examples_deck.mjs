@@ -57,7 +57,7 @@ text("Sources: OCF Mato Grosso diagnostic (2019); OCF Forest Code Thermometer (2
 text("Status: final model run dated 06 October 2026; external benchmarks remain non-equivalent.",{width:fill,height:fixed(60),style:{...base,fontSize:22,bold:true,color:C.red}})
 ]),footer(page)]),{frame:{left:0,top:0,width:1920,height:1080},baseUnit:8});}
 
-const out=path.join(ROOT,"deliverables","04_presentation","01_FOREST_CODE_PROPERTY_EXAMPLES_20261006.pptx");
+const out=path.join(ROOT,"deliverables","04_presentation","01_FOREST_CODE_PROPERTY_EXAMPLES_20261007.pptx");
 const previewDir=path.join(ROOT,"qa","presentation","gta_examples"); mkdirSync(previewDir,{recursive:true});
 const blob=await PresentationFile.exportPptx(deck); await blob.save(out);
 for(let i=0;i<deck.slides.items.length;i++){const png=await deck.slides.items[i].export({format:"png",scale:1});await writeFile(path.join(previewDir,`slide-${String(i+1).padStart(2,"0")}.png`),new Uint8Array(await png.arrayBuffer()));}

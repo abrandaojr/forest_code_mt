@@ -6,7 +6,7 @@ from pptx.util import Inches
 ROOT=Path(__file__).resolve().parents[1]
 FIG=ROOT/'out'/'fig'; HW=ROOT/'qa'/'presentation'/'scratch'/'assets'
 PRE=ROOT/'qa'/'presentation'/'dashboard_v2'; PRE.mkdir(parents=True,exist_ok=True)
-OUT=ROOT/'deliverables'/'04_presentation'/'02_FOREST_CODE_MT_RESULTS_20261006.pptx'
+OUT=ROOT/'deliverables'/'04_presentation'/'02_FOREST_CODE_MT_RESULTS_20261007.pptx'
 W,H=1600,900
 BG='#F3F2F0'; INK='#35247B'; GREEN='#1F7F53'; ORANGE='#EC4F6D'; BLUE='#08AAA8'; GOLD='#F6D65B'; MUTED='#65716D'; LINE='#D8DED7'; WHITE='#FFFFFF'; DARK='#102F2B'
 WEB=ROOT/'deliverables'/'04_presentation'/'assets'/'template_inspiration'
@@ -184,7 +184,7 @@ for j,rowv in enumerate(rows):
     for i,v in enumerate(rowv): txt(d,(xs[i]+12,y+24),v,20,INK,bold=(i==0))
 txt(d,(55,685),'Interpretation',22,ORANGE,True)
 txt(d,(55,730),'The project estimates more RL deficit and surplus, but less APP liability than OCF benchmarks.',25,INK,True)
-txt(d,(55,785),'Status: final model run dated 06 October 2026; denominators remain non-comparable across sources.',22,ORANGE,True)
+txt(d,(55,785),'Release: 07 October 2026. Model run: 06 October 2026; denominators remain non-comparable.',22,ORANGE,True)
 slides.append(save(im,14))
 
 # 15 — comparison protocol

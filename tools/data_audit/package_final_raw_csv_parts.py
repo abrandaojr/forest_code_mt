@@ -25,7 +25,7 @@ def main() -> None:
                     part += 1
                     if handle:
                         handle.close()
-                    path = DEST / f"final_property_raw_inputs_20261006_part_{part:02d}.csv"
+                    path = DEST / f"final_property_raw_inputs_20261007_part_{part:02d}.csv"
                     handle = path.open("w", encoding="utf-8-sig", newline="")
                     writer = csv.writer(handle, lineterminator="\n")
                     writer.writerow(header)

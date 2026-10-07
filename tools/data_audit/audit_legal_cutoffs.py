@@ -9,9 +9,9 @@ import pandas as pd
 
 
 ROOT = Path(__file__).resolve().parents[2]
-BASE = ROOT / "out" / "table" / "forest_code_mt_priority_consolidated_20261006.parquet"
-SECONDARY = ROOT / "out" / "table" / "forest_code_mt_priority_consolidated_with_secondary_20261006.parquet"
-OUT = ROOT / "qa" / "legal_cutoff_audit_20261006.json"
+BASE = ROOT / "out" / "table" / "forest_code_mt_priority_consolidated_20261007.parquet"
+SECONDARY = ROOT / "out" / "table" / "forest_code_mt_priority_consolidated_with_secondary_20261007.parquet"
+OUT = ROOT / "qa" / "legal_cutoff_audit_20261007.json"
 
 
 def num(df: pd.DataFrame, col: str) -> pd.Series:

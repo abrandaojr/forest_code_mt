@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[2]
 RAW = ROOT / "data" / "raw"
 OUT = ROOT / "deliverables" / "04_presentation" / "assets" / "gta_examples"
 OUT.mkdir(parents=True, exist_ok=True)
-TABLE = ROOT / "out" / "table" / "forest_code_gta_final_mt_with_secondary_20261006.parquet"
+TABLE = ROOT / "out" / "table" / "forest_code_gta_final_mt_with_secondary_20261007.parquet"
 
 SELECTED = [
     ("validated_large", "MT-5107602-4838366C339B49D69077F3DC87A8074C"),

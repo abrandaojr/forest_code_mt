@@ -14,8 +14,8 @@ import pandas as pd
 
 
 ROOT = Path(__file__).resolve().parents[2]
-SOURCE = ROOT / "out/table/forest_code_mt_priority_consolidated_with_secondary_20261006.parquet"
-OUT = ROOT / "qa/statewide_app_temporal_consistency_20261006"
+SOURCE = ROOT / "out/table/forest_code_mt_priority_consolidated_with_secondary_20261007.parquet"
+OUT = ROOT / "qa/statewide_app_temporal_consistency_20261007"
 EPS_HA = 0.01
 
 

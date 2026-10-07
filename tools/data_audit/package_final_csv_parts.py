@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-SOURCE = ROOT / "out" / "table" / "forest_code_mt_priority_consolidated_with_secondary_20261006.csv"
+SOURCE = ROOT / "out" / "table" / "forest_code_mt_priority_consolidated_with_secondary_20261007.csv"
 DEST = ROOT / "deliverables" / "02_csv"
 # Keep every artifact below the 100 MiB Google Drive connector limit.
 PART_SIZE = 40_000
@@ -26,7 +26,7 @@ def main() -> None:
                     part += 1
                     if handle:
                         handle.close()
-                    path = DEST / f"forest_code_mt_priority_consolidated_with_secondary_20261006_part_{part:02d}.csv"
+                    path = DEST / f"forest_code_mt_priority_consolidated_with_secondary_20261007_part_{part:02d}.csv"
                     handle = path.open("w", encoding="utf-8-sig", newline="")
                     writer = csv.writer(handle, lineterminator="\n")
                     writer.writerow(header)

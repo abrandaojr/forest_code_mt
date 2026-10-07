@@ -22,7 +22,7 @@
     "pipeline_portability_role": "portable precomputed input for final pipeline"
   },
   {
-    "relative_path": "data\\pre\\car_digital\\car_atp_joined_20261006.parquet",
+    "relative_path": "data\\pre\\car_digital\\car_atp_joined_20261007.parquet",
     "stage_folder": "data/pre",
     "extension": ".parquet",
     "size_mb": 114.4222,
@@ -55,7 +55,7 @@
     "pipeline_portability_role": "portable precomputed input for final pipeline"
   },
   {
-    "relative_path": "data\\pre\\car_proxy\\car_atp_joined_20261006.parquet",
+    "relative_path": "data\\pre\\car_proxy\\car_atp_joined_20261007.parquet",
     "stage_folder": "data/pre",
     "extension": ".parquet",
     "size_mb": 217.6574,
@@ -88,7 +88,7 @@
     "pipeline_portability_role": "portable precomputed input for final pipeline"
   },
   {
-    "relative_path": "data\\pre\\car_validated\\car_atp_joined_20261006.parquet",
+    "relative_path": "data\\pre\\car_validated\\car_atp_joined_20261007.parquet",
     "stage_folder": "data/pre",
     "extension": ".parquet",
     "size_mb": 34.0008,
@@ -121,7 +121,7 @@
     "pipeline_portability_role": "supporting/intermediate package data"
   },
   {
-    "relative_path": "data\\pre\\statewide_app_partition_20261006.parquet",
+    "relative_path": "data\\pre\\statewide_app_partition_20261007.parquet",
     "stage_folder": "data/pre",
     "extension": ".parquet",
     "size_mb": 9.195,

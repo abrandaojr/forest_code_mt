@@ -1,6 +1,6 @@
 # Final Forest Code package — Mato Grosso
 
-Release date: **2026-10-06**. Population: **155,547 unique rural properties**.
+Release date: **2026-10-07**. Model run: **2026-10-06**. Population: **155,547 unique rural properties**.
 
 Use the numbered folders in this order:
 

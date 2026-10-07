@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pandas as pd
+import numpy as np
 
 import _00_paths as paths
 
@@ -57,18 +58,13 @@ def report(pattern: str, required: bool = True) -> Path | None:
 
 
 def final_outputs() -> list[Path]:
+    """Return the compact set of artifacts retained in the final GitHub release."""
     return [
         TABLES / f"forest_code_mt_priority_consolidated_{DATE}.parquet",
         TABLES / f"forest_code_mt_priority_consolidated_with_secondary_{DATE}.parquet",
-        TABLES / f"forest_code_mt_priority_consolidated_with_secondary_{DATE}.csv",
         TABLES / f"forest_code_gta_final_mt_{DATE}.parquet",
         TABLES / f"masson_style_final_tables_figures_{DATE}.xlsx",
         REPORTS / f"forest_code_mt_final_report_{DATE}.docx",
-        REPORTS / f"forest_code_mt_one_pager_diagnostic_{DATE}.png",
-        REPORTS / f"diagnostico_codigo_florestal_mt_one_pager_{DATE}.png",
-        REPORTS / f"forest_code_mt_interactive_one_pager_{DATE}.html",
-        REPORTS / f"forest_code_mt_noncompliance_pdf_summary_{DATE}.html",
-        REPORTS / f"forest_code_mt_noncompliance_pdf_summary_{DATE}.pdf",
     ]
 
 
@@ -80,8 +76,14 @@ def load_priority(with_secondary: bool = False) -> pd.DataFrame:
 def formula_checks(fc: pd.DataFrame) -> dict[str, object]:
     checks = {
         "priority_order": list(fc["input_file_type"].astype(str).drop_duplicates()),
-        "net_formula_max_diff": float((num(fc, "calc_deficit_total_ha") - num(fc, "rl_adj_deficit_ha") - num(fc, "app_restore_ha")).abs().max()),
-        "gross_formula_max_diff": float((num(fc, "calc_gross_deficit_total_ha") - num(fc, "rl_gross_deficit_ha") - num(fc, "app_gross_deficit_ha")).abs().max()),
+        "net_formula_max_diff": float((
+            num(fc, "calc_deficit_total_ha")
+            - np.minimum(num(fc, "rl_adj_deficit_ha") + num(fc, "app_restore_ha"), num(fc, "area_ha_car"))
+        ).abs().max()),
+        "gross_formula_max_diff": float((
+            num(fc, "calc_gross_deficit_total_ha")
+            - np.minimum(num(fc, "rl_gross_deficit_ha") + num(fc, "app_gross_deficit_ha"), num(fc, "area_ha_car"))
+        ).abs().max()),
         "rl_split_max_diff": float((num(fc, "rl_adj_deficit_ha") - num(fc, "rl_adj_deficit_forest_ha") - num(fc, "rl_adj_deficit_cerrado_ha")).abs().max()),
         "rl_pathway_max_diff": float((num(fc, "rl_adj_deficit_ha") - num(fc, "rl_restore_ha") - num(fc, "rl_compensate_ha")).abs().max()),
         "negative_core_cells": int((fc[[c for c in ["rl_adj_deficit_ha", "rl_restore_ha", "rl_compensate_ha", "app_restore_ha", "calc_deficit_total_ha"] if c in fc]].apply(pd.to_numeric, errors="coerce").fillna(0) < -1e-9).sum().sum()),

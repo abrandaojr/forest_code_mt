@@ -8,7 +8,10 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-DECKS = [ROOT / "deliverables/04_presentation/01_FOREST_CODE_TWO_PROPERTY_WORKED_EXAMPLES_20260930.pptx"]
+DECKS = [
+    ROOT / "deliverables/04_presentation/01_FOREST_CODE_PROPERTY_EXAMPLES_20261007.pptx",
+    ROOT / "deliverables/04_presentation/02_FOREST_CODE_MT_RESULTS_20261007.pptx",
+]
 
 
 def update(path: Path) -> None:

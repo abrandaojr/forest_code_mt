@@ -1,6 +1,6 @@
 # GitHub package verification
 
-Checked at: 2026-10-06
+Checked at: 2026-10-07
 Ready for GitHub: False
 
 ## Findings
@@ -30,20 +30,20 @@ Ready for GitHub: False
 - data\pre\car_digital\car_atp_joined_20260818.parquet (113.591 MB)
 - data\pre\car_digital\car_atp_joined_20261005.csv (257.749 MB)
 - data\pre\car_digital\car_atp_joined_20261005.parquet (114.422 MB)
-- data\pre\car_digital\car_atp_joined_20261006.csv (257.749 MB)
-- data\pre\car_digital\car_atp_joined_20261006.parquet (114.422 MB)
+- data\pre\car_digital\car_atp_joined_20261007.csv (257.749 MB)
+- data\pre\car_digital\car_atp_joined_20261007.parquet (114.422 MB)
 - data\pre\car_digital\fc_summary_mt_20260818.xlsx (148.284 MB)
 - data\pre\car_digital\fc_summary_mt_20261005.xlsx (148.54 MB)
-- data\pre\car_digital\fc_summary_mt_20261006.xlsx (148.54 MB)
+- data\pre\car_digital\fc_summary_mt_20261007.xlsx (148.54 MB)
 - data\pre\car_proxy\car_atp_joined_20260818.csv (453.51 MB)
 - data\pre\car_proxy\car_atp_joined_20260818.parquet (214.059 MB)
 - data\pre\car_proxy\car_atp_joined_20261005.csv (456.338 MB)
 - data\pre\car_proxy\car_atp_joined_20261005.parquet (217.657 MB)
-- data\pre\car_proxy\car_atp_joined_20261006.csv (456.338 MB)
-- data\pre\car_proxy\car_atp_joined_20261006.parquet (217.657 MB)
+- data\pre\car_proxy\car_atp_joined_20261007.csv (456.338 MB)
+- data\pre\car_proxy\car_atp_joined_20261007.parquet (217.657 MB)
 - data\pre\car_proxy\fc_summary_mt_20260818.xlsx (259.344 MB)
 - data\pre\car_proxy\fc_summary_mt_20261005.xlsx (260.395 MB)
-- data\pre\car_proxy\fc_summary_mt_20261006.xlsx (260.395 MB)
+- data\pre\car_proxy\fc_summary_mt_20261007.xlsx (260.395 MB)
 - data\proc\simcar_proxy\simcar_p_march2026_geo_master.parquet (157.944 MB)
 - data\raw\simcar_digital\SIMCAR_D_APPD_1A2MF_AC_x_car_atp.parquet (475.329 MB)
 - data\raw\simcar_digital\SIMCAR_D_APPD_2A4MF_AC_x_car_atp.parquet (501.749 MB)
@@ -116,11 +116,11 @@ Ready for GitHub: False
 - out\control\simcar_pdfs\.edge_profile\ProvenanceData\2025.10.7.5\vti-b-p32-visual.quant.ort (168.592 MB)
 - out\table\forest_code_mt_priority_consolidated_20260818.parquet (109.668 MB)
 - out\table\forest_code_mt_priority_consolidated_20261005.parquet (111.778 MB)
-- out\table\forest_code_mt_priority_consolidated_20261006.parquet (117.039 MB)
+- out\table\forest_code_mt_priority_consolidated_20261007.parquet (117.039 MB)
 - out\table\forest_code_mt_priority_consolidated_with_secondary_20260818.csv (280.909 MB)
 - out\table\forest_code_mt_priority_consolidated_with_secondary_20260818.parquet (124.761 MB)
 - out\table\forest_code_mt_priority_consolidated_with_secondary_20260818_zstd.parquet (100.748 MB)
-- out\table\forest_code_mt_priority_consolidated_with_secondary_20261006.csv (284.402 MB)
-- out\table\forest_code_mt_priority_consolidated_with_secondary_20261006.parquet (131.954 MB)
+- out\table\forest_code_mt_priority_consolidated_with_secondary_20261007.csv (284.402 MB)
+- out\table\forest_code_mt_priority_consolidated_with_secondary_20261007.parquet (131.954 MB)
 - outputs\codigo_florestal_mt_inputs_completos.csv (1014.599 MB)
 - outputs\_raw_input_join.sqlite (417.664 MB)
